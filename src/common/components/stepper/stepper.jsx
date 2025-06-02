@@ -1,0 +1,60 @@
+import React from 'react';
+import Image from 'next/image';
+import { Icons } from '@/common/assets';
+
+function Stepper({ steps, className, currentStep }) {
+  const normalizedCurrentStep = Math.max(
+    1,
+    Math.min(currentStep, steps.length)
+  );
+
+  return (
+    <div
+      className={`p-6 w-full max-w-[263px] flex flex-col gap-12 bg-white border border-secondary-50 rounded-l-lg ${className}`}
+    >
+      {steps.map((step, index) => {
+        const stepNumber = index + 1;
+        const isCompleted = stepNumber < normalizedCurrentStep;
+        const isCurrent = stepNumber === normalizedCurrentStep;
+        const isUpcoming = stepNumber > normalizedCurrentStep;
+
+        return (
+          <div
+            key={index}
+            className="flex items-center gap-2 transition-colors"
+          >
+            <div
+              className={`relative ${index !== steps.length - 1 ? 'step' : ''}`}
+            >
+              {isCompleted || isCurrent ? (
+                <Image
+                  alt="step-icon"
+                  src={
+                    isCompleted
+                      ? Icons.completed
+                      : isCurrent
+                      ? Icons.pending
+                      : ''
+                  }
+                />
+              ) : (
+                <div className="w-6 h-6 text-sm text-gray-800 font-medium flex items-center justify-center rounded-full border border-secondary-50">
+                  {index + 1}
+                </div>
+              )}
+            </div>
+            <span
+              className={`text-base font-medium ${
+                isUpcoming ? 'opacity-60' : 'text-black'
+              }`}
+            >
+              {step}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export { Stepper };
