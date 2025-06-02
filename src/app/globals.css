@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -6,21 +7,179 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary-50: #e6f3eb;
+  --color-primary-100: #b0d9c0;
+  --color-primary-200: #8ac6a1;
+  --color-primary-300: #54ad76;
+  --color-primary-400: #339d5c;
+  --color-primary-500: #008433;
+  --color-primary-600: #00782e;
+  --color-primary-700: #005e24;
+  --color-primary-800: #00491c;
+  --color-primary-900: #003715;
+
+  --color-secondary-50: #e6eaee;
+  --color-secondary-100: #b0becb;
+  --color-secondary-200: #8a9eb2;
+  --color-secondary-300: #54728f;
+  --color-secondary-400: #335679;
+  --color-secondary-500: #002c58;
+  --color-secondary-600: #002850;
+  --color-secondary-700: #001f3e;
+  --color-secondary-800: #001830;
+  --color-secondary-900: #001225;
+
+  --color-gray-50: #f6f7f9;
+  --color-gray-100: #edeef2;
+  --color-gray-200: #dcdee6;
+  --color-gray-300: #bbbfcc;
+  --color-gray-400: #9ea2b3;
+  --color-gray-500: #838799;
+  --color-gray-600: #6b6f80;
+  --color-gray-700: #545766;
+  --color-gray-800: #3e414c;
+  --color-gray-900: #292b33;
+
+  --color-black: #030303;
+  --color-white: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  font-family: Montserrat !important;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.step::before {
+  top: 25;
+  left: 12px;
+  width: 2px;
+  content: '';
+  height: 50px;
+  position: absolute;
+  background-image: url('../common/assets/svg/dashed-line.svg');
 }
+
+/* Ant form */
+.ant-form-item-label > label::before,
+.ant-form-item-label > label::after {
+  display: none !important;
+}
+
+.ant-form-item-explain-error {
+  font-size: 12px;
+}
+
+.ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: #339d5c !important;
+}
+
+.ant-radio-checked .ant-radio-inner {
+  border-color: #339d5c !important;
+  background-color: #339d5c !important;
+}
+
+.ant-radio-wrapper .ant-radio-label {
+  color: #777b8b;
+}
+
+.ant-table-wrapper .ant-table-container {
+  border: none !important;
+}
+
+/* Ant table */
+.ant-table-wrapper table {
+  /* border-radius: 8px; */
+  border: 1px solid #f0f0f0;
+}
+
+.ant-table-thead > tr > th {
+  font-size: 15px;
+  border: none !important;
+  padding: 8px !important;
+  font-weight: 500 !important;
+  color: #373940 !important;
+  background-color: #f3f3f5 !important;
+}
+
+.ant-table-tbody > tr > td {
+  font-size: 15px;
+  border: none !important;
+  padding: 8px !important;
+  color: #777b8b !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.ant-table .ant-table-tbody > tr:hover > td {
+  background: inherit !important;
+}
+
+.ant-table-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+
+.ant-table .ant-table-tbody .ant-input,
+.ant-table .ant-table-tbody .ant-select {
+  width: 100%;
+  border: none;
+  height: 100%;
+  padding: 8px;
+  border-radius: 0;
+  line-height: normal;
+}
+.ant-table .ant-table-tbody .ant-select-selector {
+  padding: 0 !important;
+  border: none !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.ant-table .ant-table-tbody .ant-input:focus,
+.ant-table .ant-table-tbody .ant-input-focused {
+  box-shadow: none;
+}
+.ant-table .ant-table-tbody .ant-input:hover {
+  border: 1px solid #339d5c;
+  box-shadow: 0px 0px 0px 2px #7db02d33;
+}
+
+.ant-table-footer {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0 !important;
+  color: #373940 !important;
+  background: #e6eaee !important;
+}
+
+.ant-table .ant-table-tbody input[type='number']::-webkit-outer-spin-button,
+.ant-table .ant-table-tbody input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.ant-table .ant-table-tbody input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Ant modal */
+.ant-modal-content {
+  padding: 0 !important;
+}
+
+.ant-modal-header,
+.ant-modal-footer {
+  margin: 0 !important;
+}
+
+.ant-modal-content .ant-modal-body {
+  padding: 16px;
+  border-top: 1px solid #e6eaee;
+  border-bottom: 1px solid #e6eaee;
+}
+
+/* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
+  display: none !important;
+}
+
+.hide-ok-button .ant-picker-footer {
+  padding: 0;
+  min-height: 0;
+  border: none;
+} */
