@@ -23,11 +23,11 @@ const items = [
     label: 'Submit End of Month'
   },
   {
-    key: '/review/eod',
+    key: '/review/list/eod',
     label: 'Review EOD Submissions'
   },
   {
-    key: '/review/eom',
+    key: '/review/list/eom',
     label: 'Review EOM Submissions'
   }
 ];
@@ -62,13 +62,13 @@ export default function Header({ children }) {
       pathname.startsWith('/review/list/eod') ||
       pathname.startsWith('/review/eod/')
     ) {
-      return '/review/eod';
+      return '/review/list/eod';
     }
     if (
       pathname.startsWith('/review/list/eom') ||
       pathname.startsWith('/review/eom/')
     ) {
-      return '/review/eom';
+      return '/review/list/eom';
     }
     return '';
   };
@@ -79,7 +79,7 @@ export default function Header({ children }) {
     if (key.startsWith('/submission')) {
       router.push(`${key}/1`);
     } else if (key.startsWith('/review')) {
-      router.push(`${key}/list`);
+      router.push(`${key}`);
     }
   };
 
