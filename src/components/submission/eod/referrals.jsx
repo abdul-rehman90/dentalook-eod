@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import { Col } from 'antd';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
@@ -13,33 +12,8 @@ const sourceOptions = [
   { value: 'Other', label: 'Other' }
 ];
 
-export default function AttritionTracking({ onNext }) {
+export default function Referrals({ onNext }) {
   const [tableData, setTableData] = useState([]);
-  const [noOfPatients, setNoOfPatients] = useState(0);
-
-  // Calculate summary data
-  const summaryData = useMemo(() => {
-    return [
-      {
-        key: 'summary',
-        noOfPatients: `${noOfPatients}`
-      }
-    ];
-  }, [noOfPatients]);
-
-  const newAttritionColumns = [
-    {
-      title: '',
-      key: 'summary',
-      dataIndex: 'summary',
-      render: () => 'This Day'
-    },
-    {
-      key: 'noOfPatients',
-      dataIndex: 'noOfPatients',
-      title: 'Number of Patients'
-    }
-  ];
 
   const patientReasonColumns = [
     {
@@ -52,20 +26,29 @@ export default function AttritionTracking({ onNext }) {
     },
     {
       width: 150,
-      key: 'reason',
       editable: true,
-      title: 'Reason',
-      dataIndex: 'reason',
       inputType: 'select',
+      key: 'provider_name',
+      title: 'Provider Name',
+      dataIndex: 'provider_name',
+      selectOptions: sourceOptions
+    },
+    {
+      width: 150,
+      editable: true,
+      key: 'speciality',
+      title: 'Speciality',
+      inputType: 'select',
+      dataIndex: 'speciality',
       selectOptions: sourceOptions
     },
     {
       width: 250,
+      key: 'reason',
       editable: true,
-      key: 'comments',
-      title: 'Comments',
       inputType: 'text',
-      dataIndex: 'comments'
+      dataIndex: 'Reason',
+      title: 'Reason (Clinic/Provider referred to)'
     },
     {
       width: 50,
@@ -91,7 +74,7 @@ export default function AttritionTracking({ onNext }) {
     );
   };
 
-  const handleAddAttrition = () => {
+  const handleAddRefferals = () => {
     const newKey =
       tableData.length > 0
         ? Math.max(...tableData.map((item) => item.key)) + 1
@@ -101,47 +84,37 @@ export default function AttritionTracking({ onNext }) {
       {
         key: newKey,
         reason: '',
-        comments: '',
-        patient_name: ''
+        speciality: '',
+        patient_name: '',
+        provider_name: ''
       }
     ]);
-    setNoOfPatients((prev) => prev + 1);
   };
 
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
-    setNoOfPatients((prev) => Math.max(0, prev - 1)); // Ensure actual doesn't go below 0
   };
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
-        <Col span={10}>
-          <h2 className="text-base font-medium text-black mb-4">Attrition</h2>
-          <GenericTable
-            dataSource={summaryData}
-            columns={newAttritionColumns}
-          />
-        </Col>
-        <div className="pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">
-              Attrition Reason
-            </h1>
-            <Button
-              size="lg"
-              onClick={handleAddAttrition}
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Add New Attrition
-            </Button>
-          </div>
-          <GenericTable
-            dataSource={tableData}
-            columns={patientReasonColumns}
-            onCellChange={handleCellChange}
-          />
+      <div className="px-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-base font-medium text-black">
+            Outgoing Patient Referral
+          </h1>
+          <Button
+            size="lg"
+            onClick={handleAddRefferals}
+            className="h-9 !shadow-none text-black !rounded-lg"
+          >
+            Add New Refferals
+          </Button>
         </div>
+        <GenericTable
+          dataSource={tableData}
+          columns={patientReasonColumns}
+          onCellChange={handleCellChange}
+        />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

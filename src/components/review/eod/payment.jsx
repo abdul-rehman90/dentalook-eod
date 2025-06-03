@@ -76,16 +76,6 @@ export default function Payment({ onNext }) {
     setPayments(newPayments);
   };
 
-  const handleAddPayment = () => {
-    const newPayment = {
-      key: payments.length ? Math.max(...payments.map((p) => p.key)) + 1 : 1,
-      type: '',
-      amount: '',
-      action: ''
-    };
-    setPayments([...payments, newPayment]);
-  };
-
   const handleDelete = (key) => {
     setPayments(payments.filter((item) => item.key !== key));
   };
@@ -93,16 +83,7 @@ export default function Payment({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-medium text-black">Payments</h1>
-          <Button
-            size="lg"
-            onClick={handleAddPayment}
-            className="h-9 !shadow-none text-black !rounded-lg"
-          >
-            Add New Payment
-          </Button>
-        </div>
+        <h1 className="text-base font-medium text-black mb-4">Payments</h1>
         <Row gutter={16}>
           <Col span={16}>
             <GenericTable

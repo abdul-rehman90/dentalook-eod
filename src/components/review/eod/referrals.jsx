@@ -74,42 +74,16 @@ export default function Referrals({ onNext }) {
     );
   };
 
-  const handleAddRefferals = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    setTableData([
-      ...tableData,
-      {
-        key: newKey,
-        reason: '',
-        speciality: '',
-        patient_name: '',
-        provider_name: ''
-      }
-    ]);
-  };
-
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
   };
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-base font-medium text-black">
-            Outgoing Patient Referral
-          </h1>
-          <Button
-            size="lg"
-            onClick={handleAddRefferals}
-            className="h-9 !shadow-none text-black !rounded-lg"
-          >
-            Add New Refferals
-          </Button>
-        </div>
+      <div className="px-6">
+        <h1 className="text-base font-medium text-black mb-4">
+          Outgoing Patient Referral
+        </h1>
         <GenericTable
           dataSource={tableData}
           columns={patientReasonColumns}

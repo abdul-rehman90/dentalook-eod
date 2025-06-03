@@ -11,7 +11,7 @@ import {
   CardDescription
 } from '@/common/components/card/card';
 
-export default function Index() {
+export default function ClinicsReporting() {
   const router = useRouter();
 
   const cardsData = [
@@ -19,25 +19,25 @@ export default function Index() {
       id: '1',
       title: 'Submit End Of Day',
       description: "Record today's clinic operations",
-      route: '/reports/eod/1'
+      route: '/submission/eod/1'
     },
     {
       id: '2',
       title: 'Submit End of Month',
       description: 'Submit monthly performance summary',
-      route: '/reports/eom/1'
+      route: '/submission/eom/1'
     },
     {
       id: '3',
       title: 'Review EOD Submissions',
       description: 'Access your EOD recorded reports here',
-      route: '/reports/eod/history'
+      route: '/review/list/eod'
     },
     {
       id: '4',
       title: 'Review EOM Submissions',
       description: 'Access your EOM recorded reports here',
-      route: '/reports/eom/history'
+      route: '/review/list/eom'
     }
   ];
 
