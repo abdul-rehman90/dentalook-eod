@@ -3,70 +3,47 @@
 import React from 'react';
 import { LeftOutlined } from '@ant-design/icons';
 import { useParams, useRouter } from 'next/navigation';
-import Payment from '@/components/reports/eod/payment';
 import { Button } from '@/common/components/button/button';
-import Referrals from '@/components/reports/eod/referrals';
-import BasicDetails from '@/components/reports/eod/basic-details';
-import TeamAbsences from '@/components/reports/eod/team-absences';
-import DailyProduction from '@/components/reports/eod/daily-production';
-import PatientTracking from '@/components/reports/eod/patient-tracking';
-import ScheduleOpening from '@/components/reports/eod/schedule-opening';
-import AttritionTracking from '@/components/reports/eod/attrition-tracking';
+import { useGlobalContext } from '@/common/context/global-context';
 import {
   Card,
   CardTitle,
   CardHeader,
   CardDescription
 } from '@/common/components/card/card';
+import {
+  PaymentEOD,
+  ReferralsEOD,
+  BasicDetailsEOD,
+  TeamAbsencesEOD,
+  DailyProductionEOD,
+  ScheduleOpeningEOD,
+  PatientTrackingEOD,
+  AttritionTrackingEOD
+} from '@/components/review/eod';
 
-const stepConfig = {
-  eod: [
-    'Basic Details',
-    'Daily Production',
-    'Payment',
-    'Team Absences',
-    'Schedule Openings',
-    'Patient Tracking',
-    'Attrition Tracking',
-    'Referrals'
-  ],
-  eom: [
-    'Basic Details',
-    'Account Receivable',
-    'Equipment',
-    'Clinic Upgrades',
-    'Hiring and Training',
-    'Supplies',
-    'Google Reviews',
-    'Issues/Ideas'
-  ]
-};
-
-export default function ReportPage() {
+export default function SubmissionPage() {
   const router = useRouter();
   const { type, step } = useParams();
   const currentStep = parseInt(step);
-  const totalSteps = type === 'eod' ? 8 : 6;
+  const { stepConfig } = useGlobalContext();
+  const totalSteps = stepConfig[type].length;
 
   const stepComponents = {
     eod: {
-      1: <BasicDetails onNext={handle} />,
-      2: <DailyProduction onNext={handle} />,
-      3: <Payment onNext={handle} />,
-      4: <TeamAbsences onNext={handle} />,
-      5: <ScheduleOpening onNext={handle} />,
-      6: <PatientTracking onNext={handle} />,
-      7: <AttritionTracking onNext={handle} />,
-      8: <Referrals onNext={handle} />
-    },
-    eom: {
-      1: <BasicDetails />,
-      2: <DailyProduction />
+      1: <BasicDetailsEOD onNext={handle} />,
+      2: <DailyProductionEOD onNext={handle} />,
+      3: <PaymentEOD onNext={handle} />,
+      4: <TeamAbsencesEOD onNext={handle} />,
+      5: <ScheduleOpeningEOD onNext={handle} />,
+      6: <PatientTrackingEOD onNext={handle} />,
+      7: <AttritionTrackingEOD onNext={handle} />,
+      8: <ReferralsEOD />
     }
   };
 
   function handle() {
-    router.push(`/reports/${type}/${currentStep + 1}`);
+    router.push(`/review/${type}/${currentStep + 1}`);
   }
 
   return (
@@ -74,7 +51,12 @@ export default function ReportPage() {
       <Card className="!py-4 !border-0 bg-white !shadow-none !rounded-none">
         <div className="flex items-center justify-between px-5">
           <CardTitle className="flex items-center text-[18px] font-semibold text-black">
-            <Button size="icon" variant="destructive" className="mr-2">
+            <Button
+              size="icon"
+              className="mr-2"
+              variant="destructive"
+              onClick={() => router.push('/clinics-reporting')}
+            >
               <LeftOutlined />
             </Button>
             Submit {type.toUpperCase()}

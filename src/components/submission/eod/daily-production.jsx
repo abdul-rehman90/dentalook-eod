@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
+import { Icons } from '@/common/assets';
 import { Form, Modal, Typography } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
@@ -23,7 +24,6 @@ const providerTypeOptions = [
 export default function DailyProduction({ onNext }) {
   const [form] = Form.useForm();
   const [tableData, setTableData] = useState([]);
-  const [editingKey, setEditingKey] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [goal, setGoal] = useState(6367);
 
@@ -114,10 +114,11 @@ export default function DailyProduction({ onNext }) {
       render: (_, record) => (
         <Button
           size="icon"
+          className="ml-3"
           variant="destructive"
-          onClick={() => handleEdit(record)}
+          onClick={() => handleDelete(record.key)}
         >
-          <EditOutlined />
+          <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
@@ -127,35 +128,17 @@ export default function DailyProduction({ onNext }) {
     form
       .validateFields()
       .then((values) => {
-        if (editingKey) {
-          setTableData(
-            tableData.map((item) =>
-              item.key === editingKey
-                ? {
-                    key: editingKey,
-                    province: values.province,
-                    type: values.provider_title,
-                    providerName: values.provider_name,
-                    practiceName: values.practice_name,
-                    production: Number(values.production)
-                  }
-                : item
-            )
-          );
-        } else {
-          const newData = {
-            key: Date.now().toString(),
-            province: values.province,
-            type: values.provider_title,
-            providerName: values.provider_name,
-            practiceName: values.practice_name,
-            production: Number(values.production)
-          };
-          setTableData([...tableData, newData]);
-        }
+        const newData = {
+          key: Date.now().toString(),
+          province: values.province,
+          type: values.provider_title,
+          providerName: values.provider_name,
+          practiceName: values.practice_name,
+          production: Number(values.production)
+        };
+        setTableData([...tableData, newData]);
 
         form.resetFields();
-        setEditingKey(null);
         setIsModalOpen(false);
       })
       .catch((err) => {
@@ -176,26 +159,18 @@ export default function DailyProduction({ onNext }) {
     );
   };
 
-  const handleEdit = (record) => {
-    form.setFieldsValue({
-      province: record.province,
-      provider_title: record.type,
-      practice_name: record.practiceName,
-      provider_name: record.providerName,
-      production: record.production
-    });
-    setIsModalOpen(true);
-    setEditingKey(record.key);
+  const handleDelete = (key) => {
+    setTableData(tableData.filter((item) => item.key !== key));
   };
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
+      <div className="flex flex-col gap-6 px-6">
         <GenericTable
           dataSource={summaryData}
           columns={totalProductionColumns}
         />
-        <div className="pb-6">
+        <div>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-base font-medium text-black">
               Daily Production ($)
@@ -261,7 +236,7 @@ export default function DailyProduction({ onNext }) {
                 onClick={createProduction}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
-                {editingKey ? 'Update' : 'Create'}
+                Create
               </Button>
             </div>
           }

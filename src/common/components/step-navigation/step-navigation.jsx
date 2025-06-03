@@ -1,16 +1,18 @@
 import React from 'react';
 import { Button } from '../button/button';
 import { useParams, useRouter } from 'next/navigation';
+import { useGlobalContext } from '@/common/context/global-context';
 
 export default function StepNavigation({ onNext }) {
   const router = useRouter();
   const { type, step } = useParams();
   const currentStep = parseInt(step);
-  const totalSteps = type === 'eod' ? 8 : 6;
+  const { stepConfig } = useGlobalContext();
+  const totalSteps = stepConfig[type].length;
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      router.push(`/reports/${type}/${currentStep - 1}`);
+      router.push(`/submission/${type}/${currentStep - 1}`);
     }
   };
 

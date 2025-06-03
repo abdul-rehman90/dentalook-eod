@@ -105,23 +105,6 @@ export default function PatientTracking({ onNext }) {
     );
   };
 
-  const handleAddPatient = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    setTableData([
-      ...tableData,
-      {
-        key: newKey,
-        source: '',
-        comments: '',
-        patient_name: ''
-      }
-    ]);
-    setActual((prev) => prev + 1);
-  };
-
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
     setActual((prev) => Math.max(0, prev - 1)); // Ensure actual doesn't go below 0
@@ -136,17 +119,10 @@ export default function PatientTracking({ onNext }) {
           </h2>
           <GenericTable dataSource={summaryData} columns={newPatientColumns} />
         </Col>
-        <div className="pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">Patient Source</h1>
-            <Button
-              size="lg"
-              onClick={handleAddPatient}
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Add New Patient
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-base font-medium text-black mb-4">
+            Patient Source
+          </h1>
           <GenericTable
             dataSource={tableData}
             columns={patientSourceColumns}
