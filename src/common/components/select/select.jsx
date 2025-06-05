@@ -7,6 +7,7 @@ export default function SelectField({
   options,
   required,
   message = '',
+  disabled = false,
   placeholder = 'Select one'
 }) {
   return (
@@ -22,7 +23,7 @@ export default function SelectField({
         </span>
       }
     >
-      <Select placeholder={placeholder}>
+      <Select disabled={disabled} placeholder={placeholder}>
         {options.map((item) => (
           <Select.Option value={item.value}>{item.label}</Select.Option>
         ))}
