@@ -1,9 +1,6 @@
 import React from 'react';
 import { Form, TimePicker } from 'antd';
 
-// import dayjs from 'dayjs';
-const format = 'HH:mm';
-
 export default function TimePickerField({
   name,
   label,
@@ -26,8 +23,8 @@ export default function TimePickerField({
       }
     >
       <TimePicker
+        format="HH:mm"
         showNow={false}
-        format={format}
         disabled={disabled}
         inputReadOnly={true}
         style={{ width: '100%' }}

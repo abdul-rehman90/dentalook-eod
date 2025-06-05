@@ -58,6 +58,11 @@
   background-image: url('../common/assets/svg/dashed-line.svg');
 }
 
+.proud-moment label > span {
+  line-height: 18px;
+  white-space: break-spaces;
+}
+
 /* Ant form */
 .ant-form-item-label > label::before,
 .ant-form-item-label > label::after {
@@ -117,7 +122,8 @@
 }
 
 .ant-table .ant-table-tbody .ant-input,
-.ant-table .ant-table-tbody .ant-select {
+.ant-table .ant-table-tbody .ant-select,
+.ant-table .ant-table-tbody .ant-picker {
   width: 100%;
   border: none;
   height: 100%;
@@ -133,7 +139,9 @@
   box-shadow: none !important;
 }
 .ant-table .ant-table-tbody .ant-input:focus,
-.ant-table .ant-table-tbody .ant-input-focused {
+.ant-table .ant-table-tbody .ant-picker:focus,
+.ant-table .ant-table-tbody .ant-input-focused,
+.ant-table .ant-table-tbody .ant-picker-focused {
   box-shadow: none;
 }
 .ant-table .ant-table-tbody .ant-input:hover {
@@ -172,6 +180,34 @@
   padding: 16px;
   border-top: 1px solid #e6eaee;
   border-bottom: 1px solid #e6eaee;
+}
+
+.ant-tabs-nav::before {
+  display: none;
+}
+
+.ant-tabs .ant-tabs-tab {
+  padding: 6px 0 !important;
+  margin-left: 20px !important;
+}
+
+.ant-tabs .ant-tabs-tab-active {
+  border-bottom: 2px solid #339d5c;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn,
+.ant-tabs-tab-btn:active {
+  color: #339d5c !important;
+}
+
+.ant-tabs .ant-tabs-tab:hover {
+  color: #339d5c !important;
+  border-bottom: 2px solid #339d5c;
+  transition: color all 0.3s, border-bottom all 0.3s, padding all 0.3s;
+}
+
+.ant-tabs .ant-tabs-ink-bar {
+  display: none !important;
 }
 
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {

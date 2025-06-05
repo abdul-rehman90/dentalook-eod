@@ -10,7 +10,7 @@ function Stepper({ steps, className, currentStep }) {
 
   return (
     <div
-      className={`p-6 w-full max-w-[263px] flex flex-col gap-12 bg-white border border-secondary-50 rounded-l-lg ${className}`}
+      className={`p-6 w-full max-w-[263px] sticky top-[86px] flex flex-col gap-12 bg-white overflow-auto max-h-[calc(100vh-88px)] rounded-l-lg ${className}`}
     >
       {steps.map((step, index) => {
         const stepNumber = index + 1;
