@@ -40,11 +40,11 @@ export default function Header({ children }) {
   const menuProps = {
     items: [
       {
-        label: '1st menu item',
+        label: 'Copy link',
         key: '1'
       },
       {
-        label: '2nd menu item',
+        label: 'Add to Teams',
         key: '2'
       }
     ],

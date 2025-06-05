@@ -13,7 +13,7 @@ export default function SubmissionLayout({ children }) {
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
-      <div className="">
+      <div className="bg-white border border-secondary-50 rounded-l-lg">
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
       {children}

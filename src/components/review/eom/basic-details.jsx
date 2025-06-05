@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Form } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function BasicDetails({ onNext }) {
   const [form] = Form.useForm();
-  const [clinicStatus, setClinicStatus] = useState('close');
-
-  const options = [
-    { label: 'Open', value: 'open' },
-    { label: 'Close', value: 'close' }
-  ];
 
   const selectOptions = [
     { value: 'california', label: 'California' },
@@ -59,30 +53,21 @@ export default function BasicDetails({ onNext }) {
           // required
           disabled
           control="date"
+          picker="month"
+          format="MMM YYYY"
           name="submission_date"
           label="Submission Date"
+          placeholder="Select Date"
         />
-        <FormControl
-          name="clinic"
-          control="radio"
-          options={options}
-          label="Clinic Open/Closed?"
-          onChange={(e) => setClinicStatus(e.target.value)}
-        />
-        <FormControl
-          control="time"
-          name="open_from"
-          label="Open From"
-          required={clinicStatus === 'open'}
-          disabled={clinicStatus === 'close'}
-        />
-        <FormControl
-          control="time"
-          name="open_to"
-          label="Open To"
-          required={clinicStatus === 'open'}
-          disabled={clinicStatus === 'close'}
-        />
+        <div className="proud-moment">
+          <FormControl
+            disabled
+            name="moment"
+            control="input"
+            label="Proud Moment of the Month:"
+            placeholder="Write your proud moment"
+          />
+        </div>
       </Form>
       <StepNavigation onNext={createBasicDetails} />
     </React.Fragment>

@@ -8,6 +8,7 @@ export default function DatePickerField({
   placeholder,
   message = '',
   picker = 'day',
+  disabled = false,
   format = 'MM/DD/YYYY',
   disableFutureDates = true
 }) {
@@ -36,6 +37,7 @@ export default function DatePickerField({
       <DatePicker
         picker={picker}
         format={format}
+        disabled={disabled}
         style={{ width: '100%' }}
         placeholder={placeholder}
         disabledDate={disabledDate}
