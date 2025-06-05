@@ -21,6 +21,16 @@ import {
   PatientTrackingEOD,
   AttritionTrackingEOD
 } from '@/components/review/eod';
+import {
+  SuppliesEOM,
+  EquipmentEOM,
+  IssuesIdeasEOM,
+  BasicDetailsEOM,
+  GoogleReviewsEOM,
+  HiringTrainingEOM,
+  ClinicalUpgradeEOM,
+  AccountReceivableEOM
+} from '@/components/review/eom';
 
 export default function SubmissionPage() {
   const router = useRouter();
@@ -39,6 +49,16 @@ export default function SubmissionPage() {
       6: <PatientTrackingEOD onNext={handle} />,
       7: <AttritionTrackingEOD onNext={handle} />,
       8: <ReferralsEOD />
+    },
+    eom: {
+      1: <BasicDetailsEOM onNext={handle} />,
+      2: <AccountReceivableEOM onNext={handle} />,
+      3: <EquipmentEOM onNext={handle} />,
+      4: <ClinicalUpgradeEOM onNext={handle} />,
+      5: <HiringTrainingEOM onNext={handle} />,
+      6: <SuppliesEOM onNext={handle} />,
+      7: <GoogleReviewsEOM onNext={handle} />,
+      8: <IssuesIdeasEOM />
     }
   };
 
@@ -59,25 +79,20 @@ export default function SubmissionPage() {
             >
               <LeftOutlined />
             </Button>
-            Submit {type.toUpperCase()}
-            <div className="w-11 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center ml-3">
-              New
+            End of {type === 'eod' ? 'Day' : 'Month'} Reporting: View
+            <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
+              Submitted
             </div>
+            Calling Lakes Dental
           </CardTitle>
           <div className="flex items-center gap-4">
             <Button
               size="lg"
               variant="outline"
               className="h-9 !shadow-none text-black !rounded-lg"
+              onClick={() => router.push(`/review/list/${type}`)}
             >
               Cancel
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Submit
             </Button>
           </div>
         </div>

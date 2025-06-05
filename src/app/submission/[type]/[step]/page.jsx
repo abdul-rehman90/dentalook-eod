@@ -89,6 +89,7 @@ export default function SubmissionPage() {
               size="lg"
               variant="outline"
               className="h-9 !shadow-none text-black !rounded-lg"
+              onClick={() => router.push(`/review/list/${type}`)}
             >
               Cancel
             </Button>

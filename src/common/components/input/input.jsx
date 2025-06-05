@@ -6,6 +6,7 @@ export default function InputField({
   label,
   required,
   message = '',
+  disabled = false,
   placeholder = ''
 }) {
   return (
@@ -21,7 +22,7 @@ export default function InputField({
         </span>
       }
     >
-      <Input placeholder={placeholder} />
+      <Input disabled={disabled} placeholder={placeholder} />
     </Form.Item>
   );
 }
