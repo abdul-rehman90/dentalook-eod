@@ -1,9 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
-// import makeRequest from '../api/axios.config';
-// import { API_ENDPOINTS } from '../api/endpoints';
-// import { HTTP } from '../constants/http-methods.constant';
+import { useParams } from 'next/navigation';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const stepConfig = {
   eod: [
@@ -31,14 +29,23 @@ const stepConfig = {
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const { type } = useParams();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setData(null);
+  }, [type]);
 
   return (
     <AppContext.Provider
       value={{
+        data,
         loading,
-        setLoading,
-        stepConfig
+        setData,
+        stepConfig,
+        setLoading
+        // handleClick
       }}
     >
       {children}

@@ -1,33 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+
+const options = [
+  { label: 'Open', value: 'open' },
+  { label: 'Close', value: 'close' }
+];
+
+const selectOptions = [
+  { value: 'california', label: 'California' },
+  { value: 'new_york', label: 'New York' },
+  { value: 'texas', label: 'Texas' },
+  { value: 'florida', label: 'Florida' }
+];
 
 export default function BasicDetails({ onNext }) {
   const [form] = Form.useForm();
-  const [clinicStatus, setClinicStatus] = useState('close');
-
-  const options = [
-    { label: 'Open', value: 'open' },
-    { label: 'Close', value: 'close' }
-  ];
-
-  const selectOptions = [
-    { value: 'california', label: 'California' },
-    { value: 'new_york', label: 'New York' },
-    { value: 'texas', label: 'Texas' },
-    { value: 'florida', label: 'Florida' }
-  ];
+  const { data, setData } = useGlobalContext();
+  const [clinicStatus, setClinicStatus] = useState(data?.clinic || 'close');
 
   const createBasicDetails = async () => {
     try {
       const values = await form.validateFields();
-      console.log(values);
+      setData(values);
       onNext();
     } catch (error) {
       return;
     }
   };
+
+  useEffect(() => {
+    if (data) {
+      form.setFieldsValue(data);
+      setClinicStatus(data.clinic || 'close');
+    }
+  }, []);
 
   return (
     <React.Fragment>
