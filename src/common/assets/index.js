@@ -21,3 +21,7 @@ export const Icons = {
   userAvatar,
   fullScreen
 };
+
+export const Images = {
+  dentalook: require('./images/dentalook.png')
+};

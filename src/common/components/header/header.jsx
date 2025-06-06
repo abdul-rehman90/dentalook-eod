@@ -32,7 +32,7 @@ const items = [
   }
 ];
 
-export default function Header({ children }) {
+export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
@@ -88,61 +88,58 @@ export default function Header({ children }) {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-10 bg-white border-b border-secondary-50 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div
-              className="cursor-pointer"
-              onClick={() => router.push('/clinics-reporting')}
-            >
-              <Image src={Icons.logo} alt="logo" />
-            </div>
-            {!isMainRoute && (
-              <Tabs
-                items={items}
-                onChange={onChange}
-                activeKey={activeKey}
-                className="[&_.ant-tabs-nav]:!mb-0"
-                tabBarStyle={{
-                  fontWeight: 500,
-                  color: '#030303'
-                }}
-              />
-            )}
+    <header className="sticky top-0 z-10 bg-white border-b border-secondary-50 p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div
+            className="cursor-pointer"
+            onClick={() => router.push('/clinics-reporting')}
+          >
+            <Image src={Icons.logo} alt="logo" />
           </div>
-          <div className="flex items-center space-x-3">
-            <Dropdown menu={menuProps}>
-              <Button
-                size="sm"
-                variant="outline"
-                className="!px-5 h-8.5 text-black"
-              >
-                <Image src={Icons.share} alt="share" />
-                Share
-                <DownOutlined style={{ width: 14, height: 14 }} />
-              </Button>
-            </Dropdown>
-            <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-              <Image src={Icons.fullScreen} alt="fullscreen" />
-            </Button>
-            <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-              <Image src={Icons.download} alt="download" />
-            </Button>
-            <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-              <Image src={Icons.setting} alt="setting" />
-            </Button>
-            <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-              <Image src={Icons.help} alt="help" />
-            </Button>
-            <Avatar className="w-8.5 h-8.5">
-              <AvatarImage src={Icons.userAvatar.src} />
-              <AvatarFallback></AvatarFallback>
-            </Avatar>
-          </div>
+          {!isMainRoute && (
+            <Tabs
+              items={items}
+              onChange={onChange}
+              activeKey={activeKey}
+              className="[&_.ant-tabs-nav]:!mb-0"
+              tabBarStyle={{
+                fontWeight: 500,
+                color: '#030303'
+              }}
+            />
+          )}
         </div>
-      </header>
-      {children}
-    </div>
+        <div className="flex items-center space-x-3">
+          <Dropdown menu={menuProps}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="!px-5 h-8.5 text-black"
+            >
+              <Image src={Icons.share} alt="share" />
+              Share
+              <DownOutlined style={{ width: 14, height: 14 }} />
+            </Button>
+          </Dropdown>
+          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
+            <Image src={Icons.fullScreen} alt="fullscreen" />
+          </Button>
+          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
+            <Image src={Icons.download} alt="download" />
+          </Button>
+          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
+            <Image src={Icons.setting} alt="setting" />
+          </Button>
+          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
+            <Image src={Icons.help} alt="help" />
+          </Button>
+          <Avatar className="w-8.5 h-8.5">
+            <AvatarImage src={Icons.userAvatar.src} />
+            <AvatarFallback></AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+    </header>
   );
 }

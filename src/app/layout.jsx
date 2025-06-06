@@ -1,5 +1,4 @@
 import { Montserrat } from 'next/font/google';
-import Header from '@/common/components/header/header';
 import { AppProvider } from '@/common/context/global-context';
 import './globals.css';
 
@@ -14,9 +13,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={montserrat.className}>
-        <AppProvider>
-          <Header>{children}</Header>
-        </AppProvider>
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );

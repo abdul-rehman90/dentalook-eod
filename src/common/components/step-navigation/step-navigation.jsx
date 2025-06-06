@@ -9,6 +9,7 @@ export default function StepNavigation({ onNext }) {
   const currentStep = parseInt(step);
   const { stepConfig } = useGlobalContext();
   const totalSteps = stepConfig[type].length;
+  console.log('stepper');
 
   const handlePrevious = () => {
     if (currentStep > 1) {
