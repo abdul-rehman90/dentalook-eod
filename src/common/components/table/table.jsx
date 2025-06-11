@@ -31,6 +31,7 @@ function GenericTable({
               value={text}
               controls={false}
               type={col.inputType}
+              disabled={col.disabled}
               onChange={(e) =>
                 onCellChange(record, col.dataIndex, e.target.value)
               }

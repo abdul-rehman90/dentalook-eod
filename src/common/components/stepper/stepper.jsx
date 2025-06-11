@@ -1,8 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
+import { useGlobalContext } from '@/common/context/global-context';
 
-function Stepper({ steps, className, currentStep }) {
+function Stepper({ className }) {
+  const { steps, currentStep } = useGlobalContext();
   const normalizedCurrentStep = Math.max(
     1,
     Math.min(currentStep, steps.length)
@@ -48,7 +50,7 @@ function Stepper({ steps, className, currentStep }) {
                 isUpcoming ? 'opacity-60' : 'text-black'
               }`}
             >
-              {step}
+              {step.name}
             </span>
           </div>
         );

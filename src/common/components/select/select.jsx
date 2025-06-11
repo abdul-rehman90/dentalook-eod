@@ -6,6 +6,7 @@ export default function SelectField({
   label,
   options,
   required,
+  onChange,
   message = '',
   disabled = false,
   placeholder = 'Select one'
@@ -23,7 +24,7 @@ export default function SelectField({
         </span>
       }
     >
-      <Select disabled={disabled} placeholder={placeholder}>
+      <Select onChange={onChange} disabled={disabled} placeholder={placeholder}>
         {options.map((item) => (
           <Select.Option value={item.value}>{item.label}</Select.Option>
         ))}

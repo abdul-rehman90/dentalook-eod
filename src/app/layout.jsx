@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast';
 import { Montserrat } from 'next/font/google';
 import { AppProvider } from '@/common/context/global-context';
 import './globals.css';
@@ -12,8 +13,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>
-        <AppProvider>{children}</AppProvider>
+      <body>
+        <AppProvider>
+          {children}
+          <Toaster />
+        </AppProvider>
       </body>
     </html>
   );

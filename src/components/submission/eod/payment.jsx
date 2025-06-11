@@ -17,7 +17,11 @@ export default function Payment({ onNext }) {
     { value: 'DEBIT', label: 'DEBIT' },
     { value: 'MASTERCARD', label: 'MASTERCARD' },
     { value: 'CC/DEBIT REFUND', label: 'CC/DEBIT REFUND' },
-    { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' }
+    { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' },
+    { value: 'PATIENT CHEQUE', label: 'PATIENT CHEQUE' },
+    { value: 'INSURANCE  CHEQUE', label: 'INSURANCE  CHEQUE' },
+    { value: 'EFT PAYMENT', label: 'EFT PAYMENT' },
+    { value: 'CASH', label: 'CASH' }
   ];
 
   const columns = [
