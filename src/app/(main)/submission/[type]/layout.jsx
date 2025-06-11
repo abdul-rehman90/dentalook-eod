@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
-import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -15,16 +15,12 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { type, step } = useParams();
-  const { stepConfig } = useGlobalContext();
-  const currentStep = parseInt(step || '1');
-  const totalSteps = stepConfig[type].length;
-  const steps = stepConfig[type] || [];
+  const { steps, type, currentStep, totalSteps } = useGlobalContext();
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
       <div className="bg-white border border-secondary-50 rounded-l-lg">
-        <Stepper steps={steps} currentStep={currentStep} />
+        <Stepper />
       </div>
       <div className="flex-1 bg-gray-50 border border-secondary-50 rounded-r-lg">
         <Card className="!py-4 !border-0 bg-white !shadow-none !rounded-none">
@@ -69,7 +65,7 @@ export default function SubmissionLayout({ children }) {
                 Step {currentStep} of {totalSteps}
               </CardTitle>
               <CardDescription className="text-xl font-medium text-black">
-                {stepConfig[type][currentStep - 1]}
+                {steps[currentStep - 1].name}
               </CardDescription>
             </CardHeader>
             {children}

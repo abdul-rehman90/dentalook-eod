@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
-import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -15,11 +15,7 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { type, step } = useParams();
-  const { stepConfig } = useGlobalContext();
-  const currentStep = parseInt(step || '1');
-  const totalSteps = stepConfig[type].length;
-  const steps = stepConfig[type] || [];
+  const { steps, type, currentStep, totalSteps } = useGlobalContext();
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">

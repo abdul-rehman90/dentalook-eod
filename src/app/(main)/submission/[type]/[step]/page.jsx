@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useGlobalContext } from '@/common/context/global-context';
 import {
   PaymentEOD,
   ReferralsEOD,
@@ -25,8 +26,7 @@ import {
 
 export default function SubmissionPage() {
   const router = useRouter();
-  const { type, step } = useParams();
-  const currentStep = parseInt(step);
+  const { type, currentStep } = useGlobalContext();
 
   const stepComponents = {
     eod: {

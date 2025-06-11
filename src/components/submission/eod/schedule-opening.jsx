@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Col, Input, Row } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ScheduleOpening({ onNext }) {
@@ -57,6 +58,30 @@ export default function ScheduleOpening({ onNext }) {
     );
   };
 
+  const createScheduleOpening = async () => {
+    try {
+      const payload = {
+        eodsubmission: 1,
+        unfilled_spots_dds:
+          unitsData.find((item) => item.type === 'Unfilled Spots')?.dds || 0,
+        unfilled_spots_rdh:
+          unitsData.find((item) => item.type === 'Unfilled Spots')?.rdh || 0,
+        no_shows_dds:
+          unitsData.find((item) => item.type === 'No Shows')?.dds || 0,
+        no_shows_rdh:
+          unitsData.find((item) => item.type === 'No Shows')?.rdh || 0,
+        short_notice_cancellations_dds:
+          unitsData.find((item) => item.type === 'Short Notice Cancellations')
+            ?.dds || 0,
+        short_notice_cancellations_rdh:
+          unitsData.find((item) => item.type === 'Short Notice Cancellations')
+            ?.rdh || 0
+      };
+      const { data } = await EODReportService.addScheduleOpening(payload);
+      console.log(data);
+    } catch (error) {}
+  };
+
   return (
     <React.Fragment>
       <div className="px-6 flex flex-col gap-4">
@@ -80,7 +105,7 @@ export default function ScheduleOpening({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createScheduleOpening} />
     </React.Fragment>
   );
 }

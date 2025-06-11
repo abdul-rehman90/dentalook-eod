@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useParams } from 'next/navigation';
 import { ListEOM } from '@/components/review/eom';
 import { ListEOD } from '@/components/review/eod';
+import { useGlobalContext } from '@/common/context/global-context';
 
 export default function ListEODPage() {
-  const { type } = useParams();
+  const { type } = useGlobalContext();
 
   return (
     <div className="p-6 bg-gray-50 min-h-[calc(100vh-86px)]">
