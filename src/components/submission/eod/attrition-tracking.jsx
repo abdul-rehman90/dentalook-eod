@@ -1,21 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Col } from 'antd';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
-const sourceOptions = [
-  { value: 'Referral', label: 'Referral' },
-  { value: 'Walk-in', label: 'Walk-in' },
-  { value: 'Online', label: 'Online' },
+const reasonOptions = [
+  { value: 'Another Dentist', label: 'Another Dentist' },
+  { value: 'Another City', label: 'Another City' },
+  { value: 'Quality Of Care', label: 'Quality Of Care' },
+  { value: 'Negative Experience', label: 'Negative Experience' },
+  { value: 'Deceased', label: 'Deceased' },
   { value: 'Other', label: 'Other' }
 ];
 
 export default function AttritionTracking({ onNext }) {
   const [tableData, setTableData] = useState([]);
   const [noOfPatients, setNoOfPatients] = useState(0);
+  const { steps, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -57,7 +66,7 @@ export default function AttritionTracking({ onNext }) {
       title: 'Reason',
       dataIndex: 'reason',
       inputType: 'select',
-      selectOptions: sourceOptions
+      selectOptions: reasonOptions
     },
     {
       width: 250,
@@ -82,6 +91,21 @@ export default function AttritionTracking({ onNext }) {
       )
     }
   ];
+
+  const createAttritionTracking = async () => {
+    try {
+      const payload = tableData.map((item) => ({
+        ...item,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addAttritionTracking(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, tableData);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
@@ -110,8 +134,15 @@ export default function AttritionTracking({ onNext }) {
 
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
-    setNoOfPatients((prev) => Math.max(0, prev - 1)); // Ensure actual doesn't go below 0
+    setNoOfPatients((prev) => Math.max(0, prev - 1));
   };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      setTableData(currentStepData);
+      setNoOfPatients(currentStepData.length);
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -143,7 +174,7 @@ export default function AttritionTracking({ onNext }) {
           />
         </div>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createAttritionTracking} />
     </React.Fragment>
   );
 }
