@@ -16,16 +16,11 @@ export default function BasicDetails({ onNext }) {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
-  const {
-    steps,
-    provinces,
-    setLoading,
-    currentStep,
-    updateStepData,
-    getCurrentStepData
-  } = useGlobalContext();
+  const { steps, provinces, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  console.log(currentStepData);
 
   const initialValues = {
     user: currentStepData?.user,
@@ -46,7 +41,6 @@ export default function BasicDetails({ onNext }) {
   const createBasicDetails = async () => {
     try {
       const values = await form.validateFields();
-      setLoading(true);
       const payload = {
         ...values,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
@@ -65,13 +59,10 @@ export default function BasicDetails({ onNext }) {
       );
       if (response.status === 201) {
         updateStepData(currentStepId, payload);
-        toast.success(response.data.message);
+        toast.success('Record is successfully saved');
         onNext();
       }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) {}
   };
 
   const handleProvinceChange = async (provinceId) => {

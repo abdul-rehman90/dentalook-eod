@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Col, Row, Input } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -77,13 +79,17 @@ export default function Payment({ onNext }) {
     try {
       const payload = {
         notes: notes,
-        eodsubmission: 1,
-        payment_type: payments[0].type,
-        payment_amount: payments[0].amount
+        payments: payments.map((item) => ({
+          ...item,
+          eodsubmission: 1,
+          payment_type: payments[0].type,
+          payment_amount: payments[0].amount
+        }))
       };
       const response = await EODReportService.addPayment(payload);
       if (response.status === 201) {
-        updateStepData(currentStepId, payments);
+        updateStepData(currentStepId, { notes, payments });
+        toast.success('Record is successfully saved');
         onNext();
       }
     } catch (error) {}
@@ -117,7 +123,10 @@ export default function Payment({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) setPayments(currentStepData);
+    if (Object.entries(currentStepData).length > 0) {
+      setNotes(currentStepData.notes);
+      setPayments(currentStepData.payments);
+    }
   }, []);
 
   return (

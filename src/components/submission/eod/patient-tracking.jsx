@@ -11,7 +11,7 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
-  { value: 'Walk-In', label: 'Walk-In' },
+  { value: 'Walk In', label: 'Walk In' },
   { value: 'Signage', label: 'Signage' },
   { value: 'Flyers', label: 'Flyers' },
   { value: 'Events', label: 'Events' },
