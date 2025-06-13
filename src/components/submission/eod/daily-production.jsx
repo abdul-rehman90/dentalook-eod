@@ -1,41 +1,39 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Form, Modal, Typography } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const { Title, Text } = Typography;
 
-const selectOptions = [
-  { value: 'california', label: 'California' },
-  { value: 'new_york', label: 'New York' },
-  { value: 'texas', label: 'Texas' },
-  { value: 'florida', label: 'Florida' }
-];
-
-const providerTypeOptions = [
-  { value: 'DDS', label: 'DDS' },
-  { value: 'RDH', label: 'RDH' }
-];
-
 export default function DailyProduction({ onNext }) {
   const [form] = Form.useForm();
-  const [tableData, setTableData] = useState([]);
+  const [goal, setGoal] = useState(0);
+  const [providers, setProviders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [goal, setGoal] = useState(6367);
+  const [providerOptions, setProviderOptions] = useState([]);
+  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
+  const provinceId = reportData?.eod?.basic?.province;
+  const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
-  // Calculate summary data
   const summaryData = useMemo(() => {
-    const totalDDS = tableData
+    const totalDDS = providers
       .filter((item) => item.type === 'DDS')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
-    const totalRDH = tableData
+    const totalRDH = providers
       .filter((item) => item.type === 'RDH')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
     const totalProduction = totalDDS + totalRDH;
     const difference = totalProduction - goal;
@@ -50,7 +48,7 @@ export default function DailyProduction({ onNext }) {
         '+/-': `${difference.toLocaleString()}`
       }
     ];
-  }, [tableData, goal]);
+  }, [providers, goal]);
 
   const totalProductionColumns = [
     {
@@ -86,26 +84,29 @@ export default function DailyProduction({ onNext }) {
     }
   ];
 
-  const dailyProductionColumns = [
+  const providersColumns = [
     {
       width: 150,
       key: 'type',
       title: 'Type',
-      dataIndex: 'type'
+      dataIndex: 'type',
+      render: (type) => type || 'N/A'
     },
     {
       width: 150,
-      key: 'providerName',
+      key: 'name',
+      dataIndex: 'name',
       title: 'Provider Name',
-      dataIndex: 'providerName'
+      render: (name) => name || 'N/A'
     },
     {
       width: 150,
       editable: true,
-      key: 'production',
       inputType: 'number',
       title: 'Production',
-      dataIndex: 'production'
+      disabled: isClinicClosed,
+      key: 'production_amount',
+      dataIndex: 'production_amount'
     },
     {
       width: 50,
@@ -116,7 +117,7 @@ export default function DailyProduction({ onNext }) {
           size="icon"
           className="ml-3"
           variant="destructive"
-          onClick={() => handleDelete(record.key)}
+          // onClick={() => handleDelete(record.id)}
         >
           <Image src={Icons.cross} alt="cross" />
         </Button>
@@ -124,31 +125,43 @@ export default function DailyProduction({ onNext }) {
     }
   ];
 
-  const createProduction = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        const newData = {
-          key: Date.now().toString(),
-          province: values.province,
-          type: values.provider_title,
-          providerName: values.provider_name,
-          practiceName: values.practice_name,
-          production: Number(values.production)
-        };
-        setTableData([...tableData, newData]);
-
-        form.resetFields();
+  const addProvider = async () => {
+    try {
+      const values = await form.validateFields();
+      const payload = {
+        name: values.name,
+        clinic_id: clinicId,
+        province_id: provinceId,
+        provider_title: values.provider_title
+      };
+      const response = await EODReportService.addNewProvider(payload);
+      if (response.status === 201) {
+        fetchProviders();
         setIsModalOpen(false);
-      })
-      .catch((err) => {
-        return;
-      });
+        toast.success('Record is successfully saved');
+        form.setFieldsValue({ name: undefined, provider_title: undefined });
+      }
+    } catch (error) {}
+  };
+
+  const createProduction = async () => {
+    try {
+      const payload = providers.map((item) => ({
+        ...item,
+        user: 3037,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addProduction(payload);
+      if (response.status === 201) {
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
   };
 
   const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
+    setProviders(
+      providers.map((item) =>
         item.key === record.key
           ? {
               ...item,
@@ -159,9 +172,62 @@ export default function DailyProduction({ onNext }) {
     );
   };
 
-  const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
+  // const handleDelete = (key) => {
+  //   setTableData(tableData.filter((item) => item.key !== key));
+  // };
+
+  const fetchProviders = async () => {
+    try {
+      const { data } = await EODReportService.getProviders();
+      setProviders(
+        data.slice(0, 5).map((provider) => ({
+          id: provider.id,
+          key: provider.id,
+          name: provider.name,
+          type: provider.provider_type
+        }))
+      );
+    } catch (error) {}
   };
+
+  const fetchTargetGoal = async () => {
+    try {
+      const response = await EODReportService.getTargetGoalByClinicId(clinicId);
+      setGoal(response.data.submission_month_target);
+    } catch (error) {}
+  };
+
+  const fetchProduction = async () => {
+    try {
+      const response = await EODReportService.getProduction();
+      // console.log(response);
+    } catch (error) {}
+  };
+
+  const getProvinceData = async () => {
+    if (!provinceId) return;
+
+    try {
+      const { data } = await EODReportService.getDataOfProvinceById(provinceId);
+      setProviderOptions(
+        data.users.map((user) => ({
+          value: user.id,
+          label: user.provider_type
+        }))
+      );
+      form.setFieldsValue({
+        province: data.province,
+        clinic_id: data.clinics.find((item) => item.id === clinicId).name
+      });
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchProviders();
+    fetchTargetGoal();
+    // fetchProduction();
+    getProvinceData();
+  }, []);
 
   return (
     <React.Fragment>
@@ -177,19 +243,16 @@ export default function DailyProduction({ onNext }) {
             </h1>
             <Button
               size="lg"
-              onClick={() => {
-                form.resetFields();
-                setIsModalOpen(true);
-              }}
+              onClick={() => setIsModalOpen(true)}
               className="h-9 !shadow-none text-black !rounded-lg"
             >
               Add New Provider
             </Button>
           </div>
           <GenericTable
-            dataSource={tableData}
+            dataSource={providers}
+            columns={providersColumns}
             onCellChange={handleCellChange}
-            columns={dailyProductionColumns}
           />
         </div>
         <Modal
@@ -233,7 +296,7 @@ export default function DailyProduction({ onNext }) {
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={createProduction}
+                onClick={addProvider}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
                 Create
@@ -243,20 +306,21 @@ export default function DailyProduction({ onNext }) {
         >
           <Form form={form}>
             <FormControl
+              disabled
               name="province"
-              control="select"
+              control="input"
               label="Province"
-              options={selectOptions}
             />
             <FormControl
+              disabled
               control="input"
-              name="practice_name"
+              name="clinic_id"
               label="Practice Name"
             />
             <FormControl
               required
+              name="name"
               control="input"
-              name="provider_name"
               label="Provider Name"
             />
             <FormControl
@@ -264,12 +328,12 @@ export default function DailyProduction({ onNext }) {
               control="select"
               name="provider_title"
               label="Provider Title"
-              options={providerTypeOptions}
+              options={providerOptions}
             />
           </Form>
         </Modal>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createProduction} />
     </React.Fragment>
   );
 }

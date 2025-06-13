@@ -1,24 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Col, Row, Input } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 const { TextArea } = Input;
 
-export default function Payment({ onNext }) {
-  const [payments, setPayments] = useState([]);
+const paymentOptions = [
+  { value: 'VISA', label: 'VISA' },
+  { value: 'AMEX', label: 'AMEX' },
+  { value: 'DEBIT', label: 'DEBIT' },
+  { value: 'MASTERCARD', label: 'MASTERCARD' },
+  { value: 'CC/DEBIT REFUND', label: 'CC/DEBIT REFUND' },
+  { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' },
+  { value: 'PATIENT CHEQUE', label: 'PATIENT CHEQUE' },
+  { value: 'INSURANCE  CHEQUE', label: 'INSURANCE  CHEQUE' },
+  { value: 'EFT PAYMENT', label: 'EFT PAYMENT' },
+  { value: 'CASH', label: 'CASH' }
+];
 
-  const paymentOptions = [
-    { value: 'VISA', label: 'VISA' },
-    { value: 'AMEX', label: 'AMEX' },
-    { value: 'DEBIT', label: 'DEBIT' },
-    { value: 'MASTERCARD', label: 'MASTERCARD' },
-    { value: 'CC/DEBIT REFUND', label: 'CC/DEBIT REFUND' },
-    { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' }
-  ];
+export default function Payment({ onNext }) {
+  const [notes, setNotes] = useState('');
+  const [payments, setPayments] = useState([]);
+  const { steps, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
     {
@@ -63,6 +75,26 @@ export default function Payment({ onNext }) {
     </div>
   );
 
+  const createPayment = async () => {
+    try {
+      const payload = {
+        notes: notes,
+        payments: payments.map((item) => ({
+          ...item,
+          eodsubmission: 1,
+          payment_type: payments[0].type,
+          payment_amount: payments[0].amount
+        }))
+      };
+      const response = await EODReportService.addPayment(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, { notes, payments });
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
+  };
+
   const handleCellChange = (record, dataIndex, value) => {
     const newPayments = payments.map((item) => {
       if (item.key === record.key) {
@@ -89,6 +121,13 @@ export default function Payment({ onNext }) {
   const handleDelete = (key) => {
     setPayments(payments.filter((item) => item.key !== key));
   };
+
+  useEffect(() => {
+    if (Object.entries(currentStepData).length > 0) {
+      setNotes(currentStepData.notes);
+      setPayments(currentStepData.payments);
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -121,7 +160,9 @@ export default function Payment({ onNext }) {
               </CardHeader>
               <TextArea
                 rows={4}
+                value={notes}
                 placeholder="Enter note here..."
+                onChange={(e) => setNotes(e.target.value)}
                 style={{
                   width: '100%',
                   border: 'none',
@@ -137,7 +178,7 @@ export default function Payment({ onNext }) {
           </Col>
         </Row>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createPayment} />
     </React.Fragment>
   );
 }

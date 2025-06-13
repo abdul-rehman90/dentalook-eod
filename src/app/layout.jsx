@@ -1,5 +1,5 @@
+import { Toaster } from 'react-hot-toast';
 import { Montserrat } from 'next/font/google';
-import Header from '@/common/components/header/header';
 import { AppProvider } from '@/common/context/global-context';
 import './globals.css';
 
@@ -13,9 +13,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>
+      <body>
         <AppProvider>
-          <Header>{children}</Header>
+          {children}
+          <Toaster />
         </AppProvider>
       </body>
     </html>

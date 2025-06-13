@@ -1,14 +1,11 @@
 import React from 'react';
 import { Button } from '../button/button';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
 export default function StepNavigation({ onNext }) {
   const router = useRouter();
-  const { type, step } = useParams();
-  const currentStep = parseInt(step);
-  const { stepConfig } = useGlobalContext();
-  const totalSteps = stepConfig[type].length;
+  const { type, loading, currentStep, totalSteps } = useGlobalContext();
 
   const handlePrevious = () => {
     if (currentStep > 1) {
@@ -17,9 +14,9 @@ export default function StepNavigation({ onNext }) {
   };
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
-      onNext();
-    }
+    // if (currentStep < totalSteps) {
+    onNext();
+    // }
   };
 
   return (
@@ -34,9 +31,10 @@ export default function StepNavigation({ onNext }) {
           Previous
         </Button>
       )}
-      {currentStep < totalSteps && (
+      {true && (
         <Button
           size="lg"
+          isLoading={loading}
           onClick={handleNext}
           className="h-9 !shadow-none text-black !rounded-lg"
         >

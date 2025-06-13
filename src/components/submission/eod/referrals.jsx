@@ -1,19 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
-const sourceOptions = [
-  { value: 'Referral', label: 'Referral' },
-  { value: 'Walk-in', label: 'Walk-in' },
-  { value: 'Online', label: 'Online' },
+const specialityOptions = [
+  { value: 'Orthodontics-Braces', label: 'Orthodontics-Braces' },
+  {
+    value: 'Orthodontics-Clear Aligners',
+    label: 'Orthodontics-Clear Aligners'
+  },
+  { value: 'Periodontics', label: 'Periodontics' },
+  { value: 'Endodontics-RCT', label: 'Endodontics-RCT' },
+  { value: 'Endodontics-Retreatment', label: 'Endodontics-Retreatment' },
+  {
+    value: 'Oral Surgery Complicated Extraction',
+    label: 'Oral Surgery Complicated Extraction'
+  },
+  { value: 'Oral Surgery Wisdom Teeth', label: 'Oral Surgery Wisdom Teeth' },
+  {
+    value: 'Oral Surgery Implant Placement',
+    label: 'Oral Surgery Implant Placement'
+  },
+  { value: 'Oral Surgery Pathology', label: 'Oral Surgery Pathology' },
+  { value: 'Pediatrics', label: 'Pediatrics' },
+  { value: 'TMJ', label: 'TMJ' },
+  { value: 'Prosthodontics', label: 'Prosthodontics' },
+  { value: 'Cosmetic Dentistry', label: 'Cosmetic Dentistry' },
+  { value: 'Dentures', label: 'Dentures' },
   { value: 'Other', label: 'Other' }
 ];
 
-export default function Referrals({ onNext }) {
+export default function Referrals() {
+  const router = useRouter();
+  const { reportData } = useGlobalContext();
   const [tableData, setTableData] = useState([]);
+  const [providers, setProviders] = useState([]);
+  const clinicId = reportData?.eod?.basic?.clinic;
 
   const patientReasonColumns = [
     {
@@ -30,8 +58,8 @@ export default function Referrals({ onNext }) {
       inputType: 'select',
       key: 'provider_name',
       title: 'Provider Name',
-      dataIndex: 'provider_name',
-      selectOptions: sourceOptions
+      selectOptions: providers,
+      dataIndex: 'provider_name'
     },
     {
       width: 150,
@@ -40,14 +68,14 @@ export default function Referrals({ onNext }) {
       title: 'Speciality',
       inputType: 'select',
       dataIndex: 'speciality',
-      selectOptions: sourceOptions
+      selectOptions: specialityOptions
     },
     {
       width: 250,
       key: 'reason',
       editable: true,
       inputType: 'text',
-      dataIndex: 'Reason',
+      dataIndex: 'reason',
       title: 'Reason (Clinic/Provider referred to)'
     },
     {
@@ -65,6 +93,33 @@ export default function Referrals({ onNext }) {
       )
     }
   ];
+
+  const createReferrals = async () => {
+    try {
+      const payload = tableData.map((item) => ({
+        ...item,
+        user: 3037,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addRefferal(payload);
+      if (response.status === 201) {
+        toast.success('Record is successfully saved');
+        router.push('/clinics-reporting');
+      }
+    } catch (error) {}
+  };
+
+  const fetchProvidersByClinic = async () => {
+    try {
+      const { data } = await EODReportService.getProvidersByClinic(clinicId);
+      setProviders(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
@@ -95,6 +150,10 @@ export default function Referrals({ onNext }) {
     setTableData(tableData.filter((item) => item.key !== key));
   };
 
+  useEffect(() => {
+    fetchProvidersByClinic();
+  }, []);
+
   return (
     <React.Fragment>
       <div className="px-6">
@@ -116,7 +175,7 @@ export default function Referrals({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createReferrals} />
     </React.Fragment>
   );
 }

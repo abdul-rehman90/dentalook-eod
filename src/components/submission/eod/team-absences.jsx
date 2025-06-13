@@ -1,32 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
+import { Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-import { Input, Select } from 'antd';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' },
   { value: 'PCC', label: 'PCC' },
-  { value: 'Dental Aide', label: 'Dental Aide' },
-  { value: 'Other', label: 'Other' }
+  { value: 'CDA', label: 'CDA' },
+  { value: 'PM', label: 'PM' },
+  { value: 'Dental Aide', label: 'Dental Aide' }
 ];
 
 export default function TeamAbsences({ onNext }) {
+  const [staffData, setStaffData] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
-
-  const staffData = {
-    DDS: [
-      { value: 'Darlene Robertson', label: 'Darlene Robertson' },
-      { value: 'Courtney Henry', label: 'Courtney Henry' }
-    ],
-    RDH: [
-      { value: 'Marvin McKinney', label: 'Marvin McKinney' },
-      { value: 'Annette Black', label: 'Annette Black' }
-    ]
-  };
+  const { reportData, steps, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
 
   const columns = [
     {
@@ -49,7 +48,7 @@ export default function TeamAbsences({ onNext }) {
             <div className="h-full">
               <Select
                 value={text}
-                options={staffData[record.position]}
+                options={staffData[record.position] || []}
                 onChange={(value) => handleCellChange(record, 'name', value)}
               />
             </div>
@@ -75,14 +74,14 @@ export default function TeamAbsences({ onNext }) {
     },
     {
       width: 150,
-      key: 'status',
+      key: 'absence',
       editable: true,
       inputType: 'select',
-      dataIndex: 'status',
+      dataIndex: 'absence',
       title: 'Absent/Present',
       selectOptions: [
-        { value: 'Present', label: 'Present' },
-        { value: 'Absent', label: 'Absent' }
+        { value: 'Full Day', label: 'Full Day' },
+        { value: 'Partial Day', label: 'Partial Day' }
       ]
     },
     {
@@ -103,19 +102,45 @@ export default function TeamAbsences({ onNext }) {
     }
   ];
 
+  const fetchStaffByPosition = async (position) => {
+    try {
+      const { data } = await EODReportService.getProvidersByTypeAndClinic(
+        position,
+        clinicId
+      );
+      setStaffData((prev) => ({
+        ...prev,
+        [position]: data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      }));
+    } catch (error) {}
+  };
+
+  const createTeamAbsence = async () => {
+    try {
+      const payload = teamMembers.map((item) => ({
+        ...item,
+        user: 3037,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addTeamAbsence(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, teamMembers);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
+  };
+
   const handleCellChange = (record, dataIndex, value) => {
     const newTeamMembers = teamMembers.map((item) => {
       if (item.key === record.key) {
         const updatedItem = { ...item, [dataIndex]: value };
-
         if (dataIndex === 'position') {
-          if (!['DDS', 'RDH'].includes(value)) {
-            updatedItem.name = '';
-          } else if (
-            !staffData[value]?.some((staff) => staff.value === updatedItem.name)
-          ) {
-            updatedItem.name = '';
-          }
+          updatedItem.name = '';
+          fetchStaffByPosition(value);
         }
 
         return updatedItem;
@@ -132,8 +157,8 @@ export default function TeamAbsences({ onNext }) {
         : 1,
       name: '',
       reason: '',
-      position: '',
-      status: 'Present'
+      absence: '',
+      position: ''
     };
     setTeamMembers([...teamMembers, newAbsence]);
   };
@@ -141,6 +166,20 @@ export default function TeamAbsences({ onNext }) {
   const handleDelete = (key) => {
     setTeamMembers(teamMembers.filter((item) => item.key !== key));
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (currentStepData.length > 0) {
+        const positions = [
+          ...new Set(currentStepData.map((item) => item.position))
+        ];
+        await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
+        setTeamMembers(currentStepData);
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <React.Fragment>
@@ -161,7 +200,7 @@ export default function TeamAbsences({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createTeamAbsence} />
     </React.Fragment>
   );
 }
