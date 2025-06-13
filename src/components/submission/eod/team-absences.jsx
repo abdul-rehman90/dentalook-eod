@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
@@ -18,9 +19,12 @@ const positionOptions = [
 ];
 
 export default function TeamAbsences({ onNext }) {
-  const { reportData } = useGlobalContext();
   const [staffData, setStaffData] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
+  const { reportData, steps, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinic;
 
   const columns = [
@@ -100,9 +104,9 @@ export default function TeamAbsences({ onNext }) {
 
   const fetchStaffByPosition = async (position) => {
     try {
-      const { data } = await EODReportService.getProviderByTypeAndClinic(
+      const { data } = await EODReportService.getProvidersByTypeAndClinic(
         position,
-        567
+        clinicId
       );
       setStaffData((prev) => ({
         ...prev,
@@ -116,22 +120,17 @@ export default function TeamAbsences({ onNext }) {
 
   const createTeamAbsence = async () => {
     try {
-      // const payload = teamMembers.reduce((acc, item) => {
-      //   acc[item.userId] = {
-      //     ...item,
-      //     user: 3037,
-      //     eodsubmission: 1
-      //   };
-      //   return acc;
-      // }, {});
-
-      const formattedData = teamMembers.map((item) => ({
+      const payload = teamMembers.map((item) => ({
         ...item,
         user: 3037,
         eodsubmission: 1
       }));
-      const { data } = await EODReportService.addTeamAbsence(formattedData);
-      console.log(data);
+      const response = await EODReportService.addTeamAbsence(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, teamMembers);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
     } catch (error) {}
   };
 
@@ -167,6 +166,20 @@ export default function TeamAbsences({ onNext }) {
   const handleDelete = (key) => {
     setTeamMembers(teamMembers.filter((item) => item.key !== key));
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (currentStepData.length > 0) {
+        const positions = [
+          ...new Set(currentStepData.map((item) => item.position))
+        ];
+        await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
+        setTeamMembers(currentStepData);
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <React.Fragment>

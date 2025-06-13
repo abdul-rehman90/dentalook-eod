@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Col, Input, Row } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ScheduleOpening({ onNext }) {
   const [unitTime, setUnitTime] = useState(10);
+  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
   const [unitsData, setUnitsData] = useState([
     { key: '1', type: 'Unfilled Spots', dds: '', rdh: '' },
     { key: '2', type: 'No Shows', dds: '', rdh: '' },
     { key: '3', type: 'Short Notice Cancellations', dds: '', rdh: '' }
   ]);
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
+  const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   const columns = [
     {
@@ -25,7 +32,8 @@ export default function ScheduleOpening({ onNext }) {
       editable: true,
       dataIndex: 'dds',
       inputType: 'number',
-      title: 'DDS (in units)'
+      title: 'DDS (in units)',
+      disabled: isClinicClosed
     },
     {
       key: 'rdh',
@@ -33,7 +41,8 @@ export default function ScheduleOpening({ onNext }) {
       editable: true,
       dataIndex: 'rdh',
       inputType: 'number',
-      title: 'RDH (in units)'
+      title: 'RDH (in units)',
+      disabled: isClinicClosed
     }
   ];
 
@@ -48,15 +57,6 @@ export default function ScheduleOpening({ onNext }) {
       </div>
     </div>
   );
-
-  const handleCellChange = (record, dataIndex, value) => {
-    const newValue = value === '' ? 0 : parseInt(value) || 0;
-    setUnitsData(
-      unitsData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: newValue } : item
-      )
-    );
-  };
 
   const createScheduleOpening = async () => {
     try {
@@ -77,10 +77,28 @@ export default function ScheduleOpening({ onNext }) {
           unitsData.find((item) => item.type === 'Short Notice Cancellations')
             ?.rdh || 0
       };
-      const { data } = await EODReportService.addScheduleOpening(payload);
-      console.log(data);
+
+      const response = await EODReportService.addScheduleOpening(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, unitsData);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
     } catch (error) {}
   };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    const newValue = value === '' ? 0 : parseInt(value) || 0;
+    setUnitsData(
+      unitsData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: newValue } : item
+      )
+    );
+  };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) setUnitsData(currentStepData);
+  }, []);
 
   return (
     <React.Fragment>

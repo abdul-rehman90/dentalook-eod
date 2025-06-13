@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // const { REACT_APP_BASE_URL } = process.env;
 
-const REACT_APP_BASE_URL = 'https://7488-39-53-78-148.ngrok-free.app/api/v1';
+const REACT_APP_BASE_URL = 'https://a2cc-39-53-101-205.ngrok-free.app/api/v1';
 
 const apiClient = axios.create({
   baseURL: REACT_APP_BASE_URL,
