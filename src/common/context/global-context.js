@@ -82,9 +82,11 @@ export const AppProvider = ({ children }) => {
       value={{
         type,
         steps,
+        loading,
         provinces,
         totalSteps,
         reportData,
+        setLoading,
         currentStep,
         updateStepData,
         getCurrentStepData

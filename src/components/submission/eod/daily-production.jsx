@@ -15,23 +15,25 @@ const { Title, Text } = Typography;
 export default function DailyProduction({ onNext }) {
   const [form] = Form.useForm();
   const [goal, setGoal] = useState(0);
-  const { reportData } = useGlobalContext();
   const [providers, setProviders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [providerOptions, setProviderOptions] = useState([]);
+  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinic;
   const provinceId = reportData?.eod?.basic?.province;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
-  console.log(reportData);
 
   const summaryData = useMemo(() => {
     const totalDDS = providers
       .filter((item) => item.type === 'DDS')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
     const totalRDH = providers
       .filter((item) => item.type === 'RDH')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
     const totalProduction = totalDDS + totalRDH;
     const difference = totalProduction - goal;
@@ -92,19 +94,19 @@ export default function DailyProduction({ onNext }) {
     },
     {
       width: 150,
-      key: 'provider_name',
+      key: 'name',
+      dataIndex: 'name',
       title: 'Provider Name',
-      dataIndex: 'provider_name',
       render: (name) => name || 'N/A'
     },
     {
       width: 150,
       editable: true,
-      key: 'production',
       inputType: 'number',
       title: 'Production',
-      dataIndex: 'production',
-      disabled: isClinicClosed
+      disabled: isClinicClosed,
+      key: 'production_amount',
+      dataIndex: 'production_amount'
     },
     {
       width: 50,
@@ -123,21 +125,36 @@ export default function DailyProduction({ onNext }) {
     }
   ];
 
-  const createProduction = async () => {
+  const addProvider = async () => {
     try {
       const values = await form.validateFields();
-      const formattedData = {
+      const payload = {
         name: values.name,
         clinic_id: clinicId,
         province_id: provinceId,
         provider_title: values.provider_title
       };
-      const response = await EODReportService.addNewProvider(formattedData);
+      const response = await EODReportService.addNewProvider(payload);
       if (response.status === 201) {
         setIsModalOpen(false);
         fetchProvidersByClinic();
-        toast.success('Provider is successfully added');
+        toast.success('Record is successfully saved');
         form.setFieldsValue({ name: undefined, provider_title: undefined });
+      }
+    } catch (error) {}
+  };
+
+  const createProduction = async () => {
+    try {
+      const payload = providers.map((item) => ({
+        ...item,
+        user: 3037,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addProduction(payload);
+      if (response.status === 201) {
+        toast.success('Record is successfully saved');
+        onNext();
       }
     } catch (error) {}
   };
@@ -166,8 +183,8 @@ export default function DailyProduction({ onNext }) {
         data.slice(0, 5).map((provider) => ({
           id: provider.id,
           key: provider.id,
-          provider_name: provider.name,
-          provider_type: provider.provider_type
+          name: provider.name,
+          type: provider.provider_type
         }))
       );
     } catch (error) {}
@@ -177,6 +194,14 @@ export default function DailyProduction({ onNext }) {
     try {
       const response = await EODReportService.getTargetGoalByClinicId(clinicId);
       setGoal(response.data.submission_month_target);
+    } catch (error) {}
+  };
+
+  const fetchProduction = async () => {
+    try {
+      const response = await EODReportService.getProduction();
+      console.log(response);
+      // setGoal(response.data.submission_month_target);
     } catch (error) {}
   };
 
@@ -201,6 +226,7 @@ export default function DailyProduction({ onNext }) {
   useEffect(() => {
     fetchProviders();
     fetchTargetGoal();
+    fetchProduction();
     getProvinceData();
   }, []);
 
@@ -271,7 +297,7 @@ export default function DailyProduction({ onNext }) {
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={createProduction}
+                onClick={addProvider}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
                 Create
@@ -308,7 +334,7 @@ export default function DailyProduction({ onNext }) {
           </Form>
         </Modal>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createProduction} />
     </React.Fragment>
   );
 }

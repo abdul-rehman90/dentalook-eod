@@ -16,9 +16,16 @@ export default function BasicDetails({ onNext }) {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
-  const { steps, provinces, updateStepData, currentStep, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    provinces,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const initialValues = {
     user: currentStepData?.user,
@@ -39,7 +46,8 @@ export default function BasicDetails({ onNext }) {
   const createBasicDetails = async () => {
     try {
       const values = await form.validateFields();
-      const formattedData = {
+      setLoading(true);
+      const payload = {
         ...values,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
         clinic_open_time:
@@ -52,16 +60,18 @@ export default function BasicDetails({ onNext }) {
             : undefined
       };
 
-      const { data } = await EODReportService.sumbmissionOfBasicDetails(
-        formattedData
+      const response = await EODReportService.sumbmissionOfBasicDetails(
+        payload
       );
-      if (data.data) {
-        const currentStepId = steps[currentStep - 1].id;
-        updateStepData(currentStepId, formattedData);
-        toast.success(data.message);
+      if (response.status === 201) {
+        updateStepData(currentStepId, payload);
+        toast.success(response.data.message);
         onNext();
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProvinceChange = async (provinceId) => {

@@ -11,8 +11,8 @@ export const EODReportService = {
     return response;
   },
 
-  async sumbmissionOfBasicDetails(data) {
-    const response = await apiClient.post('/eod-submission/', data);
+  async sumbmissionOfBasicDetails(payload) {
+    const response = await apiClient.post('/eod-submission/', payload);
     return response;
   },
 
@@ -26,25 +26,62 @@ export const EODReportService = {
     return response;
   },
 
-  async addNewProvider(data) {
-    const response = await apiClient.post('/add-provider/', data);
+  async addNewProvider(payload) {
+    const response = await apiClient.post('/add-provider/', payload);
     return response;
   },
 
-  async getProviderByTypeAndClinic(type, id) {
+  async getProvidersByTypeAndClinic(type, id) {
     const response = await apiClient.get(
       `/providers-by-type-and-clinic/?provider_type=${type}&clinic_id=${id}`
     );
     return response;
   },
 
-  async addTeamAbsence(data) {
-    const response = await apiClient.post('/eod-absence/', data);
+  async getProvidersByClinic(id) {
+    const response = await apiClient.get(
+      `/providers-by-clinic/?clinic_id=${id}`
+    );
     return response;
   },
 
-  async addScheduleOpening(data) {
-    const response = await apiClient.post('/eod-schedule/', data);
+  async getProduction() {
+    const response = await apiClient.get('/eod-production/');
+    return response;
+  },
+
+  async addProduction(payload) {
+    const response = await apiClient.post('/eod-production/', payload);
+    return response;
+  },
+
+  async addPayment(payload) {
+    const response = await apiClient.post('/eod-payments/', payload);
+    return response;
+  },
+
+  async addTeamAbsence(payload) {
+    const response = await apiClient.post('/eod-absence/', payload);
+    return response;
+  },
+
+  async addScheduleOpening(payload) {
+    const response = await apiClient.post('/eod-schedule/', payload);
+    return response;
+  },
+
+  async addPatientTracking(payload) {
+    const response = await apiClient.post('/eod-patient-tracking/', payload);
+    return response;
+  },
+
+  async addAttritionTracking(payload) {
+    const response = await apiClient.post('/eod-attrition/', payload);
+    return response;
+  },
+
+  async addRefferal(payload) {
+    const response = await apiClient.post('/eod-referral/', payload);
     return response;
   }
 };

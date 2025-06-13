@@ -1,22 +1,35 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Col } from 'antd';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const sourceOptions = [
-  { value: 'Referral', label: 'Referral' },
-  { value: 'Walk-in', label: 'Walk-in' },
-  { value: 'Online', label: 'Online' },
-  { value: 'Other', label: 'Other' }
+  { value: 'Word Of Mouth', label: 'Word Of Mouth' },
+  { value: 'Walk-In', label: 'Walk-In' },
+  { value: 'Signage', label: 'Signage' },
+  { value: 'Flyers', label: 'Flyers' },
+  { value: 'Events', label: 'Events' },
+  { value: 'Online Google Ads', label: 'Online Google Ads' },
+  { value: 'Online Meta Ads', label: 'Online Meta Ads' },
+  { value: 'Social Media', label: 'Social Media' },
+  { value: 'Radio', label: 'Radio' },
+  { value: 'Others', label: 'Others' }
 ];
 
 export default function PatientTracking({ onNext }) {
-  const [tableData, setTableData] = useState([]);
   const [target, setTarget] = useState(3);
   const [actual, setActual] = useState(0);
+  const [tableData, setTableData] = useState([]);
+  const { steps, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -97,6 +110,21 @@ export default function PatientTracking({ onNext }) {
     }
   ];
 
+  const createPatientTracking = async () => {
+    try {
+      const payload = tableData.map((item) => ({
+        ...item,
+        eodsubmission: 1
+      }));
+      const response = await EODReportService.addPatientTracking(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, tableData);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
+  };
+
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -124,8 +152,15 @@ export default function PatientTracking({ onNext }) {
 
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
-    setActual((prev) => Math.max(0, prev - 1)); // Ensure actual doesn't go below 0
+    setActual((prev) => Math.max(0, prev - 1));
   };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      setTableData(currentStepData);
+      setActual(currentStepData.length);
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -154,7 +189,7 @@ export default function PatientTracking({ onNext }) {
           />
         </div>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={createPatientTracking} />
     </React.Fragment>
   );
 }
