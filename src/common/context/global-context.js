@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -30,6 +30,7 @@ const stepConfig = {
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const pathname = usePathname();
   const { type, step } = useParams();
   const currentStep = parseInt(step);
   const steps = stepConfig[type] || [];
@@ -40,6 +41,7 @@ export const AppProvider = ({ children }) => {
     eom: {}
   });
   const totalSteps = steps.length;
+  const isSubmissionRoute = pathname.includes('/submission/');
 
   const updateStepData = (stepId, data) => {
     setReportData((prev) => ({
@@ -74,8 +76,8 @@ export const AppProvider = ({ children }) => {
   }, [type, currentStep]);
 
   useEffect(() => {
-    // setData(null);
-  }, [type]);
+    setReportData({ eod: {}, eom: {} });
+  }, [isSubmissionRoute, type]);
 
   return (
     <AppContext.Provider

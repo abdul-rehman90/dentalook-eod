@@ -42,7 +42,6 @@ export default function Referrals() {
   const [tableData, setTableData] = useState([]);
   const [providers, setProviders] = useState([]);
   const clinicId = reportData?.eod?.basic?.clinic;
-  console.log(reportData);
 
   const patientReasonColumns = [
     {
@@ -105,8 +104,20 @@ export default function Referrals() {
       const response = await EODReportService.addRefferal(payload);
       if (response.status === 201) {
         toast.success('Record is successfully saved');
-        router.push('/clinical-reporting');
+        router.push('/clinics-reporting');
       }
+    } catch (error) {}
+  };
+
+  const fetchProvidersByClinic = async () => {
+    try {
+      const { data } = await EODReportService.getProvidersByClinic(clinicId);
+      setProviders(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
     } catch (error) {}
   };
 
@@ -137,18 +148,6 @@ export default function Referrals() {
 
   const handleDelete = (key) => {
     setTableData(tableData.filter((item) => item.key !== key));
-  };
-
-  const fetchProvidersByClinic = async () => {
-    try {
-      const { data } = await EODReportService.getProvidersByClinic(clinicId);
-      setProviders(
-        data.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
-      );
-    } catch (error) {}
   };
 
   useEffect(() => {

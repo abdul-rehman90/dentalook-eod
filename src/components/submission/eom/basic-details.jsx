@@ -16,7 +16,6 @@ export default function BasicDetails({ onNext }) {
   const createBasicDetails = async () => {
     try {
       const values = await form.validateFields();
-      console.log(values);
       onNext();
     } catch (error) {
       return;

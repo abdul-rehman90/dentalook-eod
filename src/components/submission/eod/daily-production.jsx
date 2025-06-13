@@ -136,8 +136,8 @@ export default function DailyProduction({ onNext }) {
       };
       const response = await EODReportService.addNewProvider(payload);
       if (response.status === 201) {
+        fetchProviders();
         setIsModalOpen(false);
-        fetchProvidersByClinic();
         toast.success('Record is successfully saved');
         form.setFieldsValue({ name: undefined, provider_title: undefined });
       }
@@ -200,8 +200,7 @@ export default function DailyProduction({ onNext }) {
   const fetchProduction = async () => {
     try {
       const response = await EODReportService.getProduction();
-      console.log(response);
-      // setGoal(response.data.submission_month_target);
+      // console.log(response);
     } catch (error) {}
   };
 
@@ -226,7 +225,7 @@ export default function DailyProduction({ onNext }) {
   useEffect(() => {
     fetchProviders();
     fetchTargetGoal();
-    fetchProduction();
+    // fetchProduction();
     getProvinceData();
   }, []);
 
