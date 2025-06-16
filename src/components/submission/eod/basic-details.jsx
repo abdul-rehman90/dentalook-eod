@@ -69,23 +69,37 @@ export default function BasicDetails({ onNext }) {
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(provinceId);
-      setRegionalManagers(
-        data.users.map((manager) => ({
-          value: manager.id,
-          label: manager.name
-        }))
-      );
+
       setPractices(
-        data.clinics.map((practice) => ({
-          value: practice.id,
-          label: practice.name
+        data.clinics.map((clinic) => ({
+          value: clinic.clinic_id,
+          label: clinic.clinic_name,
+          managers: clinic.regional_managers.map((manager) => ({
+            label: manager.name,
+            value: manager.id
+          }))
         }))
       );
 
       // if (!currentStepData?.province) {
       //   form.setFieldsValue({ user: undefined, clinic: undefined });
       // }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error fetching province data:', error);
+    }
+  };
+
+  const handleClinicChange = (clinicId) => {
+    if (!clinicId) return;
+
+    // Find the selected clinic from the practices array
+    const selectedClinic = practices.find(
+      (practice) => practice.value === clinicId
+    );
+
+    if (selectedClinic && selectedClinic.managers) {
+      setRegionalManagers(selectedClinic.managers);
+    }
   };
 
   useEffect(() => {
@@ -120,6 +134,7 @@ export default function BasicDetails({ onNext }) {
           control="select"
           options={practices}
           label="Practice Name"
+          onChange={handleClinicChange}
         />
         <FormControl
           required

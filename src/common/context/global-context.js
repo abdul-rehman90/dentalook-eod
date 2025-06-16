@@ -7,6 +7,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 const stepConfig = {
   eod: [
     { id: 'basic', name: 'Basic Details' },
+    { id: 'active', name: 'Active Providers' },
     { id: 'daily', name: 'Daily Production' },
     { id: 'payment', name: 'Payment' },
     { id: 'team', name: 'Team Absences' },
