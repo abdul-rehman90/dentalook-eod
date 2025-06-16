@@ -71,8 +71,9 @@ export const AppProvider = ({ children }) => {
       } catch (error) {}
     };
 
-    if (type === 'eod' && currentStep === 1 && !provinces.length)
+    if (type === 'eod' && currentStep === 1 && !provinces.length) {
       fetchProvinces();
+    }
   }, [type, currentStep]);
 
   useEffect(() => {

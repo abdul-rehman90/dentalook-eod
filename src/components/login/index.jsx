@@ -1,11 +1,39 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
-import { Input, Card, Row, Col } from 'antd';
+import { useRouter } from 'next/navigation';
+import { Input, Card, Row, Col, Form } from 'antd';
+import { AuthService } from '@/common/services/auth';
 import { Button } from '@/common/components/button/button';
+import { setUserAndToken } from '@/common/utils/auth-user';
 
 export default function LoginForm() {
+  const router = useRouter();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  const onFinish = async (values) => {
+    try {
+      setLoading(true);
+      const response = await AuthService.login(values);
+      if (response.status === 200) {
+        setUserAndToken(response.data.access);
+        router.push('/clinics-reporting');
+        toast.success('Login successful!');
+      }
+    } catch (error) {
+      let errorMessage =
+        error?.response?.data?.detail ??
+        'Something went wrong. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-screen bg-white">
       <Row className="h-full">
@@ -28,33 +56,46 @@ export default function LoginForm() {
               </div>
               <h4 className="text-xl text-[#404856]">Login to Dental Look</h4>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs text-[#111928] mb-1">
-                  First name
-                </label>
+            <Form
+              form={form}
+              name="login"
+              layout="vertical"
+              autoComplete="off"
+              onFinish={onFinish}
+              initialValues={{ remember: true }}
+            >
+              <Form.Item
+                name="name"
+                label="Name"
+                rules={[{ required: true, message: 'Name is required' }]}
+              >
                 <Input
-                  placeholder="Enter first name"
+                  placeholder="Enter name"
                   className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-[#111928] mb-1">
-                  Password
-                </label>
+              </Form.Item>
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[{ required: true, message: 'Password is required' }]}
+              >
                 <Input.Password
                   placeholder="Enter password"
                   className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
                 />
-              </div>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="w-full h-9 !shadow-none text-black !rounded-lg"
-              >
-                Login
-              </Button>
-            </div>
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  size="lg"
+                  type="submit"
+                  variant="secondary"
+                  isLoading={loading}
+                  className="w-full h-9 !shadow-none text-black !rounded-lg"
+                >
+                  Login
+                </Button>
+              </Form.Item>
+            </Form>
           </Card>
         </Col>
       </Row>
