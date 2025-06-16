@@ -18,13 +18,20 @@ export default function DailyProduction({ onNext }) {
   const [providers, setProviders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [providerOptions, setProviderOptions] = useState([]);
-  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    provinces,
+    steps,
+    reportData,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinic;
   const provinceId = reportData?.eod?.basic?.province;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
+  console.log(reportData, provinces);
 
   const summaryData = useMemo(() => {
     const totalDDS = providers
@@ -148,7 +155,7 @@ export default function DailyProduction({ onNext }) {
     try {
       const payload = providers.map((item) => ({
         ...item,
-        user: 3037,
+        user: item.id,
         eodsubmission: 1
       }));
       const response = await EODReportService.addProduction(payload);
@@ -178,13 +185,13 @@ export default function DailyProduction({ onNext }) {
 
   const fetchProviders = async () => {
     try {
-      const { data } = await EODReportService.getProviders();
+      const { data } = await EODReportService.getProviders(clinicId, 'True');
       setProviders(
-        data.slice(0, 5).map((provider) => ({
+        data.providers.map((provider) => ({
           id: provider.id,
           key: provider.id,
           name: provider.name,
-          type: provider.provider_type
+          type: provider.user_type
         }))
       );
     } catch (error) {}
@@ -194,13 +201,6 @@ export default function DailyProduction({ onNext }) {
     try {
       const response = await EODReportService.getTargetGoalByClinicId(clinicId);
       setGoal(response.data.submission_month_target);
-    } catch (error) {}
-  };
-
-  const fetchProduction = async () => {
-    try {
-      const response = await EODReportService.getProduction();
-      // console.log(response);
     } catch (error) {}
   };
 
@@ -216,8 +216,9 @@ export default function DailyProduction({ onNext }) {
         }))
       );
       form.setFieldsValue({
-        province: data.province,
-        clinic_id: data.clinics.find((item) => item.id === clinicId).name
+        province: provinces.find((item) => item.value === provinceId).label,
+        clinic_id: data.clinics.find((item) => item.clinic_id === clinicId)
+          .clinic_name
       });
     } catch (error) {}
   };
@@ -225,7 +226,6 @@ export default function DailyProduction({ onNext }) {
   useEffect(() => {
     fetchProviders();
     fetchTargetGoal();
-    // fetchProduction();
     getProvinceData();
   }, []);
 

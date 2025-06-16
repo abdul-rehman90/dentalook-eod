@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { getUserAndToken } from '../utils/auth-user';
 
-// const { REACT_APP_BASE_URL } = process.env;
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const REACT_APP_BASE_URL = 'https://eb16-39-53-66-239.ngrok-free.app/api/v1';
+// const REACT_APP_BASE_URL = 'https://eb16-39-53-66-239.ngrok-free.app/api/v1';
 
 const apiClient = axios.create({
-  baseURL: REACT_APP_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'ngrok-skip-browser-warning'
