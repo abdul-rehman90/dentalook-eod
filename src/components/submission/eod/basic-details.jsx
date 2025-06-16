@@ -20,7 +20,6 @@ export default function BasicDetails({ onNext }) {
     useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  console.log(currentStepData);
 
   const initialValues = {
     user: currentStepData?.user,
