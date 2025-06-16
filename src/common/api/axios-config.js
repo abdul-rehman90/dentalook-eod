@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { getUserAndToken } from '../utils/auth-user';
 
 // const { REACT_APP_BASE_URL } = process.env;
 
-const REACT_APP_BASE_URL = 'https://a2cc-39-53-101-205.ngrok-free.app/api/v1';
+const REACT_APP_BASE_URL = 'https://eb16-39-53-66-239.ngrok-free.app/api/v1';
 
 const apiClient = axios.create({
   baseURL: REACT_APP_BASE_URL,
@@ -14,10 +15,9 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    // const { authToken } = await getAuthAndUser();
-    if (true) {
-      // config.headers.Authorization = `Bearer ${authToken}`;
-      // config.headers.Authorization = ``;
+    const { token } = await getUserAndToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
