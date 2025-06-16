@@ -98,22 +98,22 @@ export default function Referrals() {
     try {
       const payload = tableData.map((item) => ({
         ...item,
-        user: 3037,
+        user: item.id,
         eodsubmission: 1
       }));
       const response = await EODReportService.addRefferal(payload);
       if (response.status === 201) {
         toast.success('Record is successfully saved');
-        router.push('/clinics-reporting');
+        router.push('/review/list/eod');
       }
     } catch (error) {}
   };
 
   const fetchProvidersByClinic = async () => {
     try {
-      const { data } = await EODReportService.getProvidersByClinic(clinicId);
+      const { data } = await EODReportService.getProviders(clinicId, 'False');
       setProviders(
-        data.map((item) => ({
+        data.providers.map((item) => ({
           value: item.id,
           label: item.name
         }))

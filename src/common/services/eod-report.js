@@ -21,32 +21,25 @@ export const EODReportService = {
     return response;
   },
 
-  async getProviders() {
-    const response = await apiClient.get('/add-provider/');
-    return response;
-  },
-
   async addNewProvider(payload) {
     const response = await apiClient.post('/add-provider/', payload);
     return response;
   },
 
-  async getProvidersByTypeAndClinic(type, id) {
+  async getProviders(id, status) {
     const response = await apiClient.get(
-      `/providers-by-type-and-clinic/?provider_type=${type}&clinic_id=${id}`
-    );
-    return response;
-  },
-
-  async getProvidersByClinic(id) {
-    const response = await apiClient.get(
-      `/providers-by-clinic/?clinic_id=${id}`
+      `/provider-by-clinic/${id}?is_active=${status}`
     );
     return response;
   },
 
   async getProduction() {
     const response = await apiClient.get('/eod-production/');
+    return response;
+  },
+
+  async addActiveProviders(payload) {
+    const response = await apiClient.post('/active-provider/', payload);
     return response;
   },
 

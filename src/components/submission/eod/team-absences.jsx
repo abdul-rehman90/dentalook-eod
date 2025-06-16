@@ -104,16 +104,15 @@ export default function TeamAbsences({ onNext }) {
 
   const fetchStaffByPosition = async (position) => {
     try {
-      const { data } = await EODReportService.getProvidersByTypeAndClinic(
-        position,
-        clinicId
-      );
+      const { data } = await EODReportService.getProviders(clinicId, 'False');
       setStaffData((prev) => ({
         ...prev,
-        [position]: data.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
+        [position]: data.providers
+          .filter((item) => item.user_type === position)
+          .map((item) => ({
+            value: item.id,
+            label: item.name
+          }))
       }));
     } catch (error) {}
   };
@@ -122,7 +121,7 @@ export default function TeamAbsences({ onNext }) {
     try {
       const payload = teamMembers.map((item) => ({
         ...item,
-        user: 3037,
+        user: item.id,
         eodsubmission: 1
       }));
       const response = await EODReportService.addTeamAbsence(payload);

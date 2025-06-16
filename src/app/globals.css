@@ -218,6 +218,22 @@
   display: none !important;
 }
 
+/* Custom green checkbox styles */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #339d5c; /* Ant Design green-6 */
+  border-color: #339d5c;
+}
+
+.custom-checkbox .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.custom-checkbox .ant-checkbox:hover .ant-checkbox-inner,
+.custom-checkbox .ant-checkbox-input:focus + .ant-checkbox-inner {
+  border-color: #339d5c;
+}
+
+.custom-checkbox .ant-checkbox-checked::after {
+  border-color: #339d5c;
+}
+
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
   display: none !important;
 }
