@@ -7,6 +7,7 @@ import { Icons } from '@/common/assets';
 import { DownOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
+import { removeUserAndToken } from '@/common/utils/auth-user';
 import {
   Avatar,
   AvatarImage,
@@ -87,6 +88,11 @@ export default function Header() {
     console.log('click', e);
   }
 
+  function handleSignOut() {
+    removeUserAndToken();
+    router.push('/login');
+  }
+
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-secondary-50 p-6">
       <div className="flex items-center justify-between">
@@ -134,12 +140,33 @@ export default function Header() {
           <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
             <Image src={Icons.help} alt="help" />
           </Button>
-          <Avatar className="w-8.5 h-8.5">
-            <AvatarImage src={Icons.userAvatar.src} />
-            <AvatarFallback></AvatarFallback>
-          </Avatar>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'sign-out',
+                  label: 'Sign Out'
+                }
+              ],
+              onClick: (e) => {
+                if (e.key === 'sign-out') {
+                  handleSignOut();
+                }
+              }
+            }}
+            trigger={['click']}
+          >
+            <span className="p-1 cursor-pointer border border-secondary-50 shadow-sm rounded-full text-secondary-500 hover:bg-secondary-50 transition-colors">
+              DD
+            </span>
+          </Dropdown>
         </div>
       </div>
     </header>
   );
 }
+
+// <Avatar className="w-8.5 h-8.5">
+//           <AvatarImage src={Icons.userAvatar.src} />
+//           <AvatarFallback></AvatarFallback>
+//         </Avatar>

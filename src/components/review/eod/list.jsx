@@ -1,56 +1,42 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DatePicker, Select } from 'antd';
 import { useRouter } from 'next/navigation';
 import { EditOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
-
-const dentalClinics = [
-  '67th Street Dental',
-  'Aspire Dental',
-  'Bathurst Dundas Dental Centre',
-  'Calling Lakes Dental',
-  'Dentists on Bloor'
-];
-
-const submissions = [
-  {
-    key: '1',
-    date: '2025-04-01',
-    practice: 'Calling Lakes Dental',
-    province: 'Saskatchewan (SK)',
-    manager: 'Mandi Kuculym',
-    status: 'Submitted'
-  },
-  {
-    key: '2',
-    date: '2025-04-01',
-    practice: 'Aspire Dental',
-    province: 'Saskatchewan (SK)',
-    manager: 'Mandi Kuculym',
-    status: 'Submitted'
-  }
-];
+import { EODReviewService } from '@/common/services/review-eod';
 
 export default function List() {
   const router = useRouter();
+  const [clinics, setClinics] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
   const [filters, setFilters] = useState({
-    clinic: null,
-    dateFrom: null,
-    dateTo: null
+    clinic_id: null,
+    start_date: null,
+    end_date: null
   });
 
   const columns = [
-    { title: 'Date', dataIndex: 'date', key: 'date' },
-    { title: 'Practice', dataIndex: 'practice', key: 'practice' },
-    { title: 'Province', dataIndex: 'province', key: 'province' },
-    { title: 'Regional Manager', dataIndex: 'manager', key: 'manager' },
+    { title: 'Date', dataIndex: 'submission_date', key: 'submission_date' },
+    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
+    { title: 'Province', dataIndex: 'province_name', key: 'province_name' },
     {
-      key: 'status',
+      title: 'Regional Manager',
+      key: 'regional_manager_name',
+      dataIndex: 'regional_manager_name'
+    },
+    {
+      key: 'submitted',
       title: 'Status',
-      dataIndex: 'status',
+      dataIndex: 'submitted',
       render: (text) => (
-        <span className="bg-[#E9F7EE] text-primary-400 px-2 py-1 rounded-full text-sm font-semibold">
+        <span
+          className={`px-2 py-1 rounded-full text-sm font-semibold ${
+            text === 'Completed'
+              ? 'bg-[#E9F7EE] text-primary-400'
+              : 'bg-[#FFF4ED] text-[#FF8A4E]'
+          }`}
+        >
           {text}
         </span>
       )
@@ -72,21 +58,30 @@ export default function List() {
     }
   ];
 
-  const filteredData = useMemo(() => {
-    return submissions.filter((item) => {
-      const itemDate = new Date(item.date);
-      const fromDate = filters.dateFrom ? new Date(filters.dateFrom) : null;
-      const toDate = filters.dateTo ? new Date(filters.dateTo) : null;
+  const fetchSubmissions = async () => {
+    try {
+      const response = await EODReviewService.getAllSubmissions(filters);
+      if (response.data) {
+        const dataWithKeys = response.data.map((item, index) => ({
+          ...item,
+          key: item.id || index.toString()
+        }));
+        setSubmissions(dataWithKeys);
+      }
+    } catch (error) {}
+  };
 
-      const matchesClinic = filters.clinic
-        ? item.practice === filters.clinic
-        : true;
-      const matchesFrom = fromDate ? itemDate >= fromDate : true;
-      const matchesTo = toDate ? itemDate <= toDate : true;
-
-      return matchesClinic && matchesFrom && matchesTo;
-    });
-  }, [filters]);
+  const fetchClinics = async () => {
+    try {
+      const { data } = await EODReviewService.getAllClinics();
+      setClinics(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
+  };
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -97,11 +92,19 @@ export default function List() {
 
   const handleResetFilters = () => {
     setFilters({
-      clinic: null,
-      dateFrom: null,
-      dateTo: null
+      clinic_id: null,
+      start_date: null,
+      end_date: null
     });
   };
+
+  useEffect(() => {
+    fetchClinics();
+  }, []);
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [filters]);
 
   return (
     <React.Fragment>
@@ -111,8 +114,8 @@ export default function List() {
           <Button
             size="lg"
             variant="secondary"
-            className="h-9 !shadow-none text-black !rounded-lg"
             onClick={handleResetFilters}
+            className="h-9 !shadow-none text-black !rounded-lg"
           >
             Reset Filters
           </Button>
@@ -123,17 +126,12 @@ export default function List() {
               Practice Name
             </p>
             <Select
-              value={filters.clinic}
-              placeholder="Find Items"
+              placeholder="Select Practice"
+              value={filters.clinic_id}
               style={{ width: '100%' }}
-              onChange={(value) => handleFilterChange('clinic', value)}
-            >
-              {dentalClinics.map((clinic) => (
-                <Select.Option key={clinic} value={clinic}>
-                  {clinic}
-                </Select.Option>
-              ))}
-            </Select>
+              onChange={(value) => handleFilterChange('clinic_id', value)}
+              options={clinics}
+            />
           </div>
           <div className="flex items-center gap-2">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
@@ -141,10 +139,10 @@ export default function List() {
             </p>
             <DatePicker
               format="MM/DD/YYYY"
-              value={filters.dateFrom}
               placeholder="Select date"
               style={{ width: '100%' }}
-              onChange={(date) => handleFilterChange('dateFrom', date)}
+              value={filters.start_date}
+              onChange={(date) => handleFilterChange('start_date', date)}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -153,10 +151,10 @@ export default function List() {
             </p>
             <DatePicker
               format="MM/DD/YYYY"
-              value={filters.dateTo}
+              value={filters.end_date}
               placeholder="Select date"
               style={{ width: '100%' }}
-              onChange={(date) => handleFilterChange('dateTo', date)}
+              onChange={(date) => handleFilterChange('end_date', date)}
             />
           </div>
         </div>
@@ -165,7 +163,7 @@ export default function List() {
         <p className="text-base font-medium text-black mb-4">
           Clinic Submissions
         </p>
-        <GenericTable columns={columns} dataSource={filteredData} />
+        <GenericTable columns={columns} dataSource={submissions} />
       </div>
     </React.Fragment>
   );
