@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
+import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import {
   Card,
@@ -15,7 +17,20 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { steps, type, currentStep, totalSteps } = useGlobalContext();
+  const { steps, type, submissionId, currentStep, totalSteps } =
+    useGlobalContext();
+
+  const handleSubmit = async () => {
+    try {
+      const response = await EODReportService.submissionEODReport({
+        eodsubmission_id: submissionId
+      });
+      if (response.status === 200) {
+        toast.success('EOD submission is successfully submitted');
+        router.push(`/review/list/${type}`);
+      }
+    } catch (error) {}
+  };
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
@@ -51,6 +66,7 @@ export default function SubmissionLayout({ children }) {
               <Button
                 size="lg"
                 variant="secondary"
+                onClick={handleSubmit}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
                 Submit

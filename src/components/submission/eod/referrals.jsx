@@ -38,9 +38,9 @@ const specialityOptions = [
 
 export default function Referrals() {
   const router = useRouter();
-  const { reportData } = useGlobalContext();
   const [tableData, setTableData] = useState([]);
   const [providers, setProviders] = useState([]);
+  const { reportData, submissionId } = useGlobalContext();
   const clinicId = reportData?.eod?.basic?.clinic;
 
   const patientReasonColumns = [
@@ -99,25 +99,18 @@ export default function Referrals() {
       const payload = tableData.map((item) => ({
         ...item,
         user: item.id,
-        eodsubmission: 1
+        eodsubmission: submissionId
       }));
       const response = await EODReportService.addRefferal(payload);
       if (response.status === 201) {
-        toast.success('Record is successfully saved');
-        router.push('/review/list/eod');
+        const response = await EODReportService.submissionEODReport({
+          eodsubmission_id: submissionId
+        });
+        if (response.status === 200) {
+          toast.success('EOD submission is successfully submitted');
+          router.push('/review/list/eod');
+        }
       }
-    } catch (error) {}
-  };
-
-  const fetchProvidersByClinic = async () => {
-    try {
-      const { data } = await EODReportService.getProviders(clinicId, 'False');
-      setProviders(
-        data.providers.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
-      );
     } catch (error) {}
   };
 
@@ -147,10 +140,25 @@ export default function Referrals() {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+    }
+  };
+
+  const fetchProvidersByClinic = async () => {
+    try {
+      const { data } = await EODReportService.getProviders(clinicId, 'False');
+      setProviders(
+        data.providers.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
   };
 
   useEffect(() => {
+    handleAddRefferals();
     fetchProvidersByClinic();
   }, []);
 

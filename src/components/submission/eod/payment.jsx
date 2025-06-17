@@ -27,8 +27,13 @@ const paymentOptions = [
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
   const [payments, setPayments] = useState([]);
-  const { steps, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
 
@@ -77,15 +82,29 @@ export default function Payment({ onNext }) {
 
   const createPayment = async () => {
     try {
+      const validPayments = payments.filter(
+        (item) =>
+          item.amount !== '' &&
+          item.amount !== undefined &&
+          item.amount !== null
+      );
+
       const payload = {
         notes: notes,
-        payments: payments.map((item) => ({
+        payments: validPayments.map((item) => ({
           ...item,
-          eodsubmission: 1,
-          payment_type: payments[0].type,
-          payment_amount: payments[0].amount
+          payment_type: item.type,
+          eodsubmission: submissionId,
+          payment_amount: item.amount
         }))
       };
+
+      // // Don't proceed if there are no payments with amounts
+      // if (validPayments.length === 0) {
+      //   toast.error('Please enter at least one payment amount');
+      //   return;
+      // }
+
       const response = await EODReportService.addPayment(payload);
       if (response.status === 201) {
         updateStepData(currentStepId, { notes, payments });
@@ -122,10 +141,22 @@ export default function Payment({ onNext }) {
     setPayments(payments.filter((item) => item.key !== key));
   };
 
+  const initializePayments = () => {
+    const initialPayments = paymentOptions.map((option, index) => ({
+      key: index + 1,
+      type: option.value,
+      amount: '',
+      action: ''
+    }));
+    setPayments(initialPayments);
+  };
+
   useEffect(() => {
     if (Object.entries(currentStepData).length > 0) {
       setNotes(currentStepData.notes);
       setPayments(currentStepData.payments);
+    } else {
+      initializePayments();
     }
   }, []);
 

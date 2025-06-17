@@ -1,11 +1,11 @@
 import React from 'react';
 import { Table, Input, Select } from 'antd';
 
-const tableStyles = `
-  .ant-table .ant-table-tbody > tr > td.editable-cell {
-    padding: 0 !important;
-  }
-`;
+// const tableStyles = `
+//   .ant-table .ant-table-tbody > tr > td.editable-cell {
+//     // padding: 1px !important;
+//   }
+// `;
 
 function GenericTable({
   columns,
@@ -53,7 +53,6 @@ function GenericTable({
 
   return (
     <React.Fragment>
-      <style>{tableStyles}</style>
       <Table
         size="middle"
         footer={footer}
