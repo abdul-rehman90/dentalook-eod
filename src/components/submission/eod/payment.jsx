@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Col, Row, Input } from 'antd';
+import { Col, Row, Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
@@ -45,6 +45,35 @@ export default function Payment({ onNext }) {
       inputType: 'select',
       title: 'Payment Type',
       selectOptions: paymentOptions
+      // render: (type, record) => {
+      //   // For EFT PAYMENT, show both Select and Input
+      //   if (record.type === 'EFT PAYMENT') {
+      //     return (
+      //       <div className="flex flex-col">
+      //         <Select
+      //           value={type}
+      //           style={{ width: 150 }}
+      //           // onChange={(value) => handleTypeChange(record.key, value)}
+      //         >
+      //           {paymentOptions.map((option) => (
+      //             <Option key={option.value} value={option.value}>
+      //               {option.label}
+      //             </Option>
+      //           ))}
+      //         </Select>
+      //         <Input
+      //           value={record.eftReference || ''}
+      //           placeholder="Ref #"
+      //           style={{ width: 80 }}
+      //           // onChange={(e) =>
+      //           //   handleDetailChange(record.key, 'eftReference', e.target.value)
+      //           // }
+      //         />
+      //       </div>
+      //     );
+      //   }
+      //   return type;
+      // }
     },
     {
       key: 'amount',
