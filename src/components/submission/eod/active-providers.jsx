@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import AddModal from './add-modal';
 import toast from 'react-hot-toast';
 import { Checkbox, TimePicker } from 'antd';
+import { FormControl } from '@/common/utils/form-control';
+import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
+const providerTypes = [
+  { value: 'DDS', label: 'DDS' },
+  { value: 'RDH', label: 'RDH' }
+];
+
 export default function ActiveProviders({ onNext }) {
-  const { steps, reportData, currentStep, updateStepData } = useGlobalContext();
+  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
+    useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const [providers, setProviders] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
+  const provinceId = reportData?.eod?.basic?.province;
 
   const columns = [
     {
@@ -87,7 +99,42 @@ export default function ActiveProviders({ onNext }) {
     }
   ];
 
-  const handleActiveProviders = async () => {
+  const GetModalContent = () => {
+    return (
+      <React.Fragment>
+        <FormControl
+          required
+          name="name"
+          control="input"
+          label="Provider Name"
+          placeholder="Enter provider name"
+        />
+        <FormControl
+          required
+          name="type"
+          control="select"
+          label="Provider Type"
+          options={providerTypes}
+        />
+      </React.Fragment>
+    );
+  };
+
+  const addNewProvider = async (values) => {
+    const payload = {
+      name: values.name,
+      clinic_id: clinicId,
+      province_id: provinceId,
+      provider_title: values.type
+    };
+    const response = await EODReportService.addNewProvider(payload);
+    if (response.status === 201) {
+      fetchProviders();
+      toast.success('Record is successfully saved');
+    }
+  };
+
+  const addActiveProviders = async () => {
     try {
       const payload = providers.map((provider) => ({
         ...provider,
@@ -120,18 +167,35 @@ export default function ActiveProviders({ onNext }) {
   };
 
   useEffect(() => {
+    if (currentStepData.length > 0) {
+      return setProviders(currentStepData);
+    }
     fetchProviders();
   }, []);
 
   return (
     <React.Fragment>
+      <AddModal
+        visible={isModalOpen}
+        onSubmit={addNewProvider}
+        onCancel={() => setIsModalOpen(false)}
+      >
+        <GetModalContent />
+      </AddModal>
       <div className="px-6">
-        <div className="mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h1 className="text-base font-medium text-black">Active Providers</h1>
+          <Button
+            size="lg"
+            onClick={() => setIsModalOpen(true)}
+            className="h-9 !shadow-none text-black !rounded-lg"
+          >
+            Add New Provider
+          </Button>
         </div>
         <GenericTable columns={columns} dataSource={providers} />
       </div>
-      <StepNavigation onNext={handleActiveProviders} />
+      <StepNavigation onNext={addActiveProviders} />
     </React.Fragment>
   );
 }

@@ -8,11 +8,6 @@ import { DownOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { removeUserAndToken } from '@/common/utils/auth-user';
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback
-} from '@/common/components/avatar/avatar';
 
 const items = [
   {
@@ -128,18 +123,6 @@ export default function Header() {
               <DownOutlined style={{ width: 14, height: 14 }} />
             </Button>
           </Dropdown>
-          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-            <Image src={Icons.fullScreen} alt="fullscreen" />
-          </Button>
-          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-            <Image src={Icons.download} alt="download" />
-          </Button>
-          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-            <Image src={Icons.setting} alt="setting" />
-          </Button>
-          <Button size="sm" variant="ghost" className="!px-1.5 h-8.5">
-            <Image src={Icons.help} alt="help" />
-          </Button>
           <Dropdown
             menu={{
               items: [
@@ -165,8 +148,3 @@ export default function Header() {
     </header>
   );
 }
-
-// <Avatar className="w-8.5 h-8.5">
-//           <AvatarImage src={Icons.userAvatar.src} />
-//           <AvatarFallback></AvatarFallback>
-//         </Avatar>

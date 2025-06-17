@@ -21,8 +21,14 @@ const positionOptions = [
 export default function TeamAbsences({ onNext }) {
   const [staffData, setStaffData] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
-  const { reportData, steps, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    reportData,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinic;
@@ -122,7 +128,7 @@ export default function TeamAbsences({ onNext }) {
       const payload = teamMembers.map((item) => ({
         ...item,
         user: item.id,
-        eodsubmission: 1
+        eodsubmission: submissionId
       }));
       const response = await EODReportService.addTeamAbsence(payload);
       if (response.status === 201) {
@@ -163,7 +169,9 @@ export default function TeamAbsences({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTeamMembers(teamMembers.filter((item) => item.key !== key));
+    if (teamMembers.length > 1) {
+      setTeamMembers(teamMembers.filter((item) => item.key !== key));
+    }
   };
 
   useEffect(() => {
@@ -174,6 +182,8 @@ export default function TeamAbsences({ onNext }) {
         ];
         await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
         setTeamMembers(currentStepData);
+      } else {
+        handleAddAbsence();
       }
     };
 

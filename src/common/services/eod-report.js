@@ -76,5 +76,10 @@ export const EODReportService = {
   async addRefferal(payload) {
     const response = await apiClient.post('/eod-referral/', payload);
     return response;
+  },
+
+  async submissionEODReport(payload) {
+    const response = await apiClient.post('/submit-eod/', payload);
+    return response;
   }
 };
