@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
 import { Checkbox, TimePicker } from 'antd';
@@ -23,6 +24,49 @@ export default function ActiveProviders({ onNext }) {
   const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
   const provinceId = reportData?.eod?.basic?.province;
+  const clinicOpenTime = reportData?.eod?.basic?.clinic_open_time;
+  const clinicCloseTime = reportData?.eod?.basic?.clinic_close_time;
+  const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
+
+  // Convert to dayjs objects for comparison
+  const openTime = clinicOpenTime ? dayjs(clinicOpenTime, 'HH:mm') : null;
+  const closeTime = clinicCloseTime ? dayjs(clinicCloseTime, 'HH:mm') : null;
+
+  const disabledTime = (current) => {
+    if (!openTime || !closeTime) return {};
+
+    // Disable hours before open time and after close time
+    const disabledHours = () => {
+      const hours = [];
+      for (let i = 0; i < 24; i++) {
+        if (i < openTime.hour() || i > closeTime.hour()) {
+          hours.push(i);
+        }
+      }
+      return hours;
+    };
+
+    // Disable minutes before open time for the opening hour
+    const disabledMinutes = (hour) => {
+      if (hour === openTime.hour()) {
+        return Array.from({ length: openTime.minute() }, (_, i) => i);
+      }
+      // Disable minutes after close time for the closing hour
+      if (hour === closeTime.hour()) {
+        return Array.from(
+          { length: 60 - closeTime.minute() - 1 },
+          (_, i) => i + closeTime.minute() + 1
+        );
+      }
+      return [];
+    };
+
+    return {
+      disabledHours: disabledHours,
+      disabledMinutes: disabledMinutes,
+      disabledSeconds: () => []
+    };
+  };
 
   const columns = [
     {
@@ -44,6 +88,7 @@ export default function ActiveProviders({ onNext }) {
       dataIndex: 'is_active',
       render: (_, record) => (
         <Checkbox
+          disabled={isClinicClosed}
           checked={record.is_active}
           className="custom-checkbox"
           onChange={(e) => {
@@ -64,8 +109,10 @@ export default function ActiveProviders({ onNext }) {
         <TimePicker
           format="HH:mm"
           showNow={false}
+          hideDisabledOptions
           inputReadOnly={true}
           value={record.start_time}
+          disabledTime={disabledTime}
           disabled={!record.is_active}
           onChange={(time) => {
             const updatedProviders = providers.map((p) =>
@@ -85,8 +132,10 @@ export default function ActiveProviders({ onNext }) {
         <TimePicker
           format="HH:mm"
           showNow={false}
+          hideDisabledOptions
           inputReadOnly={true}
           value={record.end_time}
+          disabledTime={disabledTime}
           disabled={!record.is_active}
           onChange={(time) => {
             const updatedProviders = providers.map((p) =>
