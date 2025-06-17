@@ -37,6 +37,7 @@ export const AppProvider = ({ children }) => {
   const steps = stepConfig[type] || [];
   const [loading, setLoading] = useState(false);
   const [provinces, setProvinces] = useState([]);
+  const [submissionId, setSubmissionId] = useState(null);
   const [reportData, setReportData] = useState({
     eod: {},
     eom: {}
@@ -78,6 +79,7 @@ export const AppProvider = ({ children }) => {
   }, [type, currentStep]);
 
   useEffect(() => {
+    setSubmissionId(null);
     setReportData({ eod: {}, eom: {} });
   }, [isSubmissionRoute, type]);
 
@@ -92,7 +94,9 @@ export const AppProvider = ({ children }) => {
         reportData,
         setLoading,
         currentStep,
+        submissionId,
         updateStepData,
+        setSubmissionId,
         getCurrentStepData
       }}
     >

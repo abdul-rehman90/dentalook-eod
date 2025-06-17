@@ -8,41 +8,53 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 
 export default function ScheduleOpening({ onNext }) {
   const [unitTime, setUnitTime] = useState(10);
-  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
-  const [unitsData, setUnitsData] = useState([
-    { key: '1', type: 'Unfilled Spots', dds: '', rdh: '' },
-    { key: '2', type: 'No Shows', dds: '', rdh: '' },
-    { key: '3', type: 'Short Notice Cancellations', dds: '', rdh: '' }
-  ]);
+  const [providers, setProviders] = useState([]);
+  const {
+    steps,
+    reportData,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   const columns = [
     {
-      title: '',
       width: 200,
-      key: 'type',
-      dataIndex: 'type'
+      key: 'name',
+      dataIndex: 'name',
+      title: 'Provider Name'
     },
     {
-      key: 'dds',
-      width: 150,
+      width: 200,
       editable: true,
-      dataIndex: 'dds',
       inputType: 'number',
-      title: 'DDS (in units)',
+      key: 'unfilled_spots',
+      title: 'Unfilled Spots',
+      disabled: isClinicClosed,
+      dataIndex: 'unfilled_spots'
+    },
+    {
+      width: 200,
+      editable: true,
+      key: 'no_shows',
+      title: 'No Shows',
+      inputType: 'number',
+      dataIndex: 'no_shows',
       disabled: isClinicClosed
     },
     {
-      key: 'rdh',
-      width: 150,
+      width: 200,
       editable: true,
-      dataIndex: 'rdh',
       inputType: 'number',
-      title: 'RDH (in units)',
-      disabled: isClinicClosed
+      disabled: isClinicClosed,
+      key: 'short_notice_cancellations',
+      title: 'Short Notice Cancellations',
+      dataIndex: 'short_notice_cancellations'
     }
   ];
 
@@ -50,37 +62,30 @@ export default function ScheduleOpening({ onNext }) {
     <div className="flex items-center justify-between w-full">
       <div className="flex-1 p-2">Total Amount</div>
       <div className="flex-1 p-2">
-        {unitsData.reduce((sum, item) => sum + item.dds, 0)}
+        {providers.reduce((sum, item) => sum + item.unfilled_spots, 0)}
       </div>
       <div className="flex-1 p-2">
-        {unitsData.reduce((sum, item) => sum + item.rdh, 0)}
+        {providers.reduce((sum, item) => sum + item.no_shows, 0)}
+      </div>
+      <div className="flex-1 p-2">
+        {providers.reduce(
+          (sum, item) => sum + item.short_notice_cancellations,
+          0
+        )}
       </div>
     </div>
   );
 
   const createScheduleOpening = async () => {
     try {
-      const payload = {
-        eodsubmission: 1,
-        unfilled_spots_dds:
-          unitsData.find((item) => item.type === 'Unfilled Spots')?.dds || 0,
-        unfilled_spots_rdh:
-          unitsData.find((item) => item.type === 'Unfilled Spots')?.rdh || 0,
-        no_shows_dds:
-          unitsData.find((item) => item.type === 'No Shows')?.dds || 0,
-        no_shows_rdh:
-          unitsData.find((item) => item.type === 'No Shows')?.rdh || 0,
-        short_notice_cancellations_dds:
-          unitsData.find((item) => item.type === 'Short Notice Cancellations')
-            ?.dds || 0,
-        short_notice_cancellations_rdh:
-          unitsData.find((item) => item.type === 'Short Notice Cancellations')
-            ?.rdh || 0
-      };
-
+      const payload = providers.map((item) => ({
+        ...item,
+        user: item.id,
+        eodsubmission: submissionId
+      }));
       const response = await EODReportService.addScheduleOpening(payload);
       if (response.status === 201) {
-        updateStepData(currentStepId, unitsData);
+        updateStepData(currentStepId, providers);
         toast.success('Record is successfully saved');
         onNext();
       }
@@ -89,15 +94,34 @@ export default function ScheduleOpening({ onNext }) {
 
   const handleCellChange = (record, dataIndex, value) => {
     const newValue = value === '' ? 0 : parseInt(value) || 0;
-    setUnitsData(
-      unitsData.map((item) =>
+    setProviders(
+      providers.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: newValue } : item
       )
     );
   };
 
+  const fetchProviders = async () => {
+    try {
+      const { data } = await EODReportService.getProviders(clinicId, 'True');
+      setProviders(
+        data.providers.map((provider) => ({
+          id: provider.id,
+          key: provider.id,
+          name: provider.name,
+          unfilled_spots: null,
+          no_shows: null,
+          short_notice_cancellations: false
+        }))
+      );
+    } catch (error) {}
+  };
+
   useEffect(() => {
-    if (currentStepData.length > 0) setUnitsData(currentStepData);
+    if (currentStepData.length > 0) {
+      return setProviders(currentStepData);
+    }
+    fetchProviders();
   }, []);
 
   return (
@@ -119,7 +143,7 @@ export default function ScheduleOpening({ onNext }) {
         <GenericTable
           footer={footer}
           columns={columns}
-          dataSource={unitsData}
+          dataSource={providers}
           onCellChange={handleCellChange}
         />
       </div>

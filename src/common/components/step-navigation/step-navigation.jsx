@@ -6,6 +6,7 @@ import { useGlobalContext } from '@/common/context/global-context';
 export default function StepNavigation({ onNext }) {
   const router = useRouter();
   const { type, loading, currentStep, totalSteps } = useGlobalContext();
+  const isLastStep = currentStep === totalSteps;
 
   const handlePrevious = () => {
     if (currentStep > 1) {
@@ -14,9 +15,7 @@ export default function StepNavigation({ onNext }) {
   };
 
   const handleNext = () => {
-    // if (currentStep < totalSteps) {
     onNext();
-    // }
   };
 
   return (
@@ -31,16 +30,14 @@ export default function StepNavigation({ onNext }) {
           Previous
         </Button>
       )}
-      {true && (
-        <Button
-          size="lg"
-          isLoading={loading}
-          onClick={handleNext}
-          className="h-9 !shadow-none text-black !rounded-lg"
-        >
-          Next
-        </Button>
-      )}
+      <Button
+        size="lg"
+        isLoading={loading}
+        onClick={handleNext}
+        className="h-9 !shadow-none text-black !rounded-lg"
+      >
+        {isLastStep ? 'Submit' : 'Next'}
+      </Button>
     </div>
   );
 }

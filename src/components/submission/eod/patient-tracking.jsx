@@ -26,8 +26,13 @@ export default function PatientTracking({ onNext }) {
   const [target, setTarget] = useState(3);
   const [actual, setActual] = useState(0);
   const [tableData, setTableData] = useState([]);
-  const { steps, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
 
@@ -114,7 +119,7 @@ export default function PatientTracking({ onNext }) {
     try {
       const payload = tableData.map((item) => ({
         ...item,
-        eodsubmission: 1
+        eodsubmission: submissionId
       }));
       const response = await EODReportService.addPatientTracking(payload);
       if (response.status === 201) {
@@ -151,14 +156,18 @@ export default function PatientTracking({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-    setActual((prev) => Math.max(0, prev - 1));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+      setActual((prev) => Math.max(0, prev - 1));
+    }
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
       setActual(currentStepData.length);
+    } else {
+      handleAddPatient();
     }
   }, []);
 
