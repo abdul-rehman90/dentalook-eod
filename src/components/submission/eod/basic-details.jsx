@@ -43,6 +43,19 @@ export default function BasicDetails({ onNext }) {
       : null
   };
 
+  const clearTimeFieldValidations = () => {
+    form.setFields([
+      {
+        name: 'clinic_open_time',
+        errors: []
+      },
+      {
+        name: 'clinic_close_time',
+        errors: []
+      }
+    ]);
+  };
+
   const createBasicDetails = async () => {
     try {
       const values = await form.validateFields();
@@ -164,6 +177,13 @@ export default function BasicDetails({ onNext }) {
         form={form}
         initialValues={initialValues}
         style={{ width: '50%', padding: '0 24px' }}
+        onValuesChange={(changedValues) => {
+          if ('status' in changedValues) {
+            if (changedValues.status !== 'opened') {
+              clearTimeFieldValidations();
+            }
+          }
+        }}
       >
         <FormControl
           required
