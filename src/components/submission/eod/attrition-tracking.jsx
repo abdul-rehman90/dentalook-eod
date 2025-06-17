@@ -21,8 +21,13 @@ const reasonOptions = [
 export default function AttritionTracking({ onNext }) {
   const [tableData, setTableData] = useState([]);
   const [noOfPatients, setNoOfPatients] = useState(0);
-  const { steps, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
 
@@ -96,7 +101,7 @@ export default function AttritionTracking({ onNext }) {
     try {
       const payload = tableData.map((item) => ({
         ...item,
-        eodsubmission: 1
+        eodsubmission: submissionId
       }));
       const response = await EODReportService.addAttritionTracking(payload);
       if (response.status === 201) {
@@ -133,14 +138,18 @@ export default function AttritionTracking({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-    setNoOfPatients((prev) => Math.max(0, prev - 1));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+      setNoOfPatients((prev) => Math.max(0, prev - 1));
+    }
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
       setNoOfPatients(currentStepData.length);
+    } else {
+      handleAddAttrition();
     }
   }, []);
 

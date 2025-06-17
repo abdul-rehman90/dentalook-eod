@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import AddModal from './add-modal';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
-import { Form, Modal, Typography } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
@@ -10,28 +10,27 @@ import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
-const { Title, Text } = Typography;
+const providerTypes = [
+  { value: 'DDS', label: 'DDS' },
+  { value: 'RDH', label: 'RDH' }
+];
 
 export default function DailyProduction({ onNext }) {
-  const [form] = Form.useForm();
   const [goal, setGoal] = useState(0);
   const [providers, setProviders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [providerOptions, setProviderOptions] = useState([]);
-  const {
-    provinces,
-    steps,
-    reportData,
-    currentStep,
-    updateStepData,
-    getCurrentStepData
-  } = useGlobalContext();
-  const currentStepData = getCurrentStepData();
-  const currentStepId = steps[currentStep - 1].id;
+  const { provinces, reportData, submissionId } = useGlobalContext();
   const clinicId = reportData?.eod?.basic?.clinic;
   const provinceId = reportData?.eod?.basic?.province;
+  const clinicName = reportData?.eod?.basic?.clinic_name || '';
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
-  console.log(reportData, provinces);
+  const provinceName =
+    provinces.find((province) => province.value === provinceId)?.label || '';
+
+  const initialValues = {
+    clinic_id: clinicName,
+    province: provinceName
+  };
 
   const summaryData = useMemo(() => {
     const totalDDS = providers
@@ -48,11 +47,11 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
-        totalProduction: `${totalProduction.toLocaleString()}`,
+        goal: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
-        goal: `${goal.toLocaleString()}`,
-        '+/-': `${difference.toLocaleString()}`
+        '+/-': `${difference.toLocaleString()}`,
+        totalProduction: `${totalProduction.toLocaleString()}`
       }
     ];
   }, [providers, goal]);
@@ -132,23 +131,52 @@ export default function DailyProduction({ onNext }) {
     }
   ];
 
-  const addProvider = async () => {
-    try {
-      const values = await form.validateFields();
-      const payload = {
-        name: values.name,
-        clinic_id: clinicId,
-        province_id: provinceId,
-        provider_title: values.provider_title
-      };
-      const response = await EODReportService.addNewProvider(payload);
-      if (response.status === 201) {
-        fetchProviders();
-        setIsModalOpen(false);
-        toast.success('Record is successfully saved');
-        form.setFieldsValue({ name: undefined, provider_title: undefined });
-      }
-    } catch (error) {}
+  const GetModalContent = () => {
+    return (
+      <React.Fragment>
+        <FormControl
+          disabled
+          name="province"
+          control="input"
+          label="Province"
+          // value={provinceName}
+        />
+        <FormControl
+          disabled
+          control="input"
+          name="clinic_id"
+          // value={clinicName}
+          label="Practice Name"
+        />
+        <FormControl
+          required
+          name="name"
+          control="input"
+          label="Provider Name"
+        />
+        <FormControl
+          required
+          control="select"
+          name="provider_title"
+          label="Provider Title"
+          options={providerTypes}
+        />
+      </React.Fragment>
+    );
+  };
+
+  const addNewProvider = async (values) => {
+    const payload = {
+      name: values.name,
+      clinic_id: clinicId,
+      province_id: provinceId,
+      provider_title: values.provider_title
+    };
+    const response = await EODReportService.addNewProvider(payload);
+    if (response.status === 201) {
+      fetchProviders();
+      toast.success('Record is successfully saved');
+    }
   };
 
   const createProduction = async () => {
@@ -156,7 +184,7 @@ export default function DailyProduction({ onNext }) {
       const payload = providers.map((item) => ({
         ...item,
         user: item.id,
-        eodsubmission: 1
+        eodsubmission: submissionId
       }));
       const response = await EODReportService.addProduction(payload);
       if (response.status === 201) {
@@ -179,9 +207,12 @@ export default function DailyProduction({ onNext }) {
     );
   };
 
-  // const handleDelete = (key) => {
-  //   setTableData(tableData.filter((item) => item.key !== key));
-  // };
+  const fetchTargetGoal = async () => {
+    try {
+      const response = await EODReportService.getTargetGoalByClinicId(clinicId);
+      setGoal(response.data.submission_month_target);
+    } catch (error) {}
+  };
 
   const fetchProviders = async () => {
     try {
@@ -197,40 +228,21 @@ export default function DailyProduction({ onNext }) {
     } catch (error) {}
   };
 
-  const fetchTargetGoal = async () => {
-    try {
-      const response = await EODReportService.getTargetGoalByClinicId(clinicId);
-      setGoal(response.data.submission_month_target);
-    } catch (error) {}
-  };
-
-  const getProvinceData = async () => {
-    if (!provinceId) return;
-
-    try {
-      const { data } = await EODReportService.getDataOfProvinceById(provinceId);
-      setProviderOptions(
-        data.users.map((user) => ({
-          value: user.id,
-          label: user.provider_type
-        }))
-      );
-      form.setFieldsValue({
-        province: provinces.find((item) => item.value === provinceId).label,
-        clinic_id: data.clinics.find((item) => item.clinic_id === clinicId)
-          .clinic_name
-      });
-    } catch (error) {}
-  };
-
   useEffect(() => {
     fetchProviders();
     fetchTargetGoal();
-    getProvinceData();
   }, []);
 
   return (
     <React.Fragment>
+      <AddModal
+        visible={isModalOpen}
+        onSubmit={addNewProvider}
+        initialValues={initialValues}
+        onCancel={() => setIsModalOpen(false)}
+      >
+        <GetModalContent />
+      </AddModal>
       <div className="flex flex-col gap-6 px-6">
         <GenericTable
           dataSource={summaryData}
@@ -255,83 +267,6 @@ export default function DailyProduction({ onNext }) {
             onCellChange={handleCellChange}
           />
         </div>
-        <Modal
-          centered
-          open={isModalOpen}
-          onCancel={() => setIsModalOpen(false)}
-          title={
-            <div className="p-4">
-              <Title
-                level={4}
-                style={{
-                  marginBottom: 0,
-                  fontWeight: 500,
-                  color: '#030303'
-                }}
-              >
-                Add New Provider
-              </Title>
-              <Text
-                type="secondary"
-                style={{
-                  fontSize: 14,
-                  fontWeight: 400,
-                  color: '#484A54'
-                }}
-              >
-                Step 2 of 8 - Daily Productivity
-              </Text>
-            </div>
-          }
-          footer={
-            <div className="p-4 flex items-center gap-4">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-                className="h-9 !shadow-none text-black !rounded-lg"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                onClick={addProvider}
-                className="h-9 !shadow-none text-black !rounded-lg"
-              >
-                Create
-              </Button>
-            </div>
-          }
-        >
-          <Form form={form}>
-            <FormControl
-              disabled
-              name="province"
-              control="input"
-              label="Province"
-            />
-            <FormControl
-              disabled
-              control="input"
-              name="clinic_id"
-              label="Practice Name"
-            />
-            <FormControl
-              required
-              name="name"
-              control="input"
-              label="Provider Name"
-            />
-            <FormControl
-              required
-              control="select"
-              name="provider_title"
-              label="Provider Title"
-              options={providerOptions}
-            />
-          </Form>
-        </Modal>
       </div>
       <StepNavigation onNext={createProduction} />
     </React.Fragment>
