@@ -17,7 +17,11 @@ export default function DatePickerField({
         if (!current) return false;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return current.toDate() > today;
+        // Get tomorrow's date by adding 1 day
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        // Disable dates after tomorrow (starting from day after tomorrow)
+        return current.toDate() > tomorrow;
       }
     : undefined;
 

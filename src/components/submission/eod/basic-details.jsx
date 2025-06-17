@@ -116,8 +116,10 @@ export default function BasicDetails({ onNext }) {
     );
 
     if (selectedClinic?.managers) {
-      form.setFieldsValue({ user: undefined });
       setRegionalManagers(selectedClinic.managers);
+      form.setFieldsValue({
+        user: selectedClinic.managers[0].value
+      });
     }
   };
 

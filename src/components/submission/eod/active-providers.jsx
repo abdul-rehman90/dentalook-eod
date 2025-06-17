@@ -184,6 +184,18 @@ export default function ActiveProviders({ onNext }) {
   };
 
   const addActiveProviders = async () => {
+    const invalidProviders = providers.filter(
+      (provider) =>
+        provider.is_active && (!provider.start_time || !provider.end_time)
+    );
+
+    if (invalidProviders.length > 0) {
+      toast.error(
+        'Please set both start and end times for all active providers'
+      );
+      return;
+    }
+
     try {
       const payload = providers.map((provider) => ({
         ...provider,
