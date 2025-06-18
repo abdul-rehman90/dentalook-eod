@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
-import { Checkbox, TimePicker } from 'antd';
+import { Checkbox, Input, TimePicker } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
@@ -16,10 +16,16 @@ const providerTypes = [
 ];
 
 export default function ActiveProviders({ onNext }) {
-  const { steps, reportData, currentStep, updateStepData, getCurrentStepData } =
-    useGlobalContext();
+  const {
+    steps,
+    reportData,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
-  const [providers, setProviders] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
@@ -46,24 +52,8 @@ export default function ActiveProviders({ onNext }) {
       return hours;
     };
 
-    // Disable minutes before open time for the opening hour
-    const disabledMinutes = (hour) => {
-      if (hour === openTime.hour()) {
-        return Array.from({ length: openTime.minute() }, (_, i) => i);
-      }
-      // Disable minutes after close time for the closing hour
-      if (hour === closeTime.hour()) {
-        return Array.from(
-          { length: 60 - closeTime.minute() - 1 },
-          (_, i) => i + closeTime.minute() + 1
-        );
-      }
-      return [];
-    };
-
     return {
       disabledHours: disabledHours,
-      disabledMinutes: disabledMinutes,
       disabledSeconds: () => []
     };
   };
@@ -82,7 +72,7 @@ export default function ActiveProviders({ onNext }) {
       title: 'Provider Name'
     },
     {
-      width: 150,
+      width: 100,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -92,10 +82,38 @@ export default function ActiveProviders({ onNext }) {
           checked={record.is_active}
           className="custom-checkbox"
           onChange={(e) => {
-            const updatedProviders = providers.map((p) =>
+            const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, is_active: e.target.checked } : p
             );
-            setProviders(updatedProviders);
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 150,
+      editable: true,
+      inputType: 'number',
+      title: 'Patients Seen',
+      key: 'number_of_patients_seen',
+      dataIndex: 'number_of_patients_seen',
+      render: (_, record) => (
+        <Input
+          type="number"
+          disabled={!record.is_active}
+          value={record.number_of_patients_seen || ''}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    number_of_patients_seen: e.target.value
+                      ? parseInt(e.target.value)
+                      : null
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
           }}
         />
       )
@@ -109,16 +127,17 @@ export default function ActiveProviders({ onNext }) {
         <TimePicker
           format="HH:mm"
           showNow={false}
+          minuteStep={30}
           hideDisabledOptions
           inputReadOnly={true}
           value={record.start_time}
           disabledTime={disabledTime}
           disabled={!record.is_active}
           onChange={(time) => {
-            const updatedProviders = providers.map((p) =>
+            const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, start_time: time } : p
             );
-            setProviders(updatedProviders);
+            setTableData(updatedProviders);
           }}
         />
       )
@@ -132,16 +151,17 @@ export default function ActiveProviders({ onNext }) {
         <TimePicker
           format="HH:mm"
           showNow={false}
+          minuteStep={30}
           hideDisabledOptions
           inputReadOnly={true}
           value={record.end_time}
           disabledTime={disabledTime}
           disabled={!record.is_active}
           onChange={(time) => {
-            const updatedProviders = providers.map((p) =>
+            const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, end_time: time } : p
             );
-            setProviders(updatedProviders);
+            setTableData(updatedProviders);
           }}
         />
       )
@@ -183,11 +203,19 @@ export default function ActiveProviders({ onNext }) {
     }
   };
 
-  const addActiveProviders = async () => {
-    const invalidProviders = providers.filter(
+  const handleSubmit = async () => {
+    const activeProviders = tableData.filter((provider) => provider.is_active);
+    const invalidProviders = tableData.filter(
       (provider) =>
         provider.is_active && (!provider.start_time || !provider.end_time)
     );
+
+    // If no active providers, just go to next step
+    if (activeProviders.length === 0) {
+      updateStepData(currentStepId, tableData);
+      onNext();
+      return;
+    }
 
     if (invalidProviders.length > 0) {
       toast.error(
@@ -197,13 +225,14 @@ export default function ActiveProviders({ onNext }) {
     }
 
     try {
-      const payload = providers.map((provider) => ({
+      const payload = activeProviders.map((provider) => ({
         ...provider,
-        user: provider.id
+        user: provider.id,
+        eod_submission: submissionId
       }));
       const response = await EODReportService.addActiveProviders(payload);
       if (response.status === 201) {
-        updateStepData(currentStepId, providers);
+        updateStepData(currentStepId, tableData);
         toast.success('Record is successfully saved');
         onNext();
       }
@@ -212,8 +241,8 @@ export default function ActiveProviders({ onNext }) {
 
   const fetchProviders = async () => {
     try {
-      const { data } = await EODReportService.getProviders(clinicId, 'False');
-      setProviders(
+      const { data } = await EODReportService.getProviders(clinicId);
+      setTableData(
         data.providers.map((provider) => ({
           id: provider.id,
           key: provider.id,
@@ -229,7 +258,7 @@ export default function ActiveProviders({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setProviders(currentStepData);
+      return setTableData(currentStepData);
     }
     fetchProviders();
   }, []);
@@ -254,9 +283,9 @@ export default function ActiveProviders({ onNext }) {
             Add New Provider
           </Button>
         </div>
-        <GenericTable columns={columns} dataSource={providers} />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
-      <StepNavigation onNext={addActiveProviders} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

@@ -64,7 +64,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        const { data } = await EODReportService.getAllProvince();
+        const { data } = await EODReportService.getAllProvinces();
         const provinceOptions = data.map((province) => ({
           value: province.id,
           label: province.name
@@ -73,12 +73,17 @@ export const AppProvider = ({ children }) => {
       } catch (error) {}
     };
 
-    if (type === 'eod' && currentStep === 1 && !provinces.length) {
+    if (
+      (type === 'eod' || type === 'eom') &&
+      currentStep === 1 &&
+      !provinces.length
+    ) {
       fetchProvinces();
     }
   }, [type, currentStep]);
 
   useEffect(() => {
+    setProvinces([]);
     setSubmissionId(null);
     setReportData({ eod: {}, eom: {} });
   }, [isSubmissionRoute, type]);

@@ -1,7 +1,7 @@
 import apiClient from '../api/axios-config';
 
 export const EODReportService = {
-  async getAllProvince() {
+  async getAllProvinces() {
     const response = await apiClient.get('/upload-provinces');
     return response;
   },
@@ -26,10 +26,13 @@ export const EODReportService = {
     return response;
   },
 
-  async getProviders(id, status) {
-    const response = await apiClient.get(
-      `/provider-by-clinic/${id}?is_active=${status}`
-    );
+  async getProviders(id) {
+    const response = await apiClient.get(`/provider-by-clinic/${id}`);
+    return response;
+  },
+
+  async getActiveProviders(id) {
+    const response = await apiClient.get(`/active-providers-eod/${id}`);
     return response;
   },
 

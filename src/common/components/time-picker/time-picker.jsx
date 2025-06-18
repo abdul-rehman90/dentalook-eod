@@ -25,6 +25,7 @@ export default function TimePickerField({
       <TimePicker
         format="HH:mm"
         showNow={false}
+        minuteStep={30}
         disabled={disabled}
         inputReadOnly={true}
         style={{ width: '100%' }}

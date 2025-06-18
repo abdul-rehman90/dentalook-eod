@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
@@ -17,8 +18,9 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { steps, type, submissionId, currentStep, totalSteps } =
+  const { steps, reportData, type, submissionId, currentStep, totalSteps } =
     useGlobalContext();
+  const submission_date = reportData?.eod?.basic?.submission_date;
 
   const handleSubmit = async () => {
     try {
@@ -49,7 +51,10 @@ export default function SubmissionLayout({ children }) {
               >
                 <LeftOutlined />
               </Button>
-              Submit End Of {type === 'eod' ? 'Day' : 'Month'}
+              Submit End Of {type === 'eod' ? 'Day' : 'Month'}{' '}
+              {submission_date
+                ? `/ ${dayjs(submission_date).format('D MMMM YYYY')}`
+                : ''}
               <div className="w-11 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center ml-3">
                 New
               </div>
@@ -67,6 +72,7 @@ export default function SubmissionLayout({ children }) {
                 size="lg"
                 variant="secondary"
                 onClick={handleSubmit}
+                disabled={!submissionId}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
                 Submit

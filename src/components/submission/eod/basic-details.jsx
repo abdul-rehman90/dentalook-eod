@@ -56,38 +56,6 @@ export default function BasicDetails({ onNext }) {
     ]);
   };
 
-  const createBasicDetails = async () => {
-    try {
-      const values = await form.validateFields();
-      const selectedClinic = practices.find(
-        (clinic) => clinic.value === values.clinic
-      );
-      const payload = {
-        ...values,
-        clinic_name: selectedClinic?.label,
-        submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
-        clinic_open_time:
-          values.status === 'opened'
-            ? dayjs(values.clinic_open_time).format('HH:mm:ss')
-            : undefined,
-        clinic_close_time:
-          values.status === 'opened'
-            ? dayjs(values.clinic_close_time).format('HH:mm:ss')
-            : undefined
-      };
-
-      const response = await EODReportService.sumbmissionOfBasicDetails(
-        payload
-      );
-      if (response.status === 201) {
-        setSubmissionId(response.data.data.id);
-        updateStepData(currentStepId, payload);
-        toast.success('Record is successfully saved');
-        onNext();
-      }
-    } catch (error) {}
-  };
-
   const handleProvinceChange = async (provinceId) => {
     if (!provinceId) return;
 
@@ -97,6 +65,7 @@ export default function BasicDetails({ onNext }) {
         data.clinics.map((clinic) => ({
           value: clinic.clinic_id,
           label: clinic.clinic_name,
+          unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
             label: manager.name,
             value: manager.id
@@ -123,6 +92,39 @@ export default function BasicDetails({ onNext }) {
     }
   };
 
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const selectedClinic = practices.find(
+        (clinic) => clinic.value === values.clinic
+      );
+      const payload = {
+        ...values,
+        clinic_name: selectedClinic?.label,
+        unit_length: selectedClinic?.unitLength,
+        submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
+        clinic_open_time:
+          values.status === 'opened'
+            ? dayjs(values.clinic_open_time).format('HH:mm:ss')
+            : undefined,
+        clinic_close_time:
+          values.status === 'opened'
+            ? dayjs(values.clinic_close_time).format('HH:mm:ss')
+            : undefined
+      };
+
+      const response = await EODReportService.sumbmissionOfBasicDetails(
+        payload
+      );
+      if (response.status === 201) {
+        setSubmissionId(response.data.data.id);
+        updateStepData(currentStepId, payload);
+        toast.success('Record is successfully saved');
+        onNext();
+      }
+    } catch (error) {}
+  };
+
   const initializeForm = async () => {
     if (!currentStepData?.province) return;
 
@@ -134,6 +136,7 @@ export default function BasicDetails({ onNext }) {
         data.clinics.map((clinic) => ({
           value: clinic.clinic_id,
           label: clinic.clinic_name,
+          unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
             label: manager.name,
             value: manager.id
@@ -251,7 +254,7 @@ export default function BasicDetails({ onNext }) {
           }}
         </Form.Item>
       </Form>
-      <StepNavigation onNext={createBasicDetails} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

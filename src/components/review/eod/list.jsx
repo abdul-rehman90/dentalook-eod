@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { DatePicker, Select } from 'antd';
 import { useRouter } from 'next/navigation';
-import { EditOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
+import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReviewService } from '@/common/services/review-eod';
+import { EODReportService } from '@/common/services/eod-report';
 
 export default function List() {
   const router = useRouter();
   const [clinics, setClinics] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [regionalManagers, setRegionalManagers] = useState([]);
   const [filters, setFilters] = useState({
+    province: null,
+    end_date: null,
     clinic_id: null,
     start_date: null,
-    end_date: null
+    regional_manager: null
   });
 
   const columns = [
@@ -46,17 +51,45 @@ export default function List() {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          variant="destructive"
-          className="w-full m-auto"
-          onClick={() => router.push('/review/eod/1')}
-        >
-          <EditOutlined />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="destructive"
+            className="w-full m-auto"
+            // onClick={() => router.push('/review/eod/1')}
+          >
+            <EyeOutlined />
+          </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            className="w-full m-auto"
+            disabled={record.submitted === 'Completed'}
+            onClick={() => router.push('/review/eod/1')}
+          >
+            <EditOutlined />
+          </Button>
+        </div>
       )
     }
   ];
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      province: null,
+      end_date: null,
+      clinic_id: null,
+      start_date: null,
+      regional_manager: null
+    });
+  };
 
   const fetchSubmissions = async () => {
     try {
@@ -83,23 +116,21 @@ export default function List() {
     } catch (error) {}
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      clinic_id: null,
-      start_date: null,
-      end_date: null
-    });
+  const fetchProvinces = async () => {
+    try {
+      const { data } = await EODReportService.getAllProvinces();
+      setProvinces(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
   };
 
   useEffect(() => {
     fetchClinics();
+    fetchProvinces();
   }, []);
 
   useEffect(() => {
@@ -120,17 +151,43 @@ export default function List() {
             Reset Filters
           </Button>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 mt-3">
           <div className="flex items-center gap-2">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Practice Name
             </p>
             <Select
-              placeholder="Select Practice"
+              options={clinics}
               value={filters.clinic_id}
               style={{ width: '100%' }}
+              placeholder="Select Practice"
               onChange={(value) => handleFilterChange('clinic_id', value)}
-              options={clinics}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Province
+            </p>
+            <Select
+              options={provinces}
+              value={filters.province}
+              style={{ width: '100%' }}
+              placeholder="Select Province"
+              onChange={(value) => handleFilterChange('province', value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Regional Manager
+            </p>
+            <Select
+              style={{ width: '100%' }}
+              options={regionalManagers}
+              value={filters.regional_manager}
+              placeholder="Select Regional Manager"
+              onChange={(value) =>
+                handleFilterChange('regional_manager', value)
+              }
             />
           </div>
           <div className="flex items-center gap-2">
