@@ -38,12 +38,11 @@ const specialityOptions = [
 
 export default function Referrals() {
   const router = useRouter();
+  const { submissionId } = useGlobalContext();
   const [tableData, setTableData] = useState([]);
   const [providers, setProviders] = useState([]);
-  const { reportData, submissionId } = useGlobalContext();
-  const clinicId = reportData?.eod?.basic?.clinic;
 
-  const patientReasonColumns = [
+  const columns = [
     {
       width: 150,
       editable: true,
@@ -94,22 +93,14 @@ export default function Referrals() {
     }
   ];
 
-  const createReferrals = async () => {
+  const handleSubmitEODReport = async () => {
     try {
-      const payload = tableData.map((item) => ({
-        ...item,
-        user: item.id,
-        eodsubmission: submissionId
-      }));
-      const response = await EODReportService.addRefferal(payload);
-      if (response.status === 201) {
-        const response = await EODReportService.submissionEODReport({
-          eodsubmission_id: submissionId
-        });
-        if (response.status === 200) {
-          toast.success('EOD submission is successfully submitted');
-          router.push('/review/list/eod');
-        }
+      const response = await EODReportService.submissionEODReport({
+        eodsubmission_id: submissionId
+      });
+      if (response.status === 200) {
+        toast.success('EOD submission is successfully submitted');
+        router.push('/review/list/eod');
       }
     } catch (error) {}
   };
@@ -145,9 +136,32 @@ export default function Referrals() {
     }
   };
 
-  const fetchProvidersByClinic = async () => {
+  const handleSubmit = async () => {
     try {
-      const { data } = await EODReportService.getProviders(clinicId, 'False');
+      const payload = tableData
+        .filter(
+          (item) => item.patient_name && item.provider_name && item.speciality
+        )
+        .map((item) => ({
+          ...item,
+          user: item.id,
+          eodsubmission: submissionId
+        }));
+
+      if (payload.length > 0) {
+        const response = await EODReportService.addRefferal(payload);
+        if (response.status === 201) {
+          handleSubmitEODReport();
+        }
+        return;
+      }
+      handleSubmitEODReport();
+    } catch (error) {}
+  };
+
+  const fetchActiveProviders = async () => {
+    try {
+      const { data } = await EODReportService.getActiveProviders(submissionId);
       setProviders(
         data.providers.map((item) => ({
           value: item.id,
@@ -158,8 +172,15 @@ export default function Referrals() {
   };
 
   useEffect(() => {
-    handleAddRefferals();
-    fetchProvidersByClinic();
+    const defaultItem = {
+      key: 1,
+      reason: '',
+      speciality: '',
+      patient_name: '',
+      provider_name: ''
+    };
+    setTableData([defaultItem]);
+    fetchActiveProviders();
   }, []);
 
   return (
@@ -178,12 +199,12 @@ export default function Referrals() {
           </Button>
         </div>
         <GenericTable
+          columns={columns}
           dataSource={tableData}
-          columns={patientReasonColumns}
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={createReferrals} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

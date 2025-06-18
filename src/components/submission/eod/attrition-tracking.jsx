@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Col } from 'antd';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -20,7 +19,6 @@ const reasonOptions = [
 
 export default function AttritionTracking({ onNext }) {
   const [tableData, setTableData] = useState([]);
-  const [noOfPatients, setNoOfPatients] = useState(0);
   const {
     steps,
     currentStep,
@@ -31,31 +29,7 @@ export default function AttritionTracking({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
 
-  // Calculate summary data
-  const summaryData = useMemo(() => {
-    return [
-      {
-        key: 'summary',
-        noOfPatients: `${noOfPatients}`
-      }
-    ];
-  }, [noOfPatients]);
-
-  const newAttritionColumns = [
-    {
-      title: '',
-      key: 'summary',
-      dataIndex: 'summary',
-      render: () => 'This Day'
-    },
-    {
-      key: 'noOfPatients',
-      dataIndex: 'noOfPatients',
-      title: 'Number of Patients'
-    }
-  ];
-
-  const patientReasonColumns = [
+  const columns = [
     {
       width: 150,
       editable: true,
@@ -97,21 +71,6 @@ export default function AttritionTracking({ onNext }) {
     }
   ];
 
-  const createAttritionTracking = async () => {
-    try {
-      const payload = tableData.map((item) => ({
-        ...item,
-        eodsubmission: submissionId
-      }));
-      const response = await EODReportService.addAttritionTracking(payload);
-      if (response.status === 201) {
-        updateStepData(currentStepId, tableData);
-        toast.success('Record is successfully saved');
-        onNext();
-      }
-    } catch (error) {}
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -134,56 +93,76 @@ export default function AttritionTracking({ onNext }) {
         patient_name: ''
       }
     ]);
-    setNoOfPatients((prev) => prev + 1);
   };
 
   const handleDelete = (key) => {
     if (tableData.length > 1) {
       setTableData(tableData.filter((item) => item.key !== key));
-      setNoOfPatients((prev) => Math.max(0, prev - 1));
     }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const payload = tableData
+        .filter((item) => item.patient_name && item.reason)
+        .map((item) => ({
+          ...item,
+          eodsubmission: submissionId
+        }));
+      if (payload.length > 0) {
+        const response = await EODReportService.addAttritionTracking(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+      }
+      onNext();
+    } catch (error) {}
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
-      setNoOfPatients(currentStepData.length);
     } else {
-      handleAddAttrition();
+      const defaultItem = {
+        key: 1,
+        reason: '',
+        comments: '',
+        patient_name: ''
+      };
+      setTableData([defaultItem]);
     }
   }, []);
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-6 px-6">
-        <Col span={10}>
-          <h2 className="text-base font-medium text-black mb-4">Attrition</h2>
-          <GenericTable
-            dataSource={summaryData}
-            columns={newAttritionColumns}
-          />
-        </Col>
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">
-              Attrition Reason
-            </h1>
-            <Button
-              size="lg"
-              onClick={handleAddAttrition}
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Add New Attrition
-            </Button>
-          </div>
-          <GenericTable
-            dataSource={tableData}
-            columns={patientReasonColumns}
-            onCellChange={handleCellChange}
-          />
+      <div className="px-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-base font-medium text-black">Attrition Reason</h1>
+          <Button
+            size="lg"
+            onClick={handleAddAttrition}
+            className="h-9 !shadow-none text-black !rounded-lg"
+          >
+            Add New Attrition
+          </Button>
         </div>
+        <GenericTable
+          columns={columns}
+          dataSource={tableData}
+          onCellChange={handleCellChange}
+        />
       </div>
-      <StepNavigation onNext={createAttritionTracking} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }
+
+// <Col span={10}>
+//         <h2 className="text-base font-medium text-black mb-4">Attrition</h2>
+//         <GenericTable
+//           dataSource={summaryData}
+//           columns={newAttritionColumns}
+//         />
+//       </Col>

@@ -17,7 +17,7 @@ const providerTypes = [
 
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
-  const [providers, setProviders] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { provinces, reportData, submissionId } = useGlobalContext();
   const clinicId = reportData?.eod?.basic?.clinic;
@@ -33,11 +33,11 @@ export default function DailyProduction({ onNext }) {
   };
 
   const summaryData = useMemo(() => {
-    const totalDDS = providers
+    const totalDDS = tableData
       .filter((item) => item.type === 'DDS')
       .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
-    const totalRDH = providers
+    const totalRDH = tableData
       .filter((item) => item.type === 'RDH')
       .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
@@ -54,7 +54,7 @@ export default function DailyProduction({ onNext }) {
         totalProduction: `${totalProduction.toLocaleString()}`
       }
     ];
-  }, [providers, goal]);
+  }, [tableData, goal]);
 
   const totalProductionColumns = [
     {
@@ -174,29 +174,14 @@ export default function DailyProduction({ onNext }) {
     };
     const response = await EODReportService.addNewProvider(payload);
     if (response.status === 201) {
-      fetchProviders();
+      fetchActiveProviders();
       toast.success('Record is successfully saved');
     }
   };
 
-  const createProduction = async () => {
-    try {
-      const payload = providers.map((item) => ({
-        ...item,
-        user: item.id,
-        eodsubmission: submissionId
-      }));
-      const response = await EODReportService.addProduction(payload);
-      if (response.status === 201) {
-        toast.success('Record is successfully saved');
-        onNext();
-      }
-    } catch (error) {}
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
-    setProviders(
-      providers.map((item) =>
+    setTableData(
+      tableData.map((item) =>
         item.key === record.key
           ? {
               ...item,
@@ -207,6 +192,34 @@ export default function DailyProduction({ onNext }) {
     );
   };
 
+  const handleSubmit = async () => {
+    try {
+      // Filter providers to only include those with production_amount
+      const payload = tableData
+        .filter(
+          (item) =>
+            item.production_amount !== undefined &&
+            item.production_amount !== null &&
+            item.production_amount !== ''
+        )
+        .map((item) => ({
+          ...item,
+          user: item.id,
+          eodsubmission: submissionId
+        }));
+
+      if (payload.length > 0) {
+        const response = await EODReportService.addProduction(payload);
+        if (response.status === 201) {
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+      }
+
+      onNext();
+    } catch (error) {}
+  };
+
   const fetchTargetGoal = async () => {
     try {
       const response = await EODReportService.getTargetGoalByClinicId(clinicId);
@@ -214,10 +227,10 @@ export default function DailyProduction({ onNext }) {
     } catch (error) {}
   };
 
-  const fetchProviders = async () => {
+  const fetchActiveProviders = async () => {
     try {
-      const { data } = await EODReportService.getProviders(clinicId, 'True');
-      setProviders(
+      const { data } = await EODReportService.getActiveProviders(submissionId);
+      setTableData(
         data.providers.map((provider) => ({
           id: provider.id,
           key: provider.id,
@@ -229,8 +242,8 @@ export default function DailyProduction({ onNext }) {
   };
 
   useEffect(() => {
-    fetchProviders();
     fetchTargetGoal();
+    fetchActiveProviders();
   }, []);
 
   return (
@@ -262,13 +275,13 @@ export default function DailyProduction({ onNext }) {
             </Button>
           </div>
           <GenericTable
-            dataSource={providers}
+            dataSource={tableData}
             columns={providersColumns}
             onCellChange={handleCellChange}
           />
         </div>
       </div>
-      <StepNavigation onNext={createProduction} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

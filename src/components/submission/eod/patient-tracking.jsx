@@ -115,21 +115,6 @@ export default function PatientTracking({ onNext }) {
     }
   ];
 
-  const createPatientTracking = async () => {
-    try {
-      const payload = tableData.map((item) => ({
-        ...item,
-        eodsubmission: submissionId
-      }));
-      const response = await EODReportService.addPatientTracking(payload);
-      if (response.status === 201) {
-        updateStepData(currentStepId, tableData);
-        toast.success('Record is successfully saved');
-        onNext();
-      }
-    } catch (error) {}
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -162,12 +147,39 @@ export default function PatientTracking({ onNext }) {
     }
   };
 
+  const handleSubmit = async () => {
+    try {
+      const payload = tableData
+        .filter((item) => item.patient_name && item.source)
+        .map((item) => ({
+          ...item,
+          eodsubmission: submissionId
+        }));
+
+      if (payload.length > 0) {
+        const response = await EODReportService.addPatientTracking(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+      }
+      onNext();
+    } catch (error) {}
+  };
+
   useEffect(() => {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
       setActual(currentStepData.length);
     } else {
-      handleAddPatient();
+      const defaultItem = {
+        key: 1,
+        source: '',
+        comments: '',
+        patient_name: ''
+      };
+      setTableData([defaultItem]);
     }
   }, []);
 
@@ -198,7 +210,7 @@ export default function PatientTracking({ onNext }) {
           />
         </div>
       </div>
-      <StepNavigation onNext={createPatientTracking} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }
