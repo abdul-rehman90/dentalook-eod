@@ -20,7 +20,7 @@ const positionOptions = [
 
 export default function TeamAbsences({ onNext }) {
   const [staffData, setStaffData] = useState({});
-  const [teamMembers, setTeamMembers] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const {
     steps,
     reportData,
@@ -123,24 +123,8 @@ export default function TeamAbsences({ onNext }) {
     } catch (error) {}
   };
 
-  const createTeamAbsence = async () => {
-    try {
-      const payload = teamMembers.map((item) => ({
-        ...item,
-        user: item.id,
-        eodsubmission: submissionId
-      }));
-      const response = await EODReportService.addTeamAbsence(payload);
-      if (response.status === 201) {
-        updateStepData(currentStepId, teamMembers);
-        toast.success('Record is successfully saved');
-        onNext();
-      }
-    } catch (error) {}
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
-    const newTeamMembers = teamMembers.map((item) => {
+    const newTeamMembers = tableData.map((item) => {
       if (item.key === record.key) {
         const updatedItem = { ...item, [dataIndex]: value };
         if (dataIndex === 'position') {
@@ -152,26 +136,45 @@ export default function TeamAbsences({ onNext }) {
       }
       return item;
     });
-    setTeamMembers(newTeamMembers);
+    setTableData(newTeamMembers);
   };
 
   const handleAddAbsence = () => {
     const newAbsence = {
-      key: teamMembers.length
-        ? Math.max(...teamMembers.map((p) => p.key)) + 1
-        : 1,
+      key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
       name: '',
       reason: '',
       absence: '',
       position: ''
     };
-    setTeamMembers([...teamMembers, newAbsence]);
+    setTableData([...tableData, newAbsence]);
   };
 
   const handleDelete = (key) => {
-    if (teamMembers.length > 1) {
-      setTeamMembers(teamMembers.filter((item) => item.key !== key));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
     }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const payload = tableData
+        .filter((item) => item.position && item.name && item.absence)
+        .map((item) => ({
+          ...item,
+          user: item.id,
+          eodsubmission: submissionId
+        }));
+      if (payload.length > 0) {
+        const response = await EODReportService.addTeamAbsence(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+      }
+      onNext();
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -181,9 +184,16 @@ export default function TeamAbsences({ onNext }) {
           ...new Set(currentStepData.map((item) => item.position))
         ];
         await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
-        setTeamMembers(currentStepData);
+        setTableData(currentStepData);
       } else {
-        handleAddAbsence();
+        const defaultItem = {
+          key: 1,
+          name: '',
+          reason: '',
+          absence: '',
+          position: ''
+        };
+        setTableData([defaultItem]);
       }
     };
 
@@ -205,11 +215,11 @@ export default function TeamAbsences({ onNext }) {
         </div>
         <GenericTable
           columns={columns}
-          dataSource={teamMembers}
+          dataSource={tableData}
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={createTeamAbsence} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

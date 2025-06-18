@@ -7,8 +7,7 @@ import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ScheduleOpening({ onNext }) {
-  const [unitTime, setUnitTime] = useState(10);
-  const [providers, setProviders] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const {
     steps,
     reportData,
@@ -19,7 +18,7 @@ export default function ScheduleOpening({ onNext }) {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  const clinicId = reportData?.eod?.basic?.clinic;
+  const unitTime = reportData?.eod?.basic?.unit_length;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   const columns = [
@@ -62,13 +61,13 @@ export default function ScheduleOpening({ onNext }) {
     <div className="flex items-center justify-between w-full">
       <div className="flex-1 p-2">Total Amount</div>
       <div className="flex-1 p-2">
-        {providers.reduce((sum, item) => sum + item.unfilled_spots, 0)}
+        {tableData.reduce((sum, item) => sum + item.unfilled_spots, 0)}
       </div>
       <div className="flex-1 p-2">
-        {providers.reduce((sum, item) => sum + item.no_shows, 0)}
+        {tableData.reduce((sum, item) => sum + item.no_shows, 0)}
       </div>
       <div className="flex-1 p-2">
-        {providers.reduce(
+        {tableData.reduce(
           (sum, item) => sum + item.short_notice_cancellations,
           0
         )}
@@ -76,42 +75,55 @@ export default function ScheduleOpening({ onNext }) {
     </div>
   );
 
-  const createScheduleOpening = async () => {
+  const handleCellChange = (record, dataIndex, value) => {
+    const newValue = value === '' ? 0 : parseInt(value) || 0;
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: newValue } : item
+      )
+    );
+  };
+
+  const handleSubmit = async () => {
+    const hasData = tableData.some(
+      (provider) =>
+        provider.unfilled_spots > 0 ||
+        provider.no_shows > 0 ||
+        provider.short_notice_cancellations > 0
+    );
+
+    if (!hasData) {
+      updateStepData(currentStepId, tableData);
+      onNext();
+      return;
+    }
+
     try {
-      const payload = providers.map((item) => ({
+      const payload = tableData.map((item) => ({
         ...item,
         user: item.id,
         eodsubmission: submissionId
       }));
       const response = await EODReportService.addScheduleOpening(payload);
       if (response.status === 201) {
-        updateStepData(currentStepId, providers);
+        updateStepData(currentStepId, tableData);
         toast.success('Record is successfully saved');
         onNext();
       }
     } catch (error) {}
   };
 
-  const handleCellChange = (record, dataIndex, value) => {
-    const newValue = value === '' ? 0 : parseInt(value) || 0;
-    setProviders(
-      providers.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: newValue } : item
-      )
-    );
-  };
-
-  const fetchProviders = async () => {
+  const fetchActiveProviders = async () => {
     try {
-      const { data } = await EODReportService.getProviders(clinicId, 'True');
-      setProviders(
+      const { data } = await EODReportService.getActiveProviders(submissionId);
+      setTableData(
         data.providers.map((provider) => ({
           id: provider.id,
           key: provider.id,
           name: provider.name,
           unfilled_spots: null,
           no_shows: null,
-          short_notice_cancellations: false
+          short_notice_cancellations: null
         }))
       );
     } catch (error) {}
@@ -119,9 +131,9 @@ export default function ScheduleOpening({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setProviders(currentStepData);
+      return setTableData(currentStepData);
     }
-    fetchProviders();
+    fetchActiveProviders();
   }, []);
 
   return (
@@ -143,11 +155,11 @@ export default function ScheduleOpening({ onNext }) {
         <GenericTable
           footer={footer}
           columns={columns}
-          dataSource={providers}
+          dataSource={tableData}
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={createScheduleOpening} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

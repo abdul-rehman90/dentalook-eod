@@ -56,7 +56,43 @@ export default function BasicDetails({ onNext }) {
     ]);
   };
 
-  const createBasicDetails = async () => {
+  const handleProvinceChange = async (provinceId) => {
+    if (!provinceId) return;
+
+    try {
+      const { data } = await EODReportService.getDataOfProvinceById(provinceId);
+      setPractices(
+        data.clinics.map((clinic) => ({
+          value: clinic.clinic_id,
+          label: clinic.clinic_name,
+          unitLength: clinic.unit_length,
+          managers: clinic.regional_managers.map((manager) => ({
+            label: manager.name,
+            value: manager.id
+          }))
+        }))
+      );
+      setRegionalManagers([]);
+      form.setFieldsValue({ clinic: undefined, user: undefined });
+    } catch (error) {}
+  };
+
+  const handleClinicChange = (clinicId) => {
+    if (!clinicId) return;
+
+    const selectedClinic = practices.find(
+      (clinic) => clinic.value === clinicId
+    );
+
+    if (selectedClinic?.managers) {
+      setRegionalManagers(selectedClinic.managers);
+      form.setFieldsValue({
+        user: selectedClinic.managers[0].value
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const selectedClinic = practices.find(
@@ -65,6 +101,7 @@ export default function BasicDetails({ onNext }) {
       const payload = {
         ...values,
         clinic_name: selectedClinic?.label,
+        unit_length: selectedClinic?.unitLength,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
         clinic_open_time:
           values.status === 'opened'
@@ -88,39 +125,6 @@ export default function BasicDetails({ onNext }) {
     } catch (error) {}
   };
 
-  const handleProvinceChange = async (provinceId) => {
-    if (!provinceId) return;
-
-    try {
-      const { data } = await EODReportService.getDataOfProvinceById(provinceId);
-      setPractices(
-        data.clinics.map((clinic) => ({
-          value: clinic.clinic_id,
-          label: clinic.clinic_name,
-          managers: clinic.regional_managers.map((manager) => ({
-            label: manager.name,
-            value: manager.id
-          }))
-        }))
-      );
-      setRegionalManagers([]);
-      form.setFieldsValue({ clinic: undefined, user: undefined });
-    } catch (error) {}
-  };
-
-  const handleClinicChange = (clinicId) => {
-    if (!clinicId) return;
-
-    const selectedClinic = practices.find(
-      (clinic) => clinic.value === clinicId
-    );
-
-    if (selectedClinic?.managers) {
-      form.setFieldsValue({ user: undefined });
-      setRegionalManagers(selectedClinic.managers);
-    }
-  };
-
   const initializeForm = async () => {
     if (!currentStepData?.province) return;
 
@@ -132,6 +136,7 @@ export default function BasicDetails({ onNext }) {
         data.clinics.map((clinic) => ({
           value: clinic.clinic_id,
           label: clinic.clinic_name,
+          unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
             label: manager.name,
             value: manager.id
@@ -249,7 +254,7 @@ export default function BasicDetails({ onNext }) {
           }}
         </Form.Item>
       </Form>
-      <StepNavigation onNext={createBasicDetails} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

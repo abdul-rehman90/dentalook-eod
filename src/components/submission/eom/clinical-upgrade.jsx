@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EOMReportService } from '@/common/services/eom-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ClinicalUpgrade({ onNext }) {
   const [tableData, setTableData] = useState([]);
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
     {
       width: 150,
-      key: 'item',
+      key: 'items',
       title: 'Item',
       editable: true,
-      dataIndex: 'item',
-      inputType: 'text'
+      inputType: 'text',
+      dataIndex: 'items'
     },
     {
       width: 150,
@@ -59,7 +71,9 @@ export default function ClinicalUpgrade({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+    }
   };
 
   const handleAddNew = () => {
@@ -69,12 +83,46 @@ export default function ClinicalUpgrade({ onNext }) {
         : 1;
     const newItem = {
       key: newKey,
-      item: '',
+      items: '',
       cost: '',
       comments: ''
     };
     setTableData([...tableData, newItem]);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const payload = tableData
+        .filter((item) => item.items && item.cost)
+        .map((item) => ({
+          ...item,
+          submission: submissionId
+        }));
+
+      if (payload.length > 0) {
+        const response = await EOMReportService.addClinicUpgrade(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+      }
+      onNext();
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      return setTableData(currentStepData);
+    }
+    const defaultItem = {
+      key: 1,
+      items: '',
+      cost: '',
+      comments: ''
+    };
+    setTableData([defaultItem]);
+  }, []);
 
   return (
     <React.Fragment>
@@ -95,7 +143,7 @@ export default function ClinicalUpgrade({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

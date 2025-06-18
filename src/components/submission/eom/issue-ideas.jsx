@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EOMReportService } from '@/common/services/eom-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
@@ -12,6 +15,15 @@ const categoryOptions = [
 
 export default function IssuesIdeas({ onNext }) {
   const [tableData, setTableData] = useState([]);
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
     {
@@ -57,7 +69,9 @@ export default function IssuesIdeas({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+    }
   };
 
   const handleAddNew = () => {
@@ -72,6 +86,34 @@ export default function IssuesIdeas({ onNext }) {
     };
     setTableData([...tableData, newItem]);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const payload = tableData
+        .filter((item) => item.category && item.details)
+        .map((item) => ({
+          ...item,
+          submission: submissionId
+        }));
+
+      if (payload.length > 0) {
+        const response = await EOMReportService.addIssueIdeas(payload);
+        if (response.status === 201) {
+          toast.success('Record is successfully saved');
+          // onNext();
+        }
+      }
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    const defaultItem = {
+      key: 1,
+      details: '',
+      category: ''
+    };
+    setTableData([defaultItem]);
+  }, []);
 
   return (
     <React.Fragment>
@@ -92,7 +134,7 @@ export default function IssuesIdeas({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

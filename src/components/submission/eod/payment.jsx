@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Col, Row, Input } from 'antd';
 import { Icons } from '@/common/assets';
+import { Col, Row, Input, Select } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -26,7 +26,7 @@ const paymentOptions = [
 
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
-  const [payments, setPayments] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const {
     steps,
     currentStep,
@@ -39,14 +39,41 @@ export default function Payment({ onNext }) {
 
   const columns = [
     {
+      width: 200,
       key: 'type',
       editable: true,
       dataIndex: 'type',
       inputType: 'select',
       title: 'Payment Type',
-      selectOptions: paymentOptions
+      selectOptions: paymentOptions,
+      render: (type, record) => {
+        return (
+          <div className="flex flex-col gap-1">
+            <Select
+              value={type}
+              onChange={(value) => handleTypeChange(record.key, value)}
+            >
+              {paymentOptions.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+            {type === 'EFT PAYMENT' && (
+              <Input
+                placeholder="Insurance Company"
+                value={record.eftReference || ''}
+                onChange={(e) =>
+                  handleDetailChange(record.key, 'eftReference', e.target.value)
+                }
+              />
+            )}
+          </div>
+        );
+      }
     },
     {
+      width: 150,
       key: 'amount',
       editable: true,
       inputType: 'number',
@@ -54,6 +81,7 @@ export default function Payment({ onNext }) {
       dataIndex: 'amount'
     },
     {
+      width: 50,
       key: 'action',
       title: 'Action',
       dataIndex: 'action',
@@ -74,19 +102,75 @@ export default function Payment({ onNext }) {
     <div className="flex items-center justify-between w-full">
       <div className="flex-1 text-left p-2">Total Amount</div>
       <div className="flex-1 text-left p-2">
-        {payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
+        {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
-      <div className="flex-1 p-2"></div>
     </div>
   );
 
-  const createPayment = async () => {
+  const handleTypeChange = (key, value) => {
+    const newPayments = tableData.map((item) => {
+      if (item.key === key) {
+        return {
+          ...item,
+          type: value,
+          // Clear EFT reference if changing from EFT PAYMENT to another type
+          ...(value !== 'EFT PAYMENT' && { eftReference: undefined })
+        };
+      }
+      return item;
+    });
+    setTableData(newPayments);
+  };
+
+  const handleDetailChange = (key, field, value) => {
+    const newPayments = tableData.map((item) => {
+      if (item.key === key) {
+        return {
+          ...item,
+          [field]: value
+        };
+      }
+      return item;
+    });
+    setTableData(newPayments);
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    const newPayments = tableData.map((item) => {
+      if (item.key === record.key) {
+        return {
+          ...item,
+          [dataIndex]: dataIndex === 'amount' ? Number(value) || 0 : value
+        };
+      }
+      return item;
+    });
+    setTableData(newPayments);
+  };
+
+  const handleAddPayment = () => {
+    const newPayment = {
+      key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
+      type: '',
+      amount: '',
+      action: ''
+    };
+    setTableData([...tableData, newPayment]);
+  };
+
+  const handleDelete = (key) => {
+    setTableData(tableData.filter((item) => item.key !== key));
+  };
+
+  const handleSubmit = async () => {
     try {
-      const validPayments = payments.filter(
+      const validPayments = tableData.filter(
         (item) =>
           item.amount !== '' &&
           item.amount !== undefined &&
-          item.amount !== null
+          item.amount !== null &&
+          !isNaN(item.amount) &&
+          Number(item.amount) > 0
       );
 
       const payload = {
@@ -99,64 +183,31 @@ export default function Payment({ onNext }) {
         }))
       };
 
-      // // Don't proceed if there are no payments with amounts
-      // if (validPayments.length === 0) {
-      //   toast.error('Please enter at least one payment amount');
-      //   return;
-      // }
-
-      const response = await EODReportService.addPayment(payload);
-      if (response.status === 201) {
-        updateStepData(currentStepId, { notes, payments });
-        toast.success('Record is successfully saved');
-        onNext();
+      if (validPayments.length > 0) {
+        const response = await EODReportService.addPayment(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, { notes, payments: tableData });
+          toast.success('Record is successfully saved');
+          onNext();
+        }
       }
+
+      onNext();
     } catch (error) {}
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    const newPayments = payments.map((item) => {
-      if (item.key === record.key) {
-        return {
-          ...item,
-          [dataIndex]: dataIndex === 'amount' ? Number(value) || 0 : value
-        };
-      }
-      return item;
-    });
-    setPayments(newPayments);
-  };
-
-  const handleAddPayment = () => {
-    const newPayment = {
-      key: payments.length ? Math.max(...payments.map((p) => p.key)) + 1 : 1,
-      type: '',
-      amount: '',
-      action: ''
-    };
-    setPayments([...payments, newPayment]);
-  };
-
-  const handleDelete = (key) => {
-    setPayments(payments.filter((item) => item.key !== key));
-  };
-
-  const initializePayments = () => {
-    const initialPayments = paymentOptions.map((option, index) => ({
-      key: index + 1,
-      type: option.value,
-      amount: '',
-      action: ''
-    }));
-    setPayments(initialPayments);
   };
 
   useEffect(() => {
     if (Object.entries(currentStepData).length > 0) {
       setNotes(currentStepData.notes);
-      setPayments(currentStepData.payments);
+      setTableData(currentStepData.payments);
     } else {
-      initializePayments();
+      const initialPayments = paymentOptions.map((option, index) => ({
+        key: index + 1,
+        type: option.value,
+        amount: '',
+        action: ''
+      }));
+      setTableData(initialPayments);
     }
   }, []);
 
@@ -174,15 +225,15 @@ export default function Payment({ onNext }) {
           </Button>
         </div>
         <Row gutter={16}>
-          <Col span={16}>
+          <Col span={12}>
             <GenericTable
               footer={footer}
               columns={columns}
-              dataSource={payments}
+              dataSource={tableData}
               onCellChange={handleCellChange}
             />
           </Col>
-          <Col span={8}>
+          <Col span={12}>
             <Card className="!p-0 !gap-0 border border-secondary-50">
               <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
                 <CardTitle className="text-[15px] font-medium text-black">
@@ -209,7 +260,7 @@ export default function Payment({ onNext }) {
           </Col>
         </Row>
       </div>
-      <StepNavigation onNext={createPayment} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }
