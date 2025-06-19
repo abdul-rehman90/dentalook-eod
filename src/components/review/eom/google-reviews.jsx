@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function GoogleReviews({ onNext }) {
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -25,6 +28,7 @@ export default function GoogleReviews({ onNext }) {
     {
       key: 'current',
       editable: true,
+      disabled: true,
       inputType: 'number',
       dataIndex: 'current',
       title: 'Current Google Score (Out of 5)'
@@ -32,28 +36,17 @@ export default function GoogleReviews({ onNext }) {
     {
       key: 'reviews',
       editable: true,
+      disabled: true,
       inputType: 'number',
       dataIndex: 'reviews',
       title: 'Google Reviews (#)'
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
   return (
     <React.Fragment>
       <div className="px-6">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

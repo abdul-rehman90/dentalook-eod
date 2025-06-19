@@ -178,7 +178,7 @@ export default function BasicDetails({ onNext }) {
           picker="month"
           format="MMM YYYY"
           name="submission_month"
-          label="Submission Date"
+          label="Submission Month"
           placeholder="Select Date"
         />
         <div className="proud-moment">

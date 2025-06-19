@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
@@ -11,11 +13,15 @@ const categoryOptions = [
 ];
 
 export default function IssuesIdeas({ onNext }) {
+  const router = useRouter();
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const [tableData, setTableData] = useState([]);
 
   const columns = [
     {
       width: 100,
+      disabled: true,
       editable: true,
       key: 'category',
       title: 'Category',
@@ -25,6 +31,7 @@ export default function IssuesIdeas({ onNext }) {
     },
     {
       width: 200,
+      disabled: true,
       key: 'details',
       editable: true,
       title: 'Details',
@@ -36,54 +43,20 @@ export default function IssuesIdeas({ onNext }) {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
+        <Button size="icon" disabled className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-  };
-
-  const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    const newItem = {
-      key: newKey,
-      details: '',
-      category: ''
-    };
-    setTableData([...tableData, newItem]);
-  };
-
   return (
     <React.Fragment>
       <div className="px-6">
         <h1 className="text-base font-medium text-black mb-4">Issues/Ideas</h1>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={() => router.push('/review/list/eom')} />
     </React.Fragment>
   );
 }

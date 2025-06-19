@@ -5,11 +5,13 @@ import { Button } from '@/common/components/button/button';
 import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
+import { useGlobalContext } from '@/common/context/global-context';
 
 export default function List() {
   const router = useRouter();
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
+  const { loading, setLoading } = useGlobalContext();
   const [submissions, setSubmissions] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const [filters, setFilters] = useState({
@@ -58,7 +60,9 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            // onClick={() => router.push('/review/eod/1')}
+            onClick={() =>
+              router.push(`/review/eod/1/${record.eodsubmission_id}`)
+            }
           >
             <EyeOutlined />
           </Button>
@@ -67,7 +71,7 @@ export default function List() {
             variant="destructive"
             className="w-full m-auto"
             disabled={record.submitted === 'Completed'}
-            onClick={() => router.push('/review/eod/1')}
+            // onClick={() => router.push('/review/eod/1')}
           >
             <EditOutlined />
           </Button>
@@ -95,7 +99,8 @@ export default function List() {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await EODReportService.getAllSubmissions(filters);
+      setLoading(true);
+      const response = await EODReportService.getAllSubmissionList(filters);
       if (response.data) {
         const dataWithKeys = response.data.map((item, index) => ({
           ...item,
@@ -103,7 +108,10 @@ export default function List() {
         }));
         setSubmissions(dataWithKeys);
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchClinics = async () => {
@@ -222,7 +230,11 @@ export default function List() {
         <p className="text-base font-medium text-black mb-4">
           Clinic Submissions
         </p>
-        <GenericTable columns={columns} dataSource={submissions} />
+        <GenericTable
+          loading={loading}
+          columns={columns}
+          dataSource={submissions}
+        />
       </div>
     </React.Fragment>
   );

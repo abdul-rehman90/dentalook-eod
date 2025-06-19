@@ -20,7 +20,7 @@ export default function SubmissionLayout({ children }) {
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
       <div className="bg-white border border-secondary-50 rounded-l-lg">
-        <Stepper steps={steps} currentStep={currentStep} />
+        <Stepper />
       </div>
       <div className="flex-1 bg-gray-50 border border-secondary-50 rounded-r-lg">
         <Card className="!py-4 !border-0 bg-white !shadow-none !rounded-none">
@@ -59,7 +59,7 @@ export default function SubmissionLayout({ children }) {
                 Step {currentStep} of {totalSteps}
               </CardTitle>
               <CardDescription className="text-xl font-medium text-black">
-                {stepConfig[type][currentStep - 1]}
+                {steps[currentStep - 1].name}
               </CardDescription>
             </CardHeader>
             {children}

@@ -91,7 +91,7 @@ export const EODReportService = {
     return response;
   },
 
-  async getAllSubmissions(filters = {}) {
+  async getAllSubmissionList(filters = {}) {
     const params = new URLSearchParams();
 
     if (filters.province) params.append('province', filters.province);
@@ -106,6 +106,11 @@ export const EODReportService = {
     const response = await apiClient.get(
       `/review-eod-submission/?${params.toString()}`
     );
+    return response;
+  },
+
+  async getAllEODData(id) {
+    const response = await apiClient.get(`/eod-data/${id}/`);
     return response;
   }
 };

@@ -3,16 +3,20 @@ import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ClinicalUpgrade({ onNext }) {
   const [tableData, setTableData] = useState([]);
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const columns = [
     {
       width: 150,
       key: 'item',
       title: 'Item',
+      disabled: true,
       editable: true,
       dataIndex: 'item',
       inputType: 'text'
@@ -21,12 +25,14 @@ export default function ClinicalUpgrade({ onNext }) {
       width: 150,
       key: 'cost',
       title: 'Cost',
+      disabled: true,
       editable: true,
       dataIndex: 'cost',
       inputType: 'number'
     },
     {
       width: 150,
+      disabled: true,
       editable: true,
       key: 'comments',
       title: 'Comments',
@@ -38,43 +44,12 @@ export default function ClinicalUpgrade({ onNext }) {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
+        <Button disabled size="icon" className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
   ];
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-  };
-
-  const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    const newItem = {
-      key: newKey,
-      item: '',
-      cost: '',
-      comments: ''
-    };
-    setTableData([...tableData, newItem]);
-  };
 
   return (
     <React.Fragment>
@@ -82,11 +57,7 @@ export default function ClinicalUpgrade({ onNext }) {
         <h1 className="text-base font-medium text-black mb-4">
           Clinic Upgrades
         </h1>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

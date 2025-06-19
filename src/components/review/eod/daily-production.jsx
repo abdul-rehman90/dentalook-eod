@@ -1,23 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function DailyProduction({ onNext }) {
-  const [tableData, setTableData] = useState([]);
   const [goal, setGoal] = useState(6367);
+  const [tableData, setTableData] = useState([]);
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   // Calculate summary data
   const summaryData = useMemo(() => {
     const totalDDS = tableData
       .filter((item) => item.type === 'DDS')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
     const totalRDH = tableData
       .filter((item) => item.type === 'RDH')
-      .reduce((sum, item) => sum + (Number(item.production) || 0), 0);
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
     const totalProduction = totalDDS + totalRDH;
     const difference = totalProduction - goal;
@@ -83,51 +86,41 @@ export default function DailyProduction({ onNext }) {
     },
     {
       width: 150,
-      key: 'providerName',
-      title: 'Provider Name',
-      dataIndex: 'providerName'
+      key: 'name',
+      dataIndex: 'name',
+      title: 'Provider Name'
     },
     {
       width: 150,
       editable: true,
-      key: 'production',
+      disabled: true,
       inputType: 'number',
       title: 'Production',
-      dataIndex: 'production'
+      key: 'production_amount',
+      dataIndex: 'production_amount'
     },
     {
       width: 50,
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
+        <Button disabled size="icon" className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
   ];
 
-  const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key
-          ? {
-              ...item,
-              [dataIndex]: dataIndex === 'production' ? Number(value) : value
-            }
-          : item
-      )
-    );
-  };
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        name: item.user || '',
+        key: item.id.toString(),
+        production_amount: item.production_amount
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
@@ -142,7 +135,6 @@ export default function DailyProduction({ onNext }) {
           </h1>
           <GenericTable
             dataSource={tableData}
-            onCellChange={handleCellChange}
             columns={dailyProductionColumns}
           />
         </div>
