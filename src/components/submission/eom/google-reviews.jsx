@@ -15,6 +15,7 @@ export default function GoogleReviews({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -63,12 +64,13 @@ export default function GoogleReviews({ onNext }) {
       const rowData = tableData[0];
 
       if (rowData.google_review_count && rowData.google_review_score) {
+        setLoading(true);
         const payload = { ...rowData };
         const response = await EOMReportService.addSuppliesAndGoogleReviews(
           submissionId,
           payload
         );
-        if (response.status === 201) {
+        if (response.status === 200) {
           updateStepData(currentStepId, tableData);
           toast.success('Record is successfully saved');
           onNext();
@@ -77,7 +79,10 @@ export default function GoogleReviews({ onNext }) {
       }
       updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

@@ -10,6 +10,7 @@ export default function ScheduleOpening({ onNext }) {
   const [tableData, setTableData] = useState([]);
   const {
     steps,
+    setLoading,
     reportData,
     currentStep,
     submissionId,
@@ -99,6 +100,7 @@ export default function ScheduleOpening({ onNext }) {
     }
 
     try {
+      setLoading(true);
       const payload = tableData.map((item) => ({
         ...item,
         user: item.id,
@@ -110,7 +112,10 @@ export default function ScheduleOpening({ onNext }) {
         toast.success('Record is successfully saved');
         onNext();
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchActiveProviders = async () => {

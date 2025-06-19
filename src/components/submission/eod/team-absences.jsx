@@ -32,6 +32,7 @@ export default function TeamAbsences({ onNext }) {
   const {
     steps,
     reportData,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -170,10 +171,12 @@ export default function TeamAbsences({ onNext }) {
         .filter((item) => item.position && item.name && item.absence)
         .map((item) => ({
           ...item,
-          user: item.id,
+          user: item.name,
           eodsubmission: submissionId
         }));
+      console.log(payload);
       if (payload.length > 0) {
+        setLoading(true);
         const response = await EODReportService.addTeamAbsence(payload);
         if (response.status === 201) {
           updateStepData(currentStepId, tableData);
@@ -184,7 +187,10 @@ export default function TeamAbsences({ onNext }) {
       }
       updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

@@ -17,6 +17,7 @@ export default function Supplies({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -94,6 +95,7 @@ export default function Supplies({ onNext }) {
       const rowData = tableData[0];
 
       if (rowData.supplies_actual) {
+        setLoading(true);
         const payload = {
           ...rowData,
           supplies_actual: parseFloat(rowData.supplies_actual)
@@ -102,7 +104,7 @@ export default function Supplies({ onNext }) {
           submissionId,
           payload
         );
-        if (response.status === 201) {
+        if (response.status === 200) {
           updateStepData(currentStepId, tableData);
           toast.success('Record is successfully saved');
           onNext();
@@ -111,7 +113,10 @@ export default function Supplies({ onNext }) {
       }
       updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

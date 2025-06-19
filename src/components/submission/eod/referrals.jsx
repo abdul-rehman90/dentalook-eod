@@ -46,8 +46,8 @@ const defaultRow = {
 
 export default function Referrals() {
   const router = useRouter();
-  const { submissionId } = useGlobalContext();
   const [providers, setProviders] = useState([]);
+  const { submissionId, setLoading } = useGlobalContext();
   const [tableData, setTableData] = useState([defaultRow]);
 
   const columns = [
@@ -103,6 +103,7 @@ export default function Referrals() {
 
   const handleSubmitEODReport = async () => {
     try {
+      setLoading(true);
       const response = await EODReportService.submissionEODReport({
         eodsubmission_id: submissionId
       });
@@ -110,7 +111,10 @@ export default function Referrals() {
         toast.success('EOD submission is successfully submitted');
         router.push('/review/list/eod');
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCellChange = (record, dataIndex, value) => {
