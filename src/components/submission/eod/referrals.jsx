@@ -36,11 +36,19 @@ const specialityOptions = [
   { value: 'Other', label: 'Other' }
 ];
 
+const defaultRow = {
+  key: 1,
+  reason: '',
+  speciality: '',
+  patient_name: '',
+  provider_name: ''
+};
+
 export default function Referrals() {
   const router = useRouter();
   const { submissionId } = useGlobalContext();
-  const [tableData, setTableData] = useState([]);
   const [providers, setProviders] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
 
   const columns = [
     {
@@ -113,7 +121,7 @@ export default function Referrals() {
     );
   };
 
-  const handleAddRefferals = () => {
+  const handleAddNew = () => {
     const newKey =
       tableData.length > 0
         ? Math.max(...tableData.map((item) => item.key)) + 1
@@ -172,14 +180,6 @@ export default function Referrals() {
   };
 
   useEffect(() => {
-    const defaultItem = {
-      key: 1,
-      reason: '',
-      speciality: '',
-      patient_name: '',
-      provider_name: ''
-    };
-    setTableData([defaultItem]);
     fetchActiveProviders();
   }, []);
 
@@ -192,7 +192,7 @@ export default function Referrals() {
           </h1>
           <Button
             size="lg"
-            onClick={handleAddRefferals}
+            onClick={handleAddNew}
             className="h-9 !shadow-none text-black !rounded-lg"
           >
             Add New Refferals

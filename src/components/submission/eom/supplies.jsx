@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
+import { EOMReportService } from '@/common/services/eom-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
+const defaultRow = {
+  key: '1',
+  difference: '-',
+  overage_reason: '',
+  supplies_actual: '',
+  budget_daily_supplies: 0
+};
+
 export default function Supplies({ onNext }) {
-  const [tableData, setTableData] = useState([
-    {
-      key: '1',
-      actual: '',
-      budget: 1435,
-      difference: '-',
-      reason: ''
-    }
-  ]);
+  const [tableData, setTableData] = useState([defaultRow]);
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
     {
@@ -25,18 +37,18 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 100,
-      key: 'actual',
       editable: true,
       title: 'Actual',
       inputType: 'number',
-      dataIndex: 'actual'
+      key: 'supplies_actual',
+      dataIndex: 'supplies_actual'
     },
     {
       width: 100,
-      key: 'budget',
-      dataIndex: 'budget',
       title: 'Budget (Goal)',
-      render: (_, record) => record.budget
+      key: 'budget_daily_supplies',
+      dataIndex: 'budget_daily_supplies',
+      render: (_, record) => record.budget_daily_supplies
     },
     {
       width: 100,
@@ -46,10 +58,10 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 100,
-      key: 'reason',
       editable: true,
       inputType: 'text',
-      dataIndex: 'reason',
+      key: 'overage_reason',
+      dataIndex: 'overage_reason',
       title: 'Reason for Overage:'
     }
   ];
@@ -57,9 +69,9 @@ export default function Supplies({ onNext }) {
   const handleCellChange = (record, dataIndex, value) => {
     const updatedData = tableData.map((item) => {
       if (item.key === record.key) {
-        if (dataIndex === 'actual') {
+        if (dataIndex === 'supplies_actual') {
           const actualValue = value === '' ? null : Number(value);
-          const budgetValue = record.budget;
+          const budgetValue = record.budget_daily_supplies;
           const difference =
             actualValue !== null ? actualValue - budgetValue : '-';
 
@@ -77,6 +89,37 @@ export default function Supplies({ onNext }) {
     setTableData(updatedData);
   };
 
+  const handleSubmit = async () => {
+    try {
+      const rowData = tableData[0];
+
+      if (rowData.supplies_actual) {
+        const payload = {
+          ...rowData,
+          supplies_actual: parseFloat(rowData.supplies_actual)
+        };
+        const response = await EOMReportService.addSuppliesAndGoogleReviews(
+          submissionId,
+          payload
+        );
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          onNext();
+        }
+        return;
+      }
+      updateStepData(currentStepId, tableData);
+      onNext();
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      setTableData(currentStepData);
+    }
+  }, []);
+
   return (
     <React.Fragment>
       <div className="px-6">
@@ -86,7 +129,7 @@ export default function Supplies({ onNext }) {
           onCellChange={handleCellChange}
         />
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

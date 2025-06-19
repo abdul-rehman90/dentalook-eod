@@ -26,6 +26,21 @@ export const EOMReportService = {
     return response;
   },
 
+  async addSuppliesAndGoogleReviews(id, payload) {
+    const response = await apiClient.post(`/eom-submission/${id}`, payload);
+    return response;
+  },
+
+  async addHiringNeed(payload) {
+    const response = await apiClient.post('/eom-hiring-need/', payload);
+    return response;
+  },
+
+  async addTrainingNeed(payload) {
+    const response = await apiClient.post('/eom-traning-need/', payload);
+    return response;
+  },
+
   async submissionEODReport(payload) {
     const response = await apiClient.post('/submit-eod/', payload);
     return response;

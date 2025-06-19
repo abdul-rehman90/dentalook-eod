@@ -13,17 +13,15 @@ const categoryOptions = [
   { value: 'Idea', label: 'Idea' }
 ];
 
-export default function IssuesIdeas({ onNext }) {
-  const [tableData, setTableData] = useState([]);
-  const {
-    steps,
-    currentStep,
-    submissionId,
-    updateStepData,
-    getCurrentStepData
-  } = useGlobalContext();
-  const currentStepData = getCurrentStepData();
-  const currentStepId = steps[currentStep - 1].id;
+const defaultRow = {
+  key: 1,
+  details: '',
+  category: ''
+};
+
+export default function IssuesIdeas() {
+  const { submissionId } = useGlobalContext();
+  const [tableData, setTableData] = useState([defaultRow]);
 
   const columns = [
     {
@@ -105,15 +103,6 @@ export default function IssuesIdeas({ onNext }) {
       }
     } catch (error) {}
   };
-
-  useEffect(() => {
-    const defaultItem = {
-      key: 1,
-      details: '',
-      category: ''
-    };
-    setTableData([defaultItem]);
-  }, []);
 
   return (
     <React.Fragment>

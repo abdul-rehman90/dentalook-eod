@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { EOMReportService } from '@/common/services/eom-report';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
@@ -12,21 +15,48 @@ const categoryOptions = [
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
-  { value: 'RDH', label: 'RDH' }
+  { value: 'RDH', label: 'RDH' },
+  { value: 'PCC', label: 'PCC' },
+  { value: 'CDA', label: 'CDA' },
+  { value: 'PM', label: 'PM' },
+  { value: 'Dental Aide', label: 'Dental Aide' }
 ];
 
+const defaultRowOfHiring = {
+  key: '1',
+  category: '',
+  hiring_reason: '',
+  hiring_position: ''
+};
+
+const defaultRowOfTraning = {
+  key: '1',
+  training_name: '',
+  training_reason: '',
+  training_position: ''
+};
+
 export default function HiringTraining({ onNext }) {
-  const [hiringData, setHiringData] = useState([]);
-  const [trainingData, setTrainingData] = useState([]);
+  const [hiringData, setHiringData] = useState([defaultRowOfHiring]);
+  const [trainingData, setTrainingData] = useState([defaultRowOfTraning]);
+  const {
+    steps,
+    currentStep,
+    submissionId,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
 
   const hiringColumns = [
     {
       width: 100,
       editable: true,
-      key: 'position',
       title: 'Position',
       inputType: 'select',
-      dataIndex: 'position',
+      key: 'hiring_position',
+      dataIndex: 'hiring_position',
       selectOptions: positionOptions
     },
     {
@@ -40,11 +70,11 @@ export default function HiringTraining({ onNext }) {
     },
     {
       width: 150,
-      key: 'reason',
       editable: true,
       title: 'Reason?',
       inputType: 'text',
-      dataIndex: 'reason'
+      key: 'hiring_reason',
+      dataIndex: 'hiring_reason'
     },
     {
       width: 50,
@@ -67,27 +97,27 @@ export default function HiringTraining({ onNext }) {
     {
       width: 100,
       editable: true,
-      key: 'position',
       title: 'Position',
       inputType: 'select',
-      dataIndex: 'position',
+      key: 'training_position',
+      dataIndex: 'training_position',
       selectOptions: positionOptions
     },
     {
       width: 100,
-      key: 'name',
       title: 'Name',
       editable: true,
       inputType: 'text',
-      dataIndex: 'name'
+      key: 'training_name',
+      dataIndex: 'training_name'
     },
     {
       width: 150,
-      key: 'reason',
       editable: true,
       title: 'Reason?',
       inputType: 'text',
-      dataIndex: 'reason'
+      key: 'training_reason',
+      dataIndex: 'training_reason'
     },
     {
       width: 50,
@@ -123,11 +153,15 @@ export default function HiringTraining({ onNext }) {
   };
 
   const handleHiringDelete = (key) => {
-    setHiringData(hiringData.filter((item) => item.key !== key));
+    if (hiringData.length > 1) {
+      setHiringData(hiringData.filter((item) => item.key !== key));
+    }
   };
 
   const handleTrainingDelete = (key) => {
-    setTrainingData(trainingData.filter((item) => item.key !== key));
+    if (trainingData.length > 1) {
+      setTrainingData(trainingData.filter((item) => item.key !== key));
+    }
   };
 
   const handleAddNewHiring = () => {
@@ -137,9 +171,9 @@ export default function HiringTraining({ onNext }) {
         : 1;
     const newItem = {
       key: newKey,
-      reason: '',
-      position: '',
-      category: ''
+      category: '',
+      hiring_reason: '',
+      hiring_position: ''
     };
     setHiringData([...hiringData, newItem]);
   };
@@ -151,12 +185,70 @@ export default function HiringTraining({ onNext }) {
         : 1;
     const newItem = {
       key: newKey,
-      name: '',
-      reason: '',
-      position: ''
+      training_name: '',
+      training_reason: '',
+      training_position: ''
     };
     setTrainingData([...trainingData, newItem]);
   };
+
+  const handleSubmit = async () => {
+    try {
+      const apiCalls = [];
+      const hiringPayload = hiringData
+        .filter((item) => item.hiring_position && item.category)
+        .map((item) => ({
+          ...item,
+          submission: submissionId
+        }));
+
+      const trainingPayload = trainingData
+        .filter((item) => item.training_name && item.training_position)
+        .map((item) => ({
+          ...item,
+          submission: submissionId
+        }));
+
+      if (hiringPayload.length > 0) {
+        apiCalls.push(EOMReportService.addHiringNeed(hiringPayload));
+      }
+
+      if (trainingPayload.length > 0) {
+        apiCalls.push(EOMReportService.addTrainingNeed(trainingPayload));
+      }
+
+      if (apiCalls.length > 0) {
+        const responses = await Promise.all(apiCalls);
+        const allSuccess = responses.every(
+          (response) => response.status === 201
+        );
+        if (allSuccess) {
+          updateStepData(currentStepId, {
+            hiring: hiringData,
+            training: trainingData
+          });
+          toast.success('Records are successfully saved');
+          onNext();
+        }
+        return;
+      }
+
+      updateStepData(currentStepId, {
+        hiring: hiringData,
+        training: trainingData
+      });
+      onNext();
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    if (currentStepData?.hiring?.length > 0) {
+      setHiringData(currentStepData.hiring);
+    }
+    if (currentStepData?.training?.length > 0) {
+      setTrainingData(currentStepData.training);
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -196,7 +288,7 @@ export default function HiringTraining({ onNext }) {
           />
         </div>
       </div>
-      <StepNavigation onNext={onNext} />
+      <StepNavigation onNext={handleSubmit} />
     </React.Fragment>
   );
 }

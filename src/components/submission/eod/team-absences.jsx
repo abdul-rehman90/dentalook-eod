@@ -18,9 +18,17 @@ const positionOptions = [
   { value: 'Dental Aide', label: 'Dental Aide' }
 ];
 
+const defaultRow = {
+  key: 1,
+  name: '',
+  reason: '',
+  absence: '',
+  position: ''
+};
+
 export default function TeamAbsences({ onNext }) {
   const [staffData, setStaffData] = useState({});
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
     reportData,
@@ -139,7 +147,7 @@ export default function TeamAbsences({ onNext }) {
     setTableData(newTeamMembers);
   };
 
-  const handleAddAbsence = () => {
+  const handleAddNew = () => {
     const newAbsence = {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
       name: '',
@@ -172,7 +180,9 @@ export default function TeamAbsences({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
+      updateStepData(currentStepId, tableData);
       onNext();
     } catch (error) {}
   };
@@ -185,18 +195,8 @@ export default function TeamAbsences({ onNext }) {
         ];
         await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
         setTableData(currentStepData);
-      } else {
-        const defaultItem = {
-          key: 1,
-          name: '',
-          reason: '',
-          absence: '',
-          position: ''
-        };
-        setTableData([defaultItem]);
       }
     };
-
     loadData();
   }, []);
 
@@ -207,7 +207,7 @@ export default function TeamAbsences({ onNext }) {
           <h1 className="text-base font-medium text-black">Current Day</h1>
           <Button
             size="lg"
-            onClick={handleAddAbsence}
+            onClick={handleAddNew}
             className="h-9 !shadow-none text-black !rounded-lg"
           >
             Add New Absence

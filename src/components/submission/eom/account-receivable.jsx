@@ -142,7 +142,7 @@ export default function AccountReceivable({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
+      setTableData(currentStepData);
     }
   }, []);
 

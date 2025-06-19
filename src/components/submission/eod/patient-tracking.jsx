@@ -22,10 +22,17 @@ const sourceOptions = [
   { value: 'Others', label: 'Others' }
 ];
 
+const defaultRow = {
+  key: 1,
+  source: '',
+  comments: '',
+  patient_name: ''
+};
+
 export default function PatientTracking({ onNext }) {
   const [target, setTarget] = useState(3);
   const [actual, setActual] = useState(0);
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
     currentStep,
@@ -123,7 +130,7 @@ export default function PatientTracking({ onNext }) {
     );
   };
 
-  const handleAddPatient = () => {
+  const handleAddNew = () => {
     const newKey =
       tableData.length > 0
         ? Math.max(...tableData.map((item) => item.key)) + 1
@@ -163,7 +170,9 @@ export default function PatientTracking({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
+      updateStepData(currentStepId, tableData);
       onNext();
     } catch (error) {}
   };
@@ -172,14 +181,6 @@ export default function PatientTracking({ onNext }) {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
       setActual(currentStepData.length);
-    } else {
-      const defaultItem = {
-        key: 1,
-        source: '',
-        comments: '',
-        patient_name: ''
-      };
-      setTableData([defaultItem]);
     }
   }, []);
 
@@ -197,7 +198,7 @@ export default function PatientTracking({ onNext }) {
             <h1 className="text-base font-medium text-black">Patient Source</h1>
             <Button
               size="lg"
-              onClick={handleAddPatient}
+              onClick={handleAddNew}
               className="h-9 !shadow-none text-black !rounded-lg"
             >
               Add New Patient

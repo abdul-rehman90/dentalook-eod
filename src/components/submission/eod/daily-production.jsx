@@ -194,7 +194,6 @@ export default function DailyProduction({ onNext }) {
 
   const handleSubmit = async () => {
     try {
-      // Filter providers to only include those with production_amount
       const payload = tableData
         .filter(
           (item) =>
@@ -214,6 +213,7 @@ export default function DailyProduction({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
 
       onNext();
