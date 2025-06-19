@@ -36,6 +36,7 @@ export default function Payment({ onNext }) {
   const [tableData, setTableData] = useState(initialPayments);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -193,6 +194,7 @@ export default function Payment({ onNext }) {
       };
 
       if (validPayments.length > 0) {
+        setLoading(true);
         const response = await EODReportService.addPayment(payload);
         if (response.status === 201) {
           updateStepData(currentStepId, { notes, payments: tableData });
@@ -204,7 +206,10 @@ export default function Payment({ onNext }) {
 
       updateStepData(currentStepId, { notes: '', payments: tableData });
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

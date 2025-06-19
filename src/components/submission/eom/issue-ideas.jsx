@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
@@ -20,7 +21,8 @@ const defaultRow = {
 };
 
 export default function IssuesIdeas() {
-  const { submissionId } = useGlobalContext();
+  const router = useRouter();
+  const { submissionId, setLoading } = useGlobalContext();
   const [tableData, setTableData] = useState([defaultRow]);
 
   const columns = [
@@ -57,6 +59,22 @@ export default function IssuesIdeas() {
       )
     }
   ];
+
+  const handleSubmitEOMReport = async () => {
+    try {
+      setLoading(true);
+      const response = await EOMReportService.submissionEOMReport({
+        eomsubmission_id: submissionId
+      });
+      if (response.status === 200) {
+        toast.success('EOM submission is successfully submitted');
+        router.push('/review/list/eom');
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
@@ -97,10 +115,11 @@ export default function IssuesIdeas() {
       if (payload.length > 0) {
         const response = await EOMReportService.addIssueIdeas(payload);
         if (response.status === 201) {
-          toast.success('Record is successfully saved');
-          // onNext();
+          handleSubmitEOMReport();
         }
+        return;
       }
+      handleSubmitEOMReport();
     } catch (error) {}
   };
 

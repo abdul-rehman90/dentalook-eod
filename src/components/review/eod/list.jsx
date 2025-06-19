@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
-import { EODReviewService } from '@/common/services/review-eod';
 import { EODReportService } from '@/common/services/eod-report';
 
 export default function List() {
@@ -31,20 +30,23 @@ export default function List() {
       dataIndex: 'regional_manager_name'
     },
     {
-      key: 'submitted',
       title: 'Status',
+      key: 'submitted',
       dataIndex: 'submitted',
-      render: (text) => (
-        <span
-          className={`px-2 py-1 rounded-full text-sm font-semibold ${
-            text === 'Completed'
-              ? 'bg-[#E9F7EE] text-primary-400'
-              : 'bg-[#FFF4ED] text-[#FF8A4E]'
-          }`}
-        >
-          {text}
-        </span>
-      )
+      render: (text) =>
+        text ? (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-semibold ${
+              text === 'Completed'
+                ? 'bg-[#E9F7EE] text-primary-400'
+                : 'bg-[#FFF4ED] text-[#FF8A4E]'
+            }`}
+          >
+            {text}
+          </span>
+        ) : (
+          'N/A'
+        )
     },
     {
       width: 50,
@@ -93,7 +95,7 @@ export default function List() {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await EODReviewService.getAllSubmissions(filters);
+      const response = await EODReportService.getAllSubmissions(filters);
       if (response.data) {
         const dataWithKeys = response.data.map((item, index) => ({
           ...item,
@@ -106,7 +108,7 @@ export default function List() {
 
   const fetchClinics = async () => {
     try {
-      const { data } = await EODReviewService.getAllClinics();
+      const { data } = await EODReportService.getAllClinics();
       setClinics(
         data.map((item) => ({
           value: item.id,

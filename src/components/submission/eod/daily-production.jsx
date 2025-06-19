@@ -19,7 +19,8 @@ export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { provinces, reportData, submissionId } = useGlobalContext();
+  const { provinces, reportData, submissionId, setLoading } =
+    useGlobalContext();
   const clinicId = reportData?.eod?.basic?.clinic;
   const provinceId = reportData?.eod?.basic?.province;
   const clinicName = reportData?.eod?.basic?.clinic_name || '';
@@ -208,6 +209,7 @@ export default function DailyProduction({ onNext }) {
         }));
 
       if (payload.length > 0) {
+        setLoading(true);
         const response = await EODReportService.addProduction(payload);
         if (response.status === 201) {
           toast.success('Record is successfully saved');
@@ -217,7 +219,10 @@ export default function DailyProduction({ onNext }) {
       }
 
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchTargetGoal = async () => {

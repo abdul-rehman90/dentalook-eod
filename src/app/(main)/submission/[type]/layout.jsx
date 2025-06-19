@@ -8,6 +8,7 @@ import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { EODReportService } from '@/common/services/eod-report';
+import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import {
   Card,
@@ -24,11 +25,20 @@ export default function SubmissionLayout({ children }) {
 
   const handleSubmit = async () => {
     try {
-      const response = await EODReportService.submissionEODReport({
-        eodsubmission_id: submissionId
-      });
+      const service = type === 'eod' ? EODReportService : EOMReportService;
+      const payload = {
+        [`${type}submission_id`]: submissionId
+      };
+
+      const response =
+        type === 'eod'
+          ? await service.submissionEODReport(payload)
+          : await service.submissionEOMReport(payload);
+
       if (response.status === 200) {
-        toast.success('EOD submission is successfully submitted');
+        toast.success(
+          `${type.toUpperCase()} submission successfully submitted`
+        );
         router.push(`/review/list/${type}`);
       }
     } catch (error) {}

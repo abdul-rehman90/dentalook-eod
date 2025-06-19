@@ -41,6 +41,7 @@ export default function HiringTraining({ onNext }) {
   const [trainingData, setTrainingData] = useState([defaultRowOfTraning]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -69,7 +70,7 @@ export default function HiringTraining({ onNext }) {
       selectOptions: categoryOptions
     },
     {
-      width: 150,
+      width: 300,
       editable: true,
       title: 'Reason?',
       inputType: 'text',
@@ -112,7 +113,7 @@ export default function HiringTraining({ onNext }) {
       dataIndex: 'training_name'
     },
     {
-      width: 150,
+      width: 300,
       editable: true,
       title: 'Reason?',
       inputType: 'text',
@@ -218,6 +219,7 @@ export default function HiringTraining({ onNext }) {
       }
 
       if (apiCalls.length > 0) {
+        setLoading(true);
         const responses = await Promise.all(apiCalls);
         const allSuccess = responses.every(
           (response) => response.status === 201
@@ -238,7 +240,10 @@ export default function HiringTraining({ onNext }) {
         training: trainingData
       });
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

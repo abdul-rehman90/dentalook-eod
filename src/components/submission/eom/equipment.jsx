@@ -28,6 +28,7 @@ export default function EquipmentRepairs({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -151,6 +152,7 @@ export default function EquipmentRepairs({ onNext }) {
         }));
 
       if (payload.length > 0) {
+        setLoading(true);
         const response = await EOMReportService.addEquipment(payload);
         if (response.status === 201) {
           updateStepData(currentStepId, tableData);
@@ -161,7 +163,10 @@ export default function EquipmentRepairs({ onNext }) {
       }
       updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

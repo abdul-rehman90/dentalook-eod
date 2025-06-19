@@ -35,6 +35,7 @@ export default function PatientTracking({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -164,6 +165,7 @@ export default function PatientTracking({ onNext }) {
         }));
 
       if (payload.length > 0) {
+        setLoading(true);
         const response = await EODReportService.addPatientTracking(payload);
         if (response.status === 201) {
           updateStepData(currentStepId, tableData);
@@ -174,7 +176,10 @@ export default function PatientTracking({ onNext }) {
       }
       updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
