@@ -70,6 +70,7 @@ export default function AttritionTracking({ onNext }) {
       render: (_, record) => (
         <Button
           size="icon"
+          className="ml-3"
           variant="destructive"
           onClick={() => handleDelete(record.key)}
         >

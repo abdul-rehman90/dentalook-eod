@@ -1,46 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Input, Row } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function ScheduleOpening({ onNext }) {
-  const [unitTime, setUnitTime] = useState(10);
-  const [unitsData, setUnitsData] = useState([
-    { key: '1', type: 'Unfilled Spots', dds: '', rdh: '', rdt: '' },
-    { key: '2', type: 'No Shows', dds: '', rdh: '', rdt: '' },
-    { key: '3', type: 'Short Notice Cancellations', dds: '', rdh: '', rdt: '' }
-  ]);
+  const [tableData, setTableData] = useState([]);
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const columns = [
     {
-      title: '',
       width: 200,
-      key: 'type',
-      dataIndex: 'type'
+      key: 'name',
+      dataIndex: 'name',
+      title: 'Provider Name'
     },
     {
-      key: 'dds',
-      width: 150,
+      width: 200,
       editable: true,
-      dataIndex: 'dds',
+      disabled: true,
       inputType: 'number',
-      title: 'DDS (in units)'
+      key: 'unfilled_spots',
+      title: 'Unfilled Spots',
+      dataIndex: 'unfilled_spots'
     },
     {
-      key: 'rdh',
-      width: 150,
+      width: 200,
       editable: true,
-      dataIndex: 'rdh',
+      disabled: true,
+      key: 'no_shows',
+      title: 'No Shows',
       inputType: 'number',
-      title: 'RDH (in units)'
+      dataIndex: 'no_shows'
     },
     {
-      key: 'rdt',
-      width: 150,
+      width: 200,
       editable: true,
-      dataIndex: 'rdt',
+      disabled: true,
       inputType: 'number',
-      title: 'RDT (in units)'
+      key: 'short_notice_cancellations',
+      title: 'Short Notice Cancellations',
+      dataIndex: 'short_notice_cancellations'
     }
   ];
 
@@ -48,25 +49,32 @@ export default function ScheduleOpening({ onNext }) {
     <div className="flex items-center justify-between w-full">
       <div className="flex-1 p-2">Total Amount</div>
       <div className="flex-1 p-2">
-        {unitsData.reduce((sum, item) => sum + item.dds, 0)}
+        {tableData.reduce((sum, item) => sum + item.unfilled_spots, 0)}
       </div>
       <div className="flex-1 p-2">
-        {unitsData.reduce((sum, item) => sum + item.rdh, 0)}
+        {tableData.reduce((sum, item) => sum + item.no_shows, 0)}
       </div>
       <div className="flex-1 p-2">
-        {unitsData.reduce((sum, item) => sum + item.rdt, 0)}
+        {tableData.reduce(
+          (sum, item) => sum + item.short_notice_cancellations,
+          0
+        )}
       </div>
     </div>
   );
 
-  const handleCellChange = (record, dataIndex, value) => {
-    const newValue = value === '' ? 0 : parseInt(value) || 0;
-    setUnitsData(
-      unitsData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: newValue } : item
-      )
-    );
-  };
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((opening) => ({
+        name: opening.user,
+        key: opening.id.toString(),
+        no_shows: opening.no_shows,
+        unfilled_spots: opening.unfilled_spots,
+        short_notice_cancellations: opening.short_notice_cancellations
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
@@ -78,7 +86,7 @@ export default function ScheduleOpening({ onNext }) {
             </label>
           </Col>
           <Col span={6}>
-            <Input min="1" disabled type="number" value={unitTime} />
+            <Input min="1" disabled type="number" value={0} />
           </Col>
         </Row>
         <h2 className="font-medium text-base text-black">
@@ -87,8 +95,7 @@ export default function ScheduleOpening({ onNext }) {
         <GenericTable
           footer={footer}
           columns={columns}
-          dataSource={unitsData}
-          onCellChange={handleCellChange}
+          dataSource={tableData}
         />
       </div>
       <StepNavigation onNext={onNext} />

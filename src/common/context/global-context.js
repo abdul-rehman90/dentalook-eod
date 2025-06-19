@@ -2,7 +2,14 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { EOMReportService } from '../services/eom-report';
+import {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  createContext
+} from 'react';
 
 const stepConfig = {
   eod: [
@@ -32,7 +39,7 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const pathname = usePathname();
-  const { type, step } = useParams();
+  const { type, step, id } = useParams();
   const currentStep = parseInt(step);
   const steps = stepConfig[type] || [];
   const [loading, setLoading] = useState(false);
@@ -61,6 +68,62 @@ export const AppProvider = ({ children }) => {
     return reportData[type]?.[currentStepId] || {};
   };
 
+  const fetchAllReportData = useCallback(async () => {
+    if (!id) return;
+    try {
+      const service = type === 'eod' ? EODReportService : EOMReportService;
+      const response =
+        type === 'eod'
+          ? await service.getAllEODData(id)
+          : await service.getAllEOMData(id);
+
+      if (response.status === 200) {
+        if (type === 'eod') {
+          const stepDataMapping = {
+            basic: response.data.basic_detail || {},
+            active: response.data.active_providers || [],
+            daily: response.data.daily_production || [],
+            payment: response.data.payments || [],
+            team: response.data.team_absences || [],
+            schedule: response.data.schedule_openings || [],
+            patient: response.data.patient_tracking || [],
+            auto: response.data.attrition_tracking || [],
+            referrals: response.data.referrals || []
+          };
+          setReportData((prev) => ({
+            ...prev,
+            eod: {
+              ...prev.eod,
+              ...stepDataMapping
+            }
+          }));
+        } else if (type === 'eom') {
+          const stepDataMapping = {
+            basic: response.data.basic_detail || {},
+            account: response.data.account_receivable || [],
+            equipment: response.data.equipment || [],
+            clinical: response.data.clinic_upgrades || [],
+            hiring: response.data.hiring_and_training || [],
+            supplies: response.data.supplies || [],
+            google: response.data.google_reviews || [],
+            issue: response.data.issues_ideas || []
+          };
+          setReportData((prev) => ({
+            ...prev,
+            eom: {
+              ...prev.eom,
+              ...stepDataMapping
+            }
+          }));
+        }
+      }
+    } catch (error) {}
+  }, [id, type]);
+
+  useEffect(() => {
+    fetchAllReportData();
+  }, [fetchAllReportData]);
+
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
@@ -75,6 +138,7 @@ export const AppProvider = ({ children }) => {
 
     if (
       (type === 'eod' || type === 'eom') &&
+      isSubmissionRoute &&
       currentStep === 1 &&
       !provinces.length
     ) {
@@ -91,6 +155,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider
       value={{
+        id,
         type,
         steps,
         loading,

@@ -51,7 +51,7 @@ export const EOMReportService = {
     return response;
   },
 
-  async getAllSubmissions(filters = {}) {
+  async getAllSubmissionList(filters = {}) {
     const params = new URLSearchParams();
 
     if (filters.province) params.append('province', filters.province);
@@ -67,6 +67,11 @@ export const EOMReportService = {
     const response = await apiClient.get(
       `/review-eom-submissions/?${params.toString()}`
     );
+    return response;
+  },
+
+  async getAllEOMData(id) {
+    const response = await apiClient.get(`/eod-data/${id}/`);
     return response;
   }
 };

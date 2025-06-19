@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import { DatePicker, Select } from 'antd';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
@@ -6,13 +7,14 @@ import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { EODReportService } from '@/common/services/eod-report';
-import dayjs from 'dayjs';
+import { useGlobalContext } from '@/common/context/global-context';
 
 export default function List() {
   const router = useRouter();
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const { loading, setLoading } = useGlobalContext();
   const [regionalManagers, setRegionalManagers] = useState([]);
   const [filters, setFilters] = useState({
     province: null,
@@ -20,8 +22,6 @@ export default function List() {
     submission_month: null,
     regional_manager: null
   });
-
-  console.log(filters);
 
   const columns = [
     {
@@ -66,7 +66,9 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            // onClick={() => router.push('/review/eod/1')}
+            onClick={() =>
+              router.push(`/review/eom/1/${record.eodsubmission_id}`)
+            }
           >
             <EyeOutlined />
           </Button>
@@ -75,7 +77,7 @@ export default function List() {
             variant="destructive"
             className="w-full m-auto"
             disabled={record.status === 'Completed'}
-            onClick={() => router.push('/review/eod/1')}
+            // onClick={() => router.push('/review/eod/1')}
           >
             <EditOutlined />
           </Button>
@@ -102,7 +104,8 @@ export default function List() {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await EOMReportService.getAllSubmissions(filters);
+      setLoading(true);
+      const response = await EOMReportService.getAllSubmissionList(filters);
       if (response.data) {
         const dataWithKeys = response.data.map((item, index) => ({
           ...item,
@@ -110,7 +113,10 @@ export default function List() {
         }));
         setSubmissions(dataWithKeys);
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchClinics = async () => {
@@ -218,7 +224,11 @@ export default function List() {
         <p className="text-base font-medium text-black mb-4">
           Clinic Submissions
         </p>
-        <GenericTable columns={columns} dataSource={submissions} />
+        <GenericTable
+          loading={loading}
+          columns={columns}
+          dataSource={submissions}
+        />
       </div>
     </React.Fragment>
   );
