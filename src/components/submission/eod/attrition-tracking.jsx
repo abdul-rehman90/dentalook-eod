@@ -17,10 +17,18 @@ const reasonOptions = [
   { value: 'Other', label: 'Other' }
 ];
 
+const defaultRow = {
+  key: 1,
+  reason: '',
+  comments: '',
+  patient_name: ''
+};
+
 export default function AttritionTracking({ onNext }) {
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -79,7 +87,7 @@ export default function AttritionTracking({ onNext }) {
     );
   };
 
-  const handleAddAttrition = () => {
+  const handleAddNew = () => {
     const newKey =
       tableData.length > 0
         ? Math.max(...tableData.map((item) => item.key)) + 1
@@ -110,28 +118,26 @@ export default function AttritionTracking({ onNext }) {
           eodsubmission: submissionId
         }));
       if (payload.length > 0) {
+        setLoading(true);
         const response = await EODReportService.addAttritionTracking(payload);
         if (response.status === 201) {
           updateStepData(currentStepId, tableData);
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
+      updateStepData(currentStepId, tableData);
       onNext();
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
       setTableData(currentStepData);
-    } else {
-      const defaultItem = {
-        key: 1,
-        reason: '',
-        comments: '',
-        patient_name: ''
-      };
-      setTableData([defaultItem]);
     }
   }, []);
 
@@ -142,7 +148,7 @@ export default function AttritionTracking({ onNext }) {
           <h1 className="text-base font-medium text-black">Attrition Reason</h1>
           <Button
             size="lg"
-            onClick={handleAddAttrition}
+            onClick={handleAddNew}
             className="h-9 !shadow-none text-black !rounded-lg"
           >
             Add New Attrition
