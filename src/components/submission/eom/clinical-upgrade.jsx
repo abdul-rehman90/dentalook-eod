@@ -8,8 +8,15 @@ import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
+const defaultRow = {
+  key: 1,
+  cost: '',
+  items: '',
+  comments: ''
+};
+
 export default function ClinicalUpgrade({ onNext }) {
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
     currentStep,
@@ -83,8 +90,8 @@ export default function ClinicalUpgrade({ onNext }) {
         : 1;
     const newItem = {
       key: newKey,
-      items: '',
       cost: '',
+      items: '',
       comments: ''
     };
     setTableData([...tableData, newItem]);
@@ -106,22 +113,17 @@ export default function ClinicalUpgrade({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
+      updateStepData(currentStepId, tableData);
       onNext();
     } catch (error) {}
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
+      setTableData(currentStepData);
     }
-    const defaultItem = {
-      key: 1,
-      items: '',
-      cost: '',
-      comments: ''
-    };
-    setTableData([defaultItem]);
   }, []);
 
   return (

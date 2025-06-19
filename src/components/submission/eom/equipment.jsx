@@ -15,8 +15,17 @@ const typeOptions = [
   { value: 'Repair', label: 'Repair' }
 ];
 
+const defaultRow = {
+  key: 1,
+  cost: '',
+  comments: '',
+  equipment_repairs: '',
+  purchase_or_repair: '',
+  last_maintenance_date: null
+};
+
 export default function EquipmentRepairs({ onNext }) {
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState([defaultRow]);
   const {
     steps,
     currentStep,
@@ -116,8 +125,8 @@ export default function EquipmentRepairs({ onNext }) {
         ? Math.max(...tableData.map((item) => item.key)) + 1
         : 1;
     const newItem = {
-      key: newKey,
       cost: '',
+      key: newKey,
       comments: '',
       equipment_repairs: '',
       purchase_or_repair: '',
@@ -148,24 +157,17 @@ export default function EquipmentRepairs({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
+      updateStepData(currentStepId, tableData);
       onNext();
     } catch (error) {}
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
+      setTableData(currentStepData);
     }
-    const defaultItem = {
-      key: 1,
-      cost: '',
-      comments: '',
-      equipment_repairs: '',
-      purchase_or_repair: '',
-      last_maintenance_date: null
-    };
-    setTableData([defaultItem]);
   }, []);
 
   return (

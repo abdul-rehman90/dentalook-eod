@@ -24,9 +24,16 @@ const paymentOptions = [
   { value: 'CASH', label: 'CASH' }
 ];
 
+const initialPayments = paymentOptions.map((option, index) => ({
+  key: index + 1,
+  type: option.value,
+  amount: '',
+  action: ''
+}));
+
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState(initialPayments);
   const {
     steps,
     currentStep,
@@ -148,7 +155,7 @@ export default function Payment({ onNext }) {
     setTableData(newPayments);
   };
 
-  const handleAddPayment = () => {
+  const handleAddNew = () => {
     const newPayment = {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
       type: '',
@@ -159,7 +166,9 @@ export default function Payment({ onNext }) {
   };
 
   const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
+    if (tableData.length > 1) {
+      setTableData(tableData.filter((item) => item.key !== key));
+    }
   };
 
   const handleSubmit = async () => {
@@ -190,8 +199,10 @@ export default function Payment({ onNext }) {
           toast.success('Record is successfully saved');
           onNext();
         }
+        return;
       }
 
+      updateStepData(currentStepId, { notes: '', payments: tableData });
       onNext();
     } catch (error) {}
   };
@@ -200,14 +211,6 @@ export default function Payment({ onNext }) {
     if (Object.entries(currentStepData).length > 0) {
       setNotes(currentStepData.notes);
       setTableData(currentStepData.payments);
-    } else {
-      const initialPayments = paymentOptions.map((option, index) => ({
-        key: index + 1,
-        type: option.value,
-        amount: '',
-        action: ''
-      }));
-      setTableData(initialPayments);
     }
   }, []);
 
@@ -218,7 +221,7 @@ export default function Payment({ onNext }) {
           <h1 className="text-base font-medium text-black">Payments</h1>
           <Button
             size="lg"
-            onClick={handleAddPayment}
+            onClick={handleAddNew}
             className="h-9 !shadow-none text-black !rounded-lg"
           >
             Add New Payment
