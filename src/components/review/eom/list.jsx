@@ -1,98 +1,88 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DatePicker, Select } from 'antd';
 import { useRouter } from 'next/navigation';
-import { EditOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
+import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
-
-const dentalClinics = [
-  '67th Street Dental',
-  'Aspire Dental',
-  'Bathurst Dundas Dental Centre',
-  'Calling Lakes Dental',
-  'Dentists on Bloor'
-];
-
-const submissions = [
-  {
-    key: '1',
-    date: '2025-04-01',
-    submission: 'May 1, 2025',
-    practice: 'Calling Lakes Dental',
-    province: 'Saskatchewan (SK)',
-    manager: 'Mandi Kuculym',
-    status: 'Submitted'
-  },
-  {
-    key: '2',
-    date: '2025-04-01',
-    submission: 'May 2, 2025',
-    practice: 'Aspire Dental',
-    province: 'Saskatchewan (SK)',
-    manager: 'Mandi Kuculym',
-    status: 'Submitted'
-  }
-];
+import { EOMReportService } from '@/common/services/eom-report';
+import { EODReportService } from '@/common/services/eod-report';
+import dayjs from 'dayjs';
 
 export default function List() {
   const router = useRouter();
+  const [clinics, setClinics] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [regionalManagers, setRegionalManagers] = useState([]);
   const [filters, setFilters] = useState({
-    clinic: null,
-    submissionMonth: null
+    province: null,
+    clinic_id: null,
+    submission_month: null,
+    regional_manager: null
   });
+
+  console.log(filters);
 
   const columns = [
     {
-      key: 'submission',
-      dataIndex: 'submission',
-      title: 'Submission Month'
+      key: 'submission_month',
+      title: 'Submission Month',
+      dataIndex: 'submission_month',
+      render: (text) => dayjs(text).format('MMM DD, YYYY')
     },
-    { title: 'Practice', dataIndex: 'practice', key: 'practice' },
-    { title: 'Province', dataIndex: 'province', key: 'province' },
-    { title: 'Regional Manager', dataIndex: 'manager', key: 'manager' },
-    { title: 'Submission Date', dataIndex: 'date', key: 'date' },
+    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
+    { title: 'Province', dataIndex: 'province_name', key: 'province_name' },
+    {
+      title: 'Regional Manager',
+      key: 'regional_manager_name',
+      dataIndex: 'regional_manager_name'
+    },
     {
       key: 'status',
       title: 'Status',
       dataIndex: 'status',
-      render: (text) => (
-        <span className="bg-[#E9F7EE] text-primary-400 px-2 py-1 rounded-full text-sm font-semibold">
-          {text}
-        </span>
-      )
+      render: (text) =>
+        text ? (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-semibold ${
+              text === 'Completed'
+                ? 'bg-[#E9F7EE] text-primary-400'
+                : 'bg-[#FFF4ED] text-[#FF8A4E]'
+            }`}
+          >
+            {text}
+          </span>
+        ) : (
+          'N/A'
+        )
     },
     {
       width: 50,
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          variant="destructive"
-          className="w-full m-auto"
-          onClick={() => router.push('/review/eom/1')}
-        >
-          <EditOutlined />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="destructive"
+            className="w-full m-auto"
+            // onClick={() => router.push('/review/eod/1')}
+          >
+            <EyeOutlined />
+          </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            className="w-full m-auto"
+            disabled={record.status === 'Completed'}
+            onClick={() => router.push('/review/eod/1')}
+          >
+            <EditOutlined />
+          </Button>
+        </div>
       )
     }
   ];
-
-  const filteredData = useMemo(() => {
-    return submissions.filter((item) => {
-      const itemDate = new Date(item.date);
-      const fromDate = filters.dateFrom ? new Date(filters.dateFrom) : null;
-      const toDate = filters.dateTo ? new Date(filters.dateTo) : null;
-
-      const matchesClinic = filters.clinic
-        ? item.practice === filters.clinic
-        : true;
-      const matchesFrom = fromDate ? itemDate >= fromDate : true;
-      const matchesTo = toDate ? itemDate <= toDate : true;
-
-      return matchesClinic && matchesFrom && matchesTo;
-    });
-  }, [filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -103,10 +93,58 @@ export default function List() {
 
   const handleResetFilters = () => {
     setFilters({
-      clinic: null,
-      submissionMonth: null
+      province: null,
+      clinic_id: null,
+      submission_month: null,
+      regional_manager: null
     });
   };
+
+  const fetchSubmissions = async () => {
+    try {
+      const response = await EOMReportService.getAllSubmissions(filters);
+      if (response.data) {
+        const dataWithKeys = response.data.map((item, index) => ({
+          ...item,
+          key: item.id || index.toString()
+        }));
+        setSubmissions(dataWithKeys);
+      }
+    } catch (error) {}
+  };
+
+  const fetchClinics = async () => {
+    try {
+      const { data } = await EOMReportService.getAllClinics();
+      setClinics(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
+  };
+
+  const fetchProvinces = async () => {
+    try {
+      const { data } = await EODReportService.getAllProvinces();
+      setProvinces(
+        data.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchClinics();
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [filters]);
 
   return (
     <React.Fragment>
@@ -122,35 +160,56 @@ export default function List() {
             Reset Filters
           </Button>
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-3">
-          <div className="flex items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 mt-3">
+          <div className="flex items-center gap-2">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Practice Name
             </p>
             <Select
-              value={filters.clinic}
-              placeholder="Find Items"
+              options={clinics}
+              value={filters.clinic_id}
               style={{ width: '100%' }}
-              onChange={(value) => handleFilterChange('clinic', value)}
-            >
-              {dentalClinics.map((clinic) => (
-                <Select.Option key={clinic} value={clinic}>
-                  {clinic}
-                </Select.Option>
-              ))}
-            </Select>
+              placeholder="Select Practice"
+              onChange={(value) => handleFilterChange('clinic_id', value)}
+            />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Province
+            </p>
+            <Select
+              options={provinces}
+              value={filters.province}
+              style={{ width: '100%' }}
+              placeholder="Select Province"
+              onChange={(value) => handleFilterChange('province', value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Regional Manager
+            </p>
+            <Select
+              style={{ width: '100%' }}
+              options={regionalManagers}
+              value={filters.regional_manager}
+              placeholder="Select Regional Manager"
+              onChange={(value) =>
+                handleFilterChange('regional_manager', value)
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Submission Month
             </p>
             <DatePicker
               picker="month"
               format="MMM YYYY"
-              value={filters.dateFrom}
               placeholder="Select date"
               style={{ width: '100%' }}
-              onChange={(date) => handleFilterChange('dateFrom', date)}
+              value={filters.submission_month}
+              onChange={(date) => handleFilterChange('submission_month', date)}
             />
           </div>
         </div>
@@ -159,7 +218,7 @@ export default function List() {
         <p className="text-base font-medium text-black mb-4">
           Clinic Submissions
         </p>
-        <GenericTable columns={columns} dataSource={filteredData} />
+        <GenericTable columns={columns} dataSource={submissions} />
       </div>
     </React.Fragment>
   );

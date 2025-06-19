@@ -19,6 +19,7 @@ export default function ActiveProviders({ onNext }) {
   const {
     steps,
     reportData,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -225,6 +226,7 @@ export default function ActiveProviders({ onNext }) {
     }
 
     try {
+      setLoading(true);
       const payload = activeProviders.map((provider) => ({
         ...provider,
         user: provider.id,
@@ -236,7 +238,10 @@ export default function ActiveProviders({ onNext }) {
         toast.success('Record is successfully saved');
         onNext();
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchProviders = async () => {

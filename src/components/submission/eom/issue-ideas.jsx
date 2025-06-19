@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
@@ -13,17 +14,16 @@ const categoryOptions = [
   { value: 'Idea', label: 'Idea' }
 ];
 
-export default function IssuesIdeas({ onNext }) {
-  const [tableData, setTableData] = useState([]);
-  const {
-    steps,
-    currentStep,
-    submissionId,
-    updateStepData,
-    getCurrentStepData
-  } = useGlobalContext();
-  const currentStepData = getCurrentStepData();
-  const currentStepId = steps[currentStep - 1].id;
+const defaultRow = {
+  key: 1,
+  details: '',
+  category: ''
+};
+
+export default function IssuesIdeas() {
+  const router = useRouter();
+  const { submissionId, setLoading } = useGlobalContext();
+  const [tableData, setTableData] = useState([defaultRow]);
 
   const columns = [
     {
@@ -59,6 +59,22 @@ export default function IssuesIdeas({ onNext }) {
       )
     }
   ];
+
+  const handleSubmitEOMReport = async () => {
+    try {
+      setLoading(true);
+      const response = await EOMReportService.submissionEOMReport({
+        eomsubmission_id: submissionId
+      });
+      if (response.status === 200) {
+        toast.success('EOM submission is successfully submitted');
+        router.push('/review/list/eom');
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
@@ -99,21 +115,13 @@ export default function IssuesIdeas({ onNext }) {
       if (payload.length > 0) {
         const response = await EOMReportService.addIssueIdeas(payload);
         if (response.status === 201) {
-          toast.success('Record is successfully saved');
-          // onNext();
+          handleSubmitEOMReport();
         }
+        return;
       }
+      handleSubmitEOMReport();
     } catch (error) {}
   };
-
-  useEffect(() => {
-    const defaultItem = {
-      key: 1,
-      details: '',
-      category: ''
-    };
-    setTableData([defaultItem]);
-  }, []);
 
   return (
     <React.Fragment>

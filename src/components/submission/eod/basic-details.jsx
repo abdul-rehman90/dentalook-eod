@@ -19,6 +19,7 @@ export default function BasicDetails({ onNext }) {
   const {
     steps,
     provinces,
+    setLoading,
     currentStep,
     updateStepData,
     setSubmissionId,
@@ -95,6 +96,7 @@ export default function BasicDetails({ onNext }) {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      setLoading(true);
       const selectedClinic = practices.find(
         (clinic) => clinic.value === values.clinic
       );
@@ -122,7 +124,10 @@ export default function BasicDetails({ onNext }) {
         toast.success('Record is successfully saved');
         onNext();
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const initializeForm = async () => {

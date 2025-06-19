@@ -8,6 +8,7 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function AccountReceivable({ onNext }) {
   const {
     steps,
+    setLoading,
     currentStep,
     submissionId,
     updateStepData,
@@ -110,6 +111,7 @@ export default function AccountReceivable({ onNext }) {
     }
 
     try {
+      setLoading(true);
       const patientData = tableData.find(
         (item) => item.patient_type === 'Patient'
       );
@@ -137,12 +139,15 @@ export default function AccountReceivable({ onNext }) {
         toast.success('Record is successfully saved');
         onNext();
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
+      setTableData(currentStepData);
     }
   }, []);
 
