@@ -22,8 +22,9 @@ const defaultRow = {
 
 export default function IssuesIdeas() {
   const router = useRouter();
-  const { submissionId, setLoading } = useGlobalContext();
   const [tableData, setTableData] = useState([defaultRow]);
+  const { id, setLoading, getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const columns = [
     {
@@ -64,7 +65,7 @@ export default function IssuesIdeas() {
     try {
       setLoading(true);
       const response = await EOMReportService.submissionEOMReport({
-        eomsubmission_id: submissionId
+        eomsubmission_id: id
       });
       if (response.status === 200) {
         toast.success('EOM submission is successfully submitted');
@@ -109,7 +110,7 @@ export default function IssuesIdeas() {
         .filter((item) => item.category && item.details)
         .map((item) => ({
           ...item,
-          submission: submissionId
+          submission: id
         }));
 
       if (payload.length > 0) {
@@ -122,6 +123,17 @@ export default function IssuesIdeas() {
       handleSubmitEOMReport();
     } catch (error) {}
   };
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        details: item.details,
+        category: item.category,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

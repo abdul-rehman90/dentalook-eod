@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { Form } from 'antd';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 import { FormControl } from '@/common/utils/form-control';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -12,17 +13,18 @@ const options = [
   { label: 'Close', value: 'closed' }
 ];
 
-export default function BasicDetails({ onNext }) {
+export default function BasicDetails() {
+  const router = useRouter();
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
+    id,
     steps,
     provinces,
     setLoading,
     currentStep,
     updateStepData,
-    setSubmissionId,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
@@ -94,6 +96,7 @@ export default function BasicDetails({ onNext }) {
   };
 
   const handleSubmit = async () => {
+    if (id) return router.push(`/submission/eod/${currentStep + 1}/${id}`);
     try {
       const values = await form.validateFields();
       setLoading(true);
@@ -118,12 +121,15 @@ export default function BasicDetails({ onNext }) {
         payload
       );
       if (response.status === 201) {
-        setSubmissionId(response.data.data.id);
         updateStepData(currentStepId, payload);
+        const submission_id = response.data.data.id;
         toast.success('Record is successfully saved');
-        onNext();
+        router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
       }
     } catch (error) {
+      toast.error(
+        error?.response?.data?.non_field_errors[0] || 'Failed to save record'
+      );
     } finally {
       setLoading(false);
     }
@@ -134,7 +140,7 @@ export default function BasicDetails({ onNext }) {
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
-        currentStepData.province
+        currentStepData.province_id
       );
       setPractices(
         data.clinics.map((clinic) => ({
@@ -142,8 +148,8 @@ export default function BasicDetails({ onNext }) {
           label: clinic.clinic_name,
           unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
-            label: manager.name,
-            value: manager.id
+            value: manager.id,
+            label: manager.name
           }))
         }))
       );
@@ -178,7 +184,7 @@ export default function BasicDetails({ onNext }) {
 
   useEffect(() => {
     initializeForm();
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

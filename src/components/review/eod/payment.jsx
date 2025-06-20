@@ -23,6 +23,7 @@ const paymentOptions = [
 ];
 
 export default function Payment({ onNext }) {
+  const [notes, setNotes] = useState('');
   const [tableData, setTableData] = useState([]);
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
@@ -71,12 +72,14 @@ export default function Payment({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
+      const storedNotes = currentStepData[0]?.notes;
       const transformedData = currentStepData.map((item) => ({
-        key: item.id.toString(),
         type: item.payment_type,
+        key: item.id.toString(),
         amount: item.payment_amount
       }));
       setTableData(transformedData);
+      setNotes(storedNotes);
     }
   }, [currentStepData]);
 
@@ -102,6 +105,7 @@ export default function Payment({ onNext }) {
               <TextArea
                 rows={4}
                 disabled
+                value={notes}
                 placeholder="Enter note here..."
                 style={{
                   width: '100%',

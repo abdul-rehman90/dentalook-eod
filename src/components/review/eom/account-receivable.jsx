@@ -73,9 +73,9 @@ export default function AccountReceivable({ onNext }) {
       disabled: true,
       editable: true,
       inputType: 'number',
-      key: 'payment_plans',
+      key: 'payment_plan',
       title: 'Payment Plans',
-      dataIndex: 'payment_plans'
+      dataIndex: 'payment_plan'
     }
   ];
 
@@ -90,7 +90,7 @@ export default function AccountReceivable({ onNext }) {
           age_30_60: data.patient30_60,
           age_60_90: data.patient60_90,
           age_90_plus: data.patient90_plus,
-          payment_plans: data.patient_payment_plan
+          payment_plan: data.patient_payment_plan
         },
         {
           key: '2',
@@ -99,7 +99,7 @@ export default function AccountReceivable({ onNext }) {
           age_30_60: data.insurance30_60,
           age_60_90: data.insurance60_90,
           age_90_plus: data.insurance90_plus,
-          payment_plans: data.insurance_payment_plan
+          payment_plan: data.insurance_payment_plan
         }
       ]);
     }

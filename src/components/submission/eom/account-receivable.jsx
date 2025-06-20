@@ -7,10 +7,10 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 
 export default function AccountReceivable({ onNext }) {
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -80,8 +80,8 @@ export default function AccountReceivable({ onNext }) {
       width: 150,
       editable: true,
       inputType: 'number',
-      title: 'Payment Plans',
       key: 'payment_plan',
+      title: 'Payment Plans',
       dataIndex: 'payment_plan'
     }
   ];
@@ -120,7 +120,7 @@ export default function AccountReceivable({ onNext }) {
       );
 
       const payload = {
-        submission: submissionId,
+        submission: Number(id),
         patient0_30: parseFloat(patientData?.age_0_30) || 0,
         patient30_60: parseFloat(patientData?.age_30_60) || 0,
         patient60_90: parseFloat(patientData?.age_60_90) || 0,
@@ -135,7 +135,7 @@ export default function AccountReceivable({ onNext }) {
 
       const response = await EOMReportService.addAccountReceivable([payload]);
       if (response.status === 201) {
-        updateStepData(currentStepId, tableData);
+        updateStepData(currentStepId, [payload]);
         toast.success('Record is successfully saved');
         onNext();
       }
@@ -147,9 +147,29 @@ export default function AccountReceivable({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      setTableData(currentStepData);
+      const data = currentStepData[0];
+      setTableData([
+        {
+          key: '1',
+          patient_type: 'Patient',
+          age_0_30: data.patient0_30,
+          age_30_60: data.patient30_60,
+          age_60_90: data.patient60_90,
+          age_90_plus: data.patient90_plus,
+          payment_plan: data.patient_payment_plan
+        },
+        {
+          key: '2',
+          patient_type: 'Insurance',
+          age_0_30: data.insurance0_30,
+          age_30_60: data.insurance30_60,
+          age_60_90: data.insurance60_90,
+          age_90_plus: data.insurance90_plus,
+          payment_plan: data.insurance_payment_plan
+        }
+      ]);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
