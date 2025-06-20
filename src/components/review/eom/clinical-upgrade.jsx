@@ -54,8 +54,8 @@ export default function ClinicalUpgrade({ onNext }) {
   useEffect(() => {
     if (currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
-        items: item.items,
         cost: item.cost,
+        items: item.items,
         comments: item.comments,
         key: item.id.toString()
       }));

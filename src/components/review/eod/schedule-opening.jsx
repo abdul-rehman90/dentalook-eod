@@ -6,7 +6,8 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 
 export default function ScheduleOpening({ onNext }) {
   const [tableData, setTableData] = useState([]);
-  const { getCurrentStepData } = useGlobalContext();
+  const { reportData, getCurrentStepData } = useGlobalContext();
+  const unitTime = reportData?.eod?.basic?.unit_length;
   const currentStepData = getCurrentStepData();
 
   const columns = [
@@ -86,7 +87,7 @@ export default function ScheduleOpening({ onNext }) {
             </label>
           </Col>
           <Col span={6}>
-            <Input min="1" disabled type="number" value={0} />
+            <Input min="1" disabled type="number" value={unitTime} />
           </Col>
         </Row>
         <h2 className="font-medium text-base text-black">

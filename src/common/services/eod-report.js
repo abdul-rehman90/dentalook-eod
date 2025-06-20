@@ -6,6 +6,11 @@ export const EODReportService = {
     return response;
   },
 
+  async getAllRegionalManagers() {
+    const response = await apiClient.get('/get-regional-managers/');
+    return response;
+  },
+
   async getAllProvinces() {
     const response = await apiClient.get('/upload-provinces');
     return response;

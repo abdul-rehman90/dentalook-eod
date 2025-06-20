@@ -77,6 +77,20 @@
   display: none !important;
 }
 
+.ant-input-disabled,
+.ant-picker-disabled input,
+.ant-select-disabled .ant-select-selector {
+  color: #171717 !important;
+}
+
+.ant-checkbox-disabled .ant-checkbox-inner::after {
+  border-color: #171717 !important;
+}
+
+.ant-checkbox-disabled .ant-checkbox-inner {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
 .ant-form-item-explain-error {
   font-size: 12px;
 }

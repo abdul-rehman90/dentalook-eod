@@ -27,10 +27,10 @@ const defaultRow = {
 export default function AttritionTracking({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -116,7 +116,7 @@ export default function AttritionTracking({ onNext }) {
         .filter((item) => item.patient_name && item.reason)
         .map((item) => ({
           ...item,
-          eodsubmission: submissionId
+          eodsubmission: Number(id)
         }));
       if (payload.length > 0) {
         setLoading(true);
@@ -138,9 +138,15 @@ export default function AttritionTracking({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      setTableData(currentStepData);
+      const transformedData = currentStepData.map((item) => ({
+        reason: item.reason,
+        comments: item.comments,
+        patient_name: item.patient_name,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTableData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

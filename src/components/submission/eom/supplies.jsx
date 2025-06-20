@@ -16,10 +16,10 @@ const defaultRow = {
 export default function Supplies({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -101,17 +101,17 @@ export default function Supplies({ onNext }) {
           supplies_actual: parseFloat(rowData.supplies_actual)
         };
         const response = await EOMReportService.addSuppliesAndGoogleReviews(
-          submissionId,
+          id,
           payload
         );
         if (response.status === 200) {
-          updateStepData(currentStepId, tableData);
+          updateStepData(currentStepId, rowData);
           toast.success('Record is successfully saved');
           onNext();
         }
         return;
       }
-      updateStepData(currentStepId, tableData);
+      updateStepData(currentStepId, rowData);
       onNext();
     } catch (error) {
     } finally {
@@ -120,10 +120,18 @@ export default function Supplies({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
-      setTableData(currentStepData);
+    if (Object.entries(currentStepData).length > 0) {
+      const transformedData = [
+        {
+          key: '1',
+          overage_reason: currentStepData.overage_reason || '',
+          supplies_actual: currentStepData.supplies_actual || '',
+          budget_daily_supplies: currentStepData.budget_daily_supplies || 0
+        }
+      ];
+      setTableData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

@@ -93,8 +93,8 @@ export default function TeamAbsences({ onNext }) {
         reason: item.reason,
         status: item.absence,
         name: item.user?.name,
-        position: item.position,
-        key: item.id.toString()
+        key: item.id.toString(),
+        position: item.position
       }));
       setTableData(transformedData);
     }

@@ -9,11 +9,11 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function ScheduleOpening({ onNext }) {
   const [tableData, setTableData] = useState([]);
   const {
+    id,
     steps,
     setLoading,
     reportData,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -88,8 +88,8 @@ export default function ScheduleOpening({ onNext }) {
   const handleSubmit = async () => {
     const hasData = tableData.some(
       (provider) =>
-        provider.unfilled_spots > 0 ||
         provider.no_shows > 0 ||
+        provider.unfilled_spots > 0 ||
         provider.short_notice_cancellations > 0
     );
 
@@ -104,7 +104,7 @@ export default function ScheduleOpening({ onNext }) {
       const payload = tableData.map((item) => ({
         ...item,
         user: item.id,
-        eodsubmission: submissionId
+        eodsubmission: Number(id)
       }));
       const response = await EODReportService.addScheduleOpening(payload);
       if (response.status === 201) {
@@ -120,26 +120,43 @@ export default function ScheduleOpening({ onNext }) {
 
   const fetchActiveProviders = async () => {
     try {
-      const { data } = await EODReportService.getActiveProviders(submissionId);
-      setTableData(
-        data.providers.map((provider) => ({
-          id: provider.id,
-          key: provider.id,
-          name: provider.name,
-          unfilled_spots: null,
-          no_shows: null,
-          short_notice_cancellations: null
-        }))
-      );
+      const { data } = await EODReportService.getActiveProviders(id);
+      const baseProviders = data.providers.map((provider) => ({
+        no_shows: null,
+        id: provider.id,
+        key: provider.id,
+        name: provider.name,
+        unfilled_spots: null,
+        short_notice_cancellations: null
+      }));
+
+      if (currentStepData.length > 0) {
+        const mergedData = baseProviders.map((provider) => {
+          const existingData = currentStepData.find(
+            (item) => item.user?.id === provider.id || item.id === provider.id
+          );
+
+          if (existingData) {
+            return {
+              ...provider,
+              no_shows: existingData.no_shows || null,
+              unfilled_spots: existingData.unfilled_spots || null,
+              short_notice_cancellations:
+                existingData.short_notice_cancellations || null
+            };
+          }
+          return provider;
+        });
+        setTableData(mergedData);
+      } else {
+        setTableData(baseProviders);
+      }
     } catch (error) {}
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
-    }
     fetchActiveProviders();
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

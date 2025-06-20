@@ -71,7 +71,9 @@ export default function List() {
             variant="destructive"
             className="w-full m-auto"
             disabled={record.submitted === 'Completed'}
-            // onClick={() => router.push('/review/eod/1')}
+            onClick={() =>
+              router.push(`/submission/eod/1/${record.eodsubmission_id}`)
+            }
           >
             <EditOutlined />
           </Button>
@@ -114,23 +116,23 @@ export default function List() {
     }
   };
 
-  const fetchClinics = async () => {
+  const fetchAllRegionalManagers = async () => {
     try {
-      const { data } = await EODReportService.getAllClinics();
-      setClinics(
-        data.map((item) => ({
+      const { data } = await EODReportService.getAllRegionalManagers();
+      setProvinces(
+        data.provinces.map((item) => ({
           value: item.id,
           label: item.name
         }))
       );
-    } catch (error) {}
-  };
-
-  const fetchProvinces = async () => {
-    try {
-      const { data } = await EODReportService.getAllProvinces();
-      setProvinces(
-        data.map((item) => ({
+      setClinics(
+        data.clinics.map((item) => ({
+          value: item.id,
+          label: item.name
+        }))
+      );
+      setRegionalManagers(
+        data.regional_managers.map((item) => ({
           value: item.id,
           label: item.name
         }))
@@ -139,8 +141,7 @@ export default function List() {
   };
 
   useEffect(() => {
-    fetchClinics();
-    fetchProvinces();
+    fetchAllRegionalManagers();
   }, []);
 
   useEffect(() => {
