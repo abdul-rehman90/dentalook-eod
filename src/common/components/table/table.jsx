@@ -9,6 +9,7 @@ import { Table, Input, Select } from 'antd';
 
 function GenericTable({
   columns,
+  loading,
   dataSource,
   onCellChange,
   footer = null,
@@ -22,6 +23,7 @@ function GenericTable({
           col.inputType === 'select' && col.selectOptions ? (
             <Select
               value={text}
+              disabled={col.disabled}
               style={{ width: '100%' }}
               options={col.selectOptions}
               onChange={(value) => onCellChange(record, col.dataIndex, value)}
@@ -56,6 +58,7 @@ function GenericTable({
       <Table
         size="middle"
         footer={footer}
+        loading={loading}
         pagination={false}
         bordered={bordered}
         dataSource={dataSource}

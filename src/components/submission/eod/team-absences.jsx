@@ -174,7 +174,6 @@ export default function TeamAbsences({ onNext }) {
           user: item.name,
           eodsubmission: submissionId
         }));
-      console.log(payload);
       if (payload.length > 0) {
         setLoading(true);
         const response = await EODReportService.addTeamAbsence(payload);

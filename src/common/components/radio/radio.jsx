@@ -6,6 +6,7 @@ export default function RadioButtons({
   label,
   options,
   required,
+  disabled,
   onChange,
   message = ''
 }) {
@@ -22,7 +23,7 @@ export default function RadioButtons({
         </span>
       }
     >
-      <Radio.Group options={options} onChange={onChange} />
+      <Radio.Group disabled={disabled} options={options} onChange={onChange} />
     </Form.Item>
   );
 }

@@ -15,12 +15,14 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { steps, type, currentStep, totalSteps } = useGlobalContext();
+  const { reportData, steps, type, currentStep, totalSteps } =
+    useGlobalContext();
+  const clinicName = reportData[type]?.basic?.clinic_name;
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
       <div className="bg-white border border-secondary-50 rounded-l-lg">
-        <Stepper steps={steps} currentStep={currentStep} />
+        <Stepper />
       </div>
       <div className="flex-1 bg-gray-50 border border-secondary-50 rounded-r-lg">
         <Card className="!py-4 !border-0 bg-white !shadow-none !rounded-none">
@@ -30,7 +32,7 @@ export default function SubmissionLayout({ children }) {
                 size="icon"
                 className="mr-2"
                 variant="destructive"
-                onClick={() => router.push('/clinics-reporting')}
+                onClick={() => router.back()}
               >
                 <LeftOutlined />
               </Button>
@@ -38,7 +40,7 @@ export default function SubmissionLayout({ children }) {
               <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
                 Submitted
               </div>
-              Calling Lakes Dental
+              {clinicName}
             </CardTitle>
             <div className="flex items-center gap-4">
               <Button
@@ -59,7 +61,7 @@ export default function SubmissionLayout({ children }) {
                 Step {currentStep} of {totalSteps}
               </CardTitle>
               <CardDescription className="text-xl font-medium text-black">
-                {stepConfig[type][currentStep - 1]}
+                {steps[currentStep - 1].name}
               </CardDescription>
             </CardHeader>
             {children}

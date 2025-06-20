@@ -1,37 +1,19 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import AddModal from './add-modal';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
-import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
-const providerTypes = [
-  { value: 'DDS', label: 'DDS' },
-  { value: 'RDH', label: 'RDH' }
-];
-
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { provinces, reportData, submissionId, setLoading } =
-    useGlobalContext();
+  const { reportData, submissionId, setLoading } = useGlobalContext();
   const clinicId = reportData?.eod?.basic?.clinic;
-  const provinceId = reportData?.eod?.basic?.province;
-  const clinicName = reportData?.eod?.basic?.clinic_name || '';
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
-  const provinceName =
-    provinces.find((province) => province.value === provinceId)?.label || '';
-
-  const initialValues = {
-    clinic_id: clinicName,
-    province: provinceName
-  };
 
   const summaryData = useMemo(() => {
     const totalDDS = tableData
@@ -132,54 +114,6 @@ export default function DailyProduction({ onNext }) {
     }
   ];
 
-  const GetModalContent = () => {
-    return (
-      <React.Fragment>
-        <FormControl
-          disabled
-          name="province"
-          control="input"
-          label="Province"
-          // value={provinceName}
-        />
-        <FormControl
-          disabled
-          control="input"
-          name="clinic_id"
-          // value={clinicName}
-          label="Practice Name"
-        />
-        <FormControl
-          required
-          name="name"
-          control="input"
-          label="Provider Name"
-        />
-        <FormControl
-          required
-          control="select"
-          name="provider_title"
-          label="Provider Title"
-          options={providerTypes}
-        />
-      </React.Fragment>
-    );
-  };
-
-  const addNewProvider = async (values) => {
-    const payload = {
-      name: values.name,
-      clinic_id: clinicId,
-      province_id: provinceId,
-      provider_title: values.provider_title
-    };
-    const response = await EODReportService.addNewProvider(payload);
-    if (response.status === 201) {
-      fetchActiveProviders();
-      toast.success('Record is successfully saved');
-    }
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -253,32 +187,15 @@ export default function DailyProduction({ onNext }) {
 
   return (
     <React.Fragment>
-      <AddModal
-        visible={isModalOpen}
-        onSubmit={addNewProvider}
-        initialValues={initialValues}
-        onCancel={() => setIsModalOpen(false)}
-      >
-        <GetModalContent />
-      </AddModal>
       <div className="flex flex-col gap-6 px-6">
         <GenericTable
           dataSource={summaryData}
           columns={totalProductionColumns}
         />
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">
-              Daily Production ($)
-            </h1>
-            <Button
-              size="lg"
-              onClick={() => setIsModalOpen(true)}
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Add New Provider
-            </Button>
-          </div>
+          <h1 className="text-base font-medium text-black mb-4">
+            Daily Production ($)
+          </h1>
           <GenericTable
             dataSource={tableData}
             columns={providersColumns}

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import Image from 'next/image';
 import { DatePicker } from 'antd';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const typeOptions = [
@@ -13,6 +15,8 @@ const typeOptions = [
 
 export default function EquipmentRepairs({ onNext }) {
   const [tableData, setTableData] = useState([]);
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const columns = [
     {
@@ -20,30 +24,32 @@ export default function EquipmentRepairs({ onNext }) {
       key: 'item',
       title: 'Item',
       editable: true,
+      disabled: true,
       dataIndex: 'item',
       inputType: 'text'
     },
     {
       width: 150,
-      key: 'type',
+      disabled: true,
       editable: true,
-      dataIndex: 'type',
       inputType: 'select',
+      key: 'purchase_or_repair',
       selectOptions: typeOptions,
-      title: 'Purchase or Repair?'
+      title: 'Purchase or Repair?',
+      dataIndex: 'purchase_or_repair'
     },
     {
       width: 150,
-      key: 'maintenance',
-      dataIndex: 'maintenance',
+      key: 'last_maintenance_date',
       title: 'Last Maintenance Date?',
+      dataIndex: 'last_maintenance_date',
       render: (_, record) => (
         <div className="h-full">
           <DatePicker
+            disabled
             format="ddd, MMM D, YYYY"
             placeholder="Select Date"
-            value={record.maintenance}
-            onChange={(date) => handleCellChange(record, 'maintenance', date)}
+            value={record.last_maintenance_date}
           />
         </div>
       )
@@ -52,12 +58,14 @@ export default function EquipmentRepairs({ onNext }) {
       width: 50,
       key: 'cost',
       title: 'Cost',
+      disabled: true,
       editable: true,
       dataIndex: 'cost',
       inputType: 'number'
     },
     {
       width: 150,
+      disabled: true,
       editable: true,
       key: 'comments',
       title: 'Comments',
@@ -69,45 +77,26 @@ export default function EquipmentRepairs({ onNext }) {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
+        <Button disabled size="icon" className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleDelete = (key) => {
-    setTableData(tableData.filter((item) => item.key !== key));
-  };
-
-  const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    const newItem = {
-      key: newKey,
-      item: '',
-      type: '',
-      cost: '',
-      comments: '',
-      maintenance: null
-    };
-    setTableData([...tableData, newItem]);
-  };
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        cost: item.cost,
+        key: item.id.toString(),
+        comments: item.comments,
+        item: item.equipment_repairs,
+        purchase_or_repair: item.purchase_or_repair,
+        last_maintenance_date: dayjs(item.last_maintenance_date)
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
@@ -115,11 +104,7 @@ export default function EquipmentRepairs({ onNext }) {
         <h1 className="text-base font-medium text-black mb-4">
           Equipment/Repairs
         </h1>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

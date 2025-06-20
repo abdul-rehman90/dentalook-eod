@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
@@ -12,17 +13,24 @@ const categoryOptions = [
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
-  { value: 'RDH', label: 'RDH' }
+  { value: 'RDH', label: 'RDH' },
+  { value: 'PCC', label: 'PCC' },
+  { value: 'CDA', label: 'CDA' },
+  { value: 'PM', label: 'PM' },
+  { value: 'Dental Aide', label: 'Dental Aide' }
 ];
 
 export default function HiringTraining({ onNext }) {
   const [hiringData, setHiringData] = useState([]);
   const [trainingData, setTrainingData] = useState([]);
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const hiringColumns = [
     {
       width: 100,
       editable: true,
+      disabled: true,
       key: 'position',
       title: 'Position',
       inputType: 'select',
@@ -32,6 +40,7 @@ export default function HiringTraining({ onNext }) {
     {
       width: 100,
       editable: true,
+      disabled: true,
       key: 'category',
       title: 'Category',
       inputType: 'select',
@@ -39,8 +48,9 @@ export default function HiringTraining({ onNext }) {
       selectOptions: categoryOptions
     },
     {
-      width: 150,
+      width: 300,
       key: 'reason',
+      disabled: true,
       editable: true,
       title: 'Reason?',
       inputType: 'text',
@@ -51,12 +61,7 @@ export default function HiringTraining({ onNext }) {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleHiringDelete(record.key)}
-        >
+        <Button disabled size="icon" className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
@@ -66,6 +71,7 @@ export default function HiringTraining({ onNext }) {
   const trainingColumns = [
     {
       width: 100,
+      disabled: true,
       editable: true,
       key: 'position',
       title: 'Position',
@@ -77,13 +83,15 @@ export default function HiringTraining({ onNext }) {
       width: 100,
       key: 'name',
       title: 'Name',
+      disabled: true,
       editable: true,
       inputType: 'text',
       dataIndex: 'name'
     },
     {
-      width: 150,
+      width: 300,
       key: 'reason',
+      disabled: true,
       editable: true,
       title: 'Reason?',
       inputType: 'text',
@@ -94,88 +102,44 @@ export default function HiringTraining({ onNext }) {
       key: 'action',
       title: 'Action',
       render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleTrainingDelete(record.key)}
-        >
+        <Button disabled size="icon" className="ml-3" variant="destructive">
           <Image src={Icons.cross} alt="cross" />
         </Button>
       )
     }
   ];
 
-  const handleHiringCellChange = (record, dataIndex, value) => {
-    setHiringData(
-      hiringData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleTrainingCellChange = (record, dataIndex, value) => {
-    setTrainingData(
-      trainingData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleHiringDelete = (key) => {
-    setHiringData(hiringData.filter((item) => item.key !== key));
-  };
-
-  const handleTrainingDelete = (key) => {
-    setTrainingData(trainingData.filter((item) => item.key !== key));
-  };
-
-  const handleAddNewHiring = () => {
-    const newKey =
-      hiringData.length > 0
-        ? Math.max(...hiringData.map((item) => item.key)) + 1
-        : 1;
-    const newItem = {
-      key: newKey,
-      reason: '',
-      position: '',
-      category: ''
-    };
-    setHiringData([...hiringData, newItem]);
-  };
-
-  const handleAddNewTraining = () => {
-    const newKey =
-      trainingData.length > 0
-        ? Math.max(...trainingData.map((item) => item.key)) + 1
-        : 1;
-    const newItem = {
-      key: newKey,
-      name: '',
-      reason: '',
-      position: ''
-    };
-    setTrainingData([...trainingData, newItem]);
-  };
+  useEffect(() => {
+    if (currentStepData?.hiring.length > 0) {
+      const transformedData = currentStepData.hiring.map((item) => ({
+        category: item.category,
+        key: item.id.toString(),
+        reason: item.hiring_reason,
+        position: item.hiring_position
+      }));
+      setHiringData(transformedData);
+    }
+    if (currentStepData?.training.length > 0) {
+      const transformedData = currentStepData.training.map((item) => ({
+        key: item.id.toString(),
+        name: item.training_name,
+        reason: item.training_reason,
+        position: item.training_position
+      }));
+      setTrainingData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
       <div className="flex flex-col gap-8 px-6">
         <div>
           <h1 className="text-base font-medium text-black mb-4">Hiring</h1>
-          <GenericTable
-            columns={hiringColumns}
-            dataSource={hiringData}
-            onCellChange={handleHiringCellChange}
-          />
+          <GenericTable columns={hiringColumns} dataSource={hiringData} />
         </div>
         <div>
           <h1 className="text-base font-medium text-black mb-4">Training</h1>
-          <GenericTable
-            columns={trainingColumns}
-            dataSource={trainingData}
-            onCellChange={handleTrainingCellChange}
-          />
+          <GenericTable columns={trainingColumns} dataSource={trainingData} />
         </div>
       </div>
       <StepNavigation onNext={onNext} />
