@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
@@ -14,11 +14,11 @@ export default function ClinicalUpgrade({ onNext }) {
   const columns = [
     {
       width: 150,
-      key: 'item',
+      key: 'items',
       title: 'Item',
       disabled: true,
       editable: true,
-      dataIndex: 'item',
+      dataIndex: 'items',
       inputType: 'text'
     },
     {
@@ -50,6 +50,18 @@ export default function ClinicalUpgrade({ onNext }) {
       )
     }
   ];
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        items: item.items,
+        cost: item.cost,
+        comments: item.comments,
+        key: item.id.toString()
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import Image from 'next/image';
 import { DatePicker } from 'antd';
 import { Icons } from '@/common/assets';
@@ -29,26 +30,26 @@ export default function EquipmentRepairs({ onNext }) {
     },
     {
       width: 150,
-      key: 'type',
       disabled: true,
       editable: true,
-      dataIndex: 'type',
       inputType: 'select',
+      key: 'purchase_or_repair',
       selectOptions: typeOptions,
-      title: 'Purchase or Repair?'
+      title: 'Purchase or Repair?',
+      dataIndex: 'purchase_or_repair'
     },
     {
       width: 150,
-      key: 'maintenance',
-      dataIndex: 'maintenance',
+      key: 'last_maintenance_date',
       title: 'Last Maintenance Date?',
+      dataIndex: 'last_maintenance_date',
       render: (_, record) => (
         <div className="h-full">
           <DatePicker
             disabled
             format="ddd, MMM D, YYYY"
             placeholder="Select Date"
-            value={record.maintenance}
+            value={record.last_maintenance_date}
           />
         </div>
       )
@@ -82,6 +83,20 @@ export default function EquipmentRepairs({ onNext }) {
       )
     }
   ];
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        cost: item.cost,
+        key: item.id.toString(),
+        comments: item.comments,
+        item: item.equipment_repairs,
+        purchase_or_repair: item.purchase_or_repair,
+        last_maintenance_date: dayjs(item.last_maintenance_date)
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

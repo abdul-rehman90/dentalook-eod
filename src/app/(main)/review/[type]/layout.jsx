@@ -15,7 +15,9 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { steps, type, currentStep, totalSteps } = useGlobalContext();
+  const { reportData, steps, type, currentStep, totalSteps } =
+    useGlobalContext();
+  const clinicName = reportData[type]?.basic?.clinic_name;
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
@@ -30,7 +32,7 @@ export default function SubmissionLayout({ children }) {
                 size="icon"
                 className="mr-2"
                 variant="destructive"
-                onClick={() => router.push('/clinics-reporting')}
+                onClick={() => router.back()}
               >
                 <LeftOutlined />
               </Button>
@@ -38,7 +40,7 @@ export default function SubmissionLayout({ children }) {
               <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
                 Submitted
               </div>
-              Calling Lakes Dental
+              {clinicName}
             </CardTitle>
             <div className="flex items-center gap-4">
               <Button

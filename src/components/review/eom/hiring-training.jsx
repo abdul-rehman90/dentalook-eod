@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { Button } from '@/common/components/button/button';
@@ -108,6 +108,27 @@ export default function HiringTraining({ onNext }) {
       )
     }
   ];
+
+  useEffect(() => {
+    if (currentStepData?.hiring.length > 0) {
+      const transformedData = currentStepData.hiring.map((item) => ({
+        category: item.category,
+        key: item.id.toString(),
+        reason: item.hiring_reason,
+        position: item.hiring_position
+      }));
+      setHiringData(transformedData);
+    }
+    if (currentStepData?.training.length > 0) {
+      const transformedData = currentStepData.training.map((item) => ({
+        key: item.id.toString(),
+        name: item.training_name,
+        reason: item.training_reason,
+        position: item.training_position
+      }));
+      setTrainingData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

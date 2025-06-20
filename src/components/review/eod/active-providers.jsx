@@ -90,9 +90,10 @@ export default function ActiveProviders({ onNext }) {
   useEffect(() => {
     if (currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
-        name: item.user || '',
+        name: item.user?.name,
         key: item.id.toString(),
         is_active: item.is_active,
+        type: item.user?.user_type,
         end_time: item.end_time ? dayjs(item.end_time) : null,
         number_of_patients_seen: item.number_of_patients_seen,
         start_time: item.start_time ? dayjs(item.start_time) : null

@@ -57,7 +57,7 @@ export default function SubmissionLayout({ children }) {
                 size="icon"
                 className="mr-2"
                 variant="destructive"
-                onClick={() => router.push('/clinics-reporting')}
+                onClick={() => router.back()}
               >
                 <LeftOutlined />
               </Button>

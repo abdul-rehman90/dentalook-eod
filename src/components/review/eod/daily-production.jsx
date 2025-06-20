@@ -114,8 +114,9 @@ export default function DailyProduction({ onNext }) {
   useEffect(() => {
     if (currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
-        name: item.user || '',
+        name: item.user?.name,
         key: item.id.toString(),
+        type: item.user?.user_type,
         production_amount: item.production_amount
       }));
       setTableData(transformedData);

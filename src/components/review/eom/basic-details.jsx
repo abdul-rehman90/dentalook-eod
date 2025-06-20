@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import dayjs from 'dayjs';
 import { Form } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -10,7 +11,7 @@ export default function BasicDetails({ onNext }) {
   const currentStepData = getCurrentStepData();
 
   useEffect(() => {
-    if (currentStepData) {
+    if (Object.entries(currentStepData).length > 0) {
       const formValues = {
         province: currentStepData.province,
         practice_name: currentStepData.clinic_name,
@@ -56,8 +57,8 @@ export default function BasicDetails({ onNext }) {
         <div className="proud-moment">
           <FormControl
             disabled
-            name="moment"
             control="input"
+            name="proud_moment"
             label="Proud Moment of the Month:"
             placeholder="Write your proud moment"
           />
