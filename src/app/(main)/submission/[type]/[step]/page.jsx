@@ -1,65 +1,20 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { BasicDetailsEOM } from '@/components/submission/eom';
+import { BasicDetailsEOD } from '@/components/submission/eod';
 import { useGlobalContext } from '@/common/context/global-context';
-import {
-  PaymentEOD,
-  ReferralsEOD,
-  BasicDetailsEOD,
-  ActiveProviders,
-  TeamAbsencesEOD,
-  DailyProductionEOD,
-  ScheduleOpeningEOD,
-  PatientTrackingEOD,
-  AttritionTrackingEOD
-} from '@/components/submission/eod';
-import {
-  SuppliesEOM,
-  EquipmentEOM,
-  IssuesIdeasEOM,
-  BasicDetailsEOM,
-  GoogleReviewsEOM,
-  HiringTrainingEOM,
-  ClinicalUpgradeEOM,
-  AccountReceivableEOM
-} from '@/components/submission/eom';
 
 export default function SubmissionPage() {
-  const router = useRouter();
-  const { type, currentStep } = useGlobalContext();
-
-  const stepComponents = {
-    eod: {
-      1: <BasicDetailsEOD onNext={handle} />,
-      2: <ActiveProviders onNext={handle} />,
-      3: <DailyProductionEOD onNext={handle} />,
-      4: <PaymentEOD onNext={handle} />,
-      5: <TeamAbsencesEOD onNext={handle} />,
-      6: <ScheduleOpeningEOD onNext={handle} />,
-      7: <PatientTrackingEOD onNext={handle} />,
-      8: <AttritionTrackingEOD onNext={handle} />,
-      9: <ReferralsEOD />
-    },
-    eom: {
-      1: <BasicDetailsEOM onNext={handle} />,
-      2: <AccountReceivableEOM onNext={handle} />,
-      3: <EquipmentEOM onNext={handle} />,
-      4: <ClinicalUpgradeEOM onNext={handle} />,
-      5: <HiringTrainingEOM onNext={handle} />,
-      6: <SuppliesEOM onNext={handle} />,
-      7: <GoogleReviewsEOM onNext={handle} />,
-      8: <IssuesIdeasEOM />
-    }
-  };
-
-  function handle() {
-    router.push(`/submission/${type}/${currentStep + 1}`);
-  }
+  const { type } = useGlobalContext();
 
   return (
     <div className="pt-6 border-t-1 border-t-secondary-50 ">
-      {stepComponents[type][currentStep]}
+      {type === 'eod' ? (
+        <BasicDetailsEOD />
+      ) : type === 'eom' ? (
+        <BasicDetailsEOM />
+      ) : null}
     </div>
   );
 }

@@ -18,10 +18,10 @@ const defaultRow = {
 export default function ClinicalUpgrade({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -104,7 +104,7 @@ export default function ClinicalUpgrade({ onNext }) {
         .filter((item) => item.items && item.cost)
         .map((item) => ({
           ...item,
-          submission: submissionId
+          submission: id
         }));
 
       if (payload.length > 0) {
@@ -127,9 +127,15 @@ export default function ClinicalUpgrade({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      setTableData(currentStepData);
+      const transformedData = currentStepData.map((item) => ({
+        cost: item.cost,
+        items: item.items,
+        comments: item.comments,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTableData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

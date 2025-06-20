@@ -40,10 +40,10 @@ export default function HiringTraining({ onNext }) {
   const [hiringData, setHiringData] = useState([defaultRowOfHiring]);
   const [trainingData, setTrainingData] = useState([defaultRowOfTraning]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -200,14 +200,14 @@ export default function HiringTraining({ onNext }) {
         .filter((item) => item.hiring_position && item.category)
         .map((item) => ({
           ...item,
-          submission: submissionId
+          submission: id
         }));
 
       const trainingPayload = trainingData
         .filter((item) => item.training_name && item.training_position)
         .map((item) => ({
           ...item,
-          submission: submissionId
+          submission: id
         }));
 
       if (hiringPayload.length > 0) {
@@ -248,12 +248,24 @@ export default function HiringTraining({ onNext }) {
 
   useEffect(() => {
     if (currentStepData?.hiring?.length > 0) {
-      setHiringData(currentStepData.hiring);
+      const transformedData = currentStepData.hiring.map((item) => ({
+        category: item.category,
+        hiring_reason: item.hiring_reason,
+        hiring_position: item.hiring_position,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setHiringData(transformedData);
     }
     if (currentStepData?.training?.length > 0) {
-      setTrainingData(currentStepData.training);
+      const transformedData = currentStepData.training.map((item) => ({
+        training_name: item.training_name,
+        training_reason: item.training_reason,
+        training_position: item.training_position,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTrainingData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

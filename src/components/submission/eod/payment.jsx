@@ -24,21 +24,23 @@ const paymentOptions = [
   { value: 'CASH', label: 'CASH' }
 ];
 
-const initialPayments = paymentOptions.map((option, index) => ({
-  key: index + 1,
-  type: option.value,
-  amount: '',
-  action: ''
-}));
+const createInitialPayments = () => {
+  return paymentOptions.map((option, index) => ({
+    key: index + 1,
+    type: option.value,
+    amount: '',
+    action: ''
+  }));
+};
 
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
-  const [tableData, setTableData] = useState(initialPayments);
+  const [tableData, setTableData] = useState(createInitialPayments());
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -175,12 +177,7 @@ export default function Payment({ onNext }) {
   const handleSubmit = async () => {
     try {
       const validPayments = tableData.filter(
-        (item) =>
-          item.amount !== '' &&
-          item.amount !== undefined &&
-          item.amount !== null &&
-          !isNaN(item.amount) &&
-          Number(item.amount) > 0
+        (item) => item.amount && !isNaN(item.amount) && Number(item.amount) > 0
       );
 
       const payload = {
@@ -188,7 +185,7 @@ export default function Payment({ onNext }) {
         payments: validPayments.map((item) => ({
           ...item,
           payment_type: item.type,
-          eodsubmission: submissionId,
+          eodsubmission: Number(id),
           payment_amount: item.amount
         }))
       };
@@ -213,11 +210,35 @@ export default function Payment({ onNext }) {
   };
 
   useEffect(() => {
-    if (Object.entries(currentStepData).length > 0) {
-      setNotes(currentStepData.notes);
-      setTableData(currentStepData.payments);
+    if (currentStepData) {
+      const storedNotes = Array.isArray(currentStepData)
+        ? currentStepData[0]?.notes
+        : currentStepData.notes || '';
+      const apiPayments = Array.isArray(currentStepData)
+        ? currentStepData
+        : currentStepData.payments || [];
+
+      const mergedPayments = createInitialPayments().map((initialPayment) => {
+        const foundPayment = apiPayments.find(
+          (payment) =>
+            payment.payment_type === initialPayment.type ||
+            payment.type === initialPayment.type
+        );
+
+        if (foundPayment) {
+          return {
+            ...initialPayment,
+            amount: foundPayment.payment_amount || foundPayment.amount || ''
+            // eftReference: foundPayment.eft_reference || foundPayment.eftReference
+          };
+        }
+        return initialPayment;
+      });
+
+      setNotes(storedNotes);
+      setTableData(mergedPayments);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
