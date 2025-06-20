@@ -102,7 +102,6 @@ export default function BasicDetails({ onNext }) {
       );
       const payload = {
         ...values,
-        clinic_name: selectedClinic?.label,
         unit_length: selectedClinic?.unitLength,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
         clinic_open_time:

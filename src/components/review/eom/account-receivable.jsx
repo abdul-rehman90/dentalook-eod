@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function AccountReceivable({ onNext }) {
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -33,12 +36,14 @@ export default function AccountReceivable({ onNext }) {
       width: 100,
       title: '0-30',
       editable: true,
+      disabled: true,
       key: 'age_0_30',
       inputType: 'number',
       dataIndex: 'age_0_30'
     },
     {
       width: 100,
+      disabled: true,
       editable: true,
       title: '30-60',
       key: 'age_30_60',
@@ -47,6 +52,7 @@ export default function AccountReceivable({ onNext }) {
     },
     {
       width: 100,
+      disabled: true,
       editable: true,
       title: '60-90',
       key: 'age_60_90',
@@ -56,6 +62,7 @@ export default function AccountReceivable({ onNext }) {
     {
       width: 100,
       title: '90+',
+      disabled: true,
       editable: true,
       key: 'age_90_plus',
       inputType: 'number',
@@ -63,6 +70,7 @@ export default function AccountReceivable({ onNext }) {
     },
     {
       width: 150,
+      disabled: true,
       editable: true,
       inputType: 'number',
       key: 'payment_plans',
@@ -71,22 +79,36 @@ export default function AccountReceivable({ onNext }) {
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const data = currentStepData[0];
+      setTableData([
+        {
+          key: '1',
+          patient_type: 'Patient',
+          age_0_30: data.patient0_30,
+          age_30_60: data.patient30_60,
+          age_60_90: data.patient60_90,
+          age_90_plus: data.patient90_plus,
+          payment_plans: data.patient_payment_plan
+        },
+        {
+          key: '2',
+          patient_type: 'Insurance',
+          age_0_30: data.insurance0_30,
+          age_30_60: data.insurance30_60,
+          age_60_90: data.insurance60_90,
+          age_90_plus: data.insurance90_plus,
+          payment_plans: data.insurance_payment_plan
+        }
+      ]);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
       <div className="px-6">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

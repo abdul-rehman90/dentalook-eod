@@ -114,6 +114,7 @@ export default function PatientTracking({ onNext }) {
       render: (_, record) => (
         <Button
           size="icon"
+          className="ml-3"
           variant="destructive"
           onClick={() => handleDelete(record.key)}
         >

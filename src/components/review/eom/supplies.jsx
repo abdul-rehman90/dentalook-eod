@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function Supplies({ onNext }) {
+  const { getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -26,6 +29,7 @@ export default function Supplies({ onNext }) {
     {
       width: 100,
       key: 'actual',
+      disabled: true,
       editable: true,
       title: 'Actual',
       inputType: 'number',
@@ -42,11 +46,16 @@ export default function Supplies({ onNext }) {
       width: 100,
       title: '+/-',
       key: 'difference',
-      render: (_, record) => record.difference
+      render: (_, record) => {
+        if (record.actual === '' || record.actual === null) return '-';
+        const diff = record.actual - record.budget;
+        return diff > 0 ? `+${diff}` : diff;
+      }
     },
     {
       width: 100,
       key: 'reason',
+      disabled: true,
       editable: true,
       inputType: 'text',
       dataIndex: 'reason',
@@ -54,37 +63,24 @@ export default function Supplies({ onNext }) {
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    const updatedData = tableData.map((item) => {
-      if (item.key === record.key) {
-        if (dataIndex === 'actual') {
-          const actualValue = value === '' ? null : Number(value);
-          const budgetValue = record.budget;
-          const difference =
-            actualValue !== null ? actualValue - budgetValue : '-';
-
-          return {
-            ...item,
-            [dataIndex]: value,
-            difference: difference
-          };
+  useEffect(() => {
+    if (Object.entries(currentStepData).length > 0) {
+      const transformedData = [
+        {
+          key: '1',
+          reason: currentStepData.overage_reason || '',
+          actual: currentStepData.supplies_actual || '',
+          budget: currentStepData.budget_daily_supplies || 0
         }
-        return { ...item, [dataIndex]: value };
-      }
-      return item;
-    });
-
-    setTableData(updatedData);
-  };
+      ];
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
       <div className="px-6">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

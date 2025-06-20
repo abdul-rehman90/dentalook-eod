@@ -65,12 +65,12 @@ export default function LoginForm() {
               initialValues={{ remember: true }}
             >
               <Form.Item
-                name="name"
-                label="Name"
-                rules={[{ required: true, message: 'Name is required' }]}
+                name="email"
+                label="Email"
+                rules={[{ required: true, message: 'Email is required' }]}
               >
                 <Input
-                  placeholder="Enter name"
+                  placeholder="Enter email"
                   className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
                 />
               </Form.Item>

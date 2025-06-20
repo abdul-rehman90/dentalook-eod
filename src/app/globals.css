@@ -94,6 +94,10 @@
   color: #777b8b;
 }
 
+.ant-radio-wrapper .ant-radio-disabled .ant-radio-inner::after {
+  background-color: white !important;
+}
+
 .ant-table-wrapper .ant-table-container {
   border: none !important;
 }
