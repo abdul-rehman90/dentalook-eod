@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -46,7 +46,11 @@ export default function Supplies({ onNext }) {
       width: 100,
       title: '+/-',
       key: 'difference',
-      render: (_, record) => record.difference
+      render: (_, record) => {
+        if (record.actual === '' || record.actual === null) return '-';
+        const diff = record.actual - record.budget;
+        return diff > 0 ? `+${diff}` : diff;
+      }
     },
     {
       width: 100,
@@ -58,6 +62,20 @@ export default function Supplies({ onNext }) {
       title: 'Reason for Overage:'
     }
   ];
+
+  useEffect(() => {
+    if (Object.entries(currentStepData).length > 0) {
+      const transformedData = [
+        {
+          key: '1',
+          reason: currentStepData.overage_reason || '',
+          actual: currentStepData.supplies_actual || '',
+          budget: currentStepData.budget_daily_supplies || 0
+        }
+      ];
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

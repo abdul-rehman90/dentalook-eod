@@ -65,12 +65,12 @@ export default function ScheduleOpening({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      const transformedData = currentStepData.map((opening) => ({
-        name: opening.user,
-        key: opening.id.toString(),
-        no_shows: opening.no_shows,
-        unfilled_spots: opening.unfilled_spots,
-        short_notice_cancellations: opening.short_notice_cancellations
+      const transformedData = currentStepData.map((item) => ({
+        name: item.user?.name,
+        key: item.id.toString(),
+        no_shows: item.no_shows,
+        unfilled_spots: item.unfilled_spots,
+        short_notice_cancellations: item.short_notice_cancellations
       }));
       setTableData(transformedData);
     }

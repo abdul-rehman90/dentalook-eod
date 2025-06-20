@@ -92,7 +92,7 @@ export default function TeamAbsences({ onNext }) {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         status: item.absence,
-        name: item.user || '',
+        name: item.user?.name,
         position: item.position,
         key: item.id.toString()
       }));

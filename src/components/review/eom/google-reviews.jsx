@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -9,8 +9,8 @@ export default function GoogleReviews({ onNext }) {
   const [tableData, setTableData] = useState([
     {
       key: '1',
-      current: '',
-      reviews: ''
+      google_review_count: '',
+      google_review_score: ''
     }
   ]);
 
@@ -26,22 +26,35 @@ export default function GoogleReviews({ onNext }) {
       )
     },
     {
-      key: 'current',
       editable: true,
       disabled: true,
       inputType: 'number',
-      dataIndex: 'current',
+      key: 'google_review_count',
+      dataIndex: 'google_review_count',
       title: 'Current Google Score (Out of 5)'
     },
     {
-      key: 'reviews',
       editable: true,
       disabled: true,
       inputType: 'number',
-      dataIndex: 'reviews',
-      title: 'Google Reviews (#)'
+      key: 'google_review_score',
+      title: 'Google Reviews (#)',
+      dataIndex: 'google_review_score'
     }
   ];
+
+  useEffect(() => {
+    if (Object.entries(currentStepData).length > 0) {
+      const transformedData = [
+        {
+          key: '1',
+          google_review_count: currentStepData.google_review_count,
+          google_review_score: currentStepData.google_review_score
+        }
+      ];
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

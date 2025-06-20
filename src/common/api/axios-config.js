@@ -3,7 +3,7 @@ import { getUserAndToken } from '../utils/auth-user';
 
 // const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const BASE_URL = 'https://eee4-203-99-174-147.ngrok-free.app/api/v1';
+const BASE_URL = 'https://5377-39-53-96-49.ngrok-free.app/api/v1';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

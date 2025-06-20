@@ -94,7 +94,7 @@ export default function Referrals() {
     if (currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
-        name: item.user || '',
+        name: item.user?.name,
         key: item.id.toString(),
         patient_name: item.patient_name,
         speciality: item.specialty || ''

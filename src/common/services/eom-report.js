@@ -71,7 +71,7 @@ export const EOMReportService = {
   },
 
   async getAllEOMData(id) {
-    const response = await apiClient.get(`/eod-data/${id}/`);
+    const response = await apiClient.get(`/eom-data/${id}/`);
     return response;
   }
 };

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
+import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function AccountReceivable({ onNext }) {
@@ -77,6 +78,32 @@ export default function AccountReceivable({ onNext }) {
       dataIndex: 'payment_plans'
     }
   ];
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const data = currentStepData[0];
+      setTableData([
+        {
+          key: '1',
+          patient_type: 'Patient',
+          age_0_30: data.patient0_30,
+          age_30_60: data.patient30_60,
+          age_60_90: data.patient60_90,
+          age_90_plus: data.patient90_plus,
+          payment_plans: data.patient_payment_plan
+        },
+        {
+          key: '2',
+          patient_type: 'Insurance',
+          age_0_30: data.insurance0_30,
+          age_30_60: data.insurance30_60,
+          age_60_90: data.insurance60_90,
+          age_90_plus: data.insurance90_plus,
+          payment_plans: data.insurance_payment_plan
+        }
+      ]);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

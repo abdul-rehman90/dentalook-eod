@@ -72,12 +72,8 @@ export default function BasicDetails({ onNext }) {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      const selectedClinic = practices.find(
-        (clinic) => clinic.value === values.clinic
-      );
       const payload = {
         ...values,
-        clinic_name: selectedClinic?.label,
         submission_month: dayjs(values.submission_month).format('YYYY-MM-DD')
       };
 

@@ -80,15 +80,15 @@ export const AppProvider = ({ children }) => {
       if (response.status === 200) {
         if (type === 'eod') {
           const stepDataMapping = {
-            basic: response.data.basic_detail || {},
-            active: response.data.active_providers || [],
-            daily: response.data.daily_production || [],
             payment: response.data.payments || [],
+            basic: response.data.basic_detail || {},
             team: response.data.team_absences || [],
-            schedule: response.data.schedule_openings || [],
-            patient: response.data.patient_tracking || [],
+            referrals: response.data.referrals || [],
+            daily: response.data.daily_production || [],
+            active: response.data.active_providers || [],
             auto: response.data.attrition_tracking || [],
-            referrals: response.data.referrals || []
+            patient: response.data.patient_tracking || [],
+            schedule: response.data.schedule_openings || []
           };
           setReportData((prev) => ({
             ...prev,
@@ -99,14 +99,17 @@ export const AppProvider = ({ children }) => {
           }));
         } else if (type === 'eom') {
           const stepDataMapping = {
+            supplies: response.data.supplies || {},
             basic: response.data.basic_detail || {},
-            account: response.data.account_receivable || [],
+            issue: response.data.issues_ideas || [],
             equipment: response.data.equipment || [],
-            clinical: response.data.clinic_upgrades || [],
-            hiring: response.data.hiring_and_training || [],
-            supplies: response.data.supplies || [],
-            google: response.data.google_reviews || [],
-            issue: response.data.issues_ideas || []
+            google: response.data.google_review || {},
+            clinical: response.data.clinic_upgrade || [],
+            account: response.data.account_receivable || [],
+            hiring: {
+              hiring: response.data.hiring_need || null,
+              training: response.data.training_need || null
+            }
           };
           setReportData((prev) => ({
             ...prev,

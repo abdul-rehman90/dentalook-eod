@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ const categoryOptions = [
   { value: 'Idea', label: 'Idea' }
 ];
 
-export default function IssuesIdeas({ onNext }) {
+export default function IssuesIdeas() {
   const router = useRouter();
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
@@ -49,6 +49,17 @@ export default function IssuesIdeas({ onNext }) {
       )
     }
   ];
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        details: item.details,
+        category: item.category,
+        key: item.id.toString()
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

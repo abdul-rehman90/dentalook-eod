@@ -16,7 +16,7 @@ export default function BasicDetails({ onNext }) {
   const currentStepData = getCurrentStepData();
 
   useEffect(() => {
-    if (currentStepData) {
+    if (Object.entries(currentStepData).length > 0) {
       const parseTimeString = (timeString) => {
         if (!timeString) return null;
         return dayjs(timeString, 'HH:mm:ss').isValid()
