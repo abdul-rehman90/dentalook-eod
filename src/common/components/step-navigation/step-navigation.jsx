@@ -14,8 +14,15 @@ export default function StepNavigation({ onNext }) {
     if (isReviewPath) {
       router.push(`/review/${type}/${currentStep - 1}/${id}`);
     } else {
-      router.push(`/submission/${type}/${currentStep - 1}`);
+      router.push(`/submission/${type}/${currentStep - 1}/${id}`);
     }
+  };
+
+  const getNextButtonText = () => {
+    if (isReviewPath && isLastStep) {
+      return 'Close';
+    }
+    return isLastStep ? 'Submit' : 'Next';
   };
 
   return (
@@ -36,7 +43,7 @@ export default function StepNavigation({ onNext }) {
         onClick={() => onNext()}
         className="h-9 !shadow-none text-black !rounded-lg"
       >
-        {isLastStep ? 'Submit' : 'Next'}
+        {getNextButtonText()}
       </Button>
     </div>
   );

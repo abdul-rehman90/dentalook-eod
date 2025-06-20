@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
@@ -17,7 +18,8 @@ export default function SubmissionLayout({ children }) {
   const router = useRouter();
   const { reportData, steps, type, currentStep, totalSteps } =
     useGlobalContext();
-  const clinicName = reportData[type]?.basic?.clinic_name;
+  const submission_date = reportData?.eod?.basic?.submission_date;
+  const submission_month = reportData?.eom?.basic?.submission_month;
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
@@ -40,7 +42,9 @@ export default function SubmissionLayout({ children }) {
               <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
                 Submitted
               </div>
-              {clinicName}
+              {type === 'eod'
+                ? `/ ${dayjs(submission_date).format('D MMMM YYYY')}`
+                : `/ ${dayjs(submission_month).format('MMM YYYY')}`}
             </CardTitle>
             <div className="flex items-center gap-4">
               <Button

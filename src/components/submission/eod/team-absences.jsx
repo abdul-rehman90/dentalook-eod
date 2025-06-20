@@ -30,11 +30,11 @@ export default function TeamAbsences({ onNext }) {
   const [staffData, setStaffData] = useState({});
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     reportData,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -119,7 +119,7 @@ export default function TeamAbsences({ onNext }) {
 
   const fetchStaffByPosition = async (position) => {
     try {
-      const { data } = await EODReportService.getProviders(clinicId, 'False');
+      const { data } = await EODReportService.getProviders(clinicId);
       setStaffData((prev) => ({
         ...prev,
         [position]: data.providers
@@ -172,7 +172,7 @@ export default function TeamAbsences({ onNext }) {
         .map((item) => ({
           ...item,
           user: item.name,
-          eodsubmission: submissionId
+          eodsubmission: Number(id)
         }));
       if (payload.length > 0) {
         setLoading(true);
@@ -199,11 +199,18 @@ export default function TeamAbsences({ onNext }) {
           ...new Set(currentStepData.map((item) => item.position))
         ];
         await Promise.all(positions.map((pos) => fetchStaffByPosition(pos)));
-        setTableData(currentStepData);
+        const transformedData = currentStepData.map((item) => ({
+          reason: item.reason,
+          absence: item.absence,
+          position: item.position,
+          name: item.user?.id || item.name,
+          key: item.id?.toString() || item.key?.toString()
+        }));
+        setTableData(transformedData);
       }
     };
     loadData();
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

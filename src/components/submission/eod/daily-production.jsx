@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -11,8 +11,18 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
-  const { reportData, submissionId, setLoading } = useGlobalContext();
+  const {
+    id,
+    steps,
+    reportData,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
   const clinicId = reportData?.eod?.basic?.clinic;
+  const currentStepId = steps[currentStep - 1].id;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   const summaryData = useMemo(() => {
@@ -130,28 +140,24 @@ export default function DailyProduction({ onNext }) {
   const handleSubmit = async () => {
     try {
       const payload = tableData
-        .filter(
-          (item) =>
-            item.production_amount !== undefined &&
-            item.production_amount !== null &&
-            item.production_amount !== ''
-        )
+        .filter((item) => item.production_amount && item.production_amount > 0)
         .map((item) => ({
           ...item,
           user: item.id,
-          eodsubmission: submissionId
+          eodsubmission: Number(id)
         }));
-
       if (payload.length > 0) {
         setLoading(true);
         const response = await EODReportService.addProduction(payload);
         if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
           toast.success('Record is successfully saved');
           onNext();
         }
         return;
       }
 
+      updateStepData(currentStepId, tableData);
       onNext();
     } catch (error) {
     } finally {
@@ -159,31 +165,49 @@ export default function DailyProduction({ onNext }) {
     }
   };
 
-  const fetchTargetGoal = async () => {
+  const fetchTargetGoal = useCallback(async () => {
     try {
       const response = await EODReportService.getTargetGoalByClinicId(clinicId);
       setGoal(response.data.submission_month_target);
     } catch (error) {}
-  };
+  }, [clinicId]);
 
-  const fetchActiveProviders = async () => {
+  const fetchActiveProviders = useCallback(async () => {
     try {
-      const { data } = await EODReportService.getActiveProviders(submissionId);
-      setTableData(
-        data.providers.map((provider) => ({
-          id: provider.id,
-          key: provider.id,
-          name: provider.name,
-          type: provider.user_type
-        }))
-      );
+      const { data } = await EODReportService.getActiveProviders(id);
+      const baseProviders = data.providers.map((provider) => ({
+        id: provider.id,
+        key: provider.id,
+        name: provider.name,
+        type: provider.user_type
+      }));
+
+      if (currentStepData.length > 0) {
+        const mergedData = baseProviders.map((provider) => {
+          const existingData = currentStepData.find(
+            (item) => item.user?.id === provider.id || item.id === provider.id
+          );
+          if (existingData) {
+            return {
+              ...provider,
+              production_amount: existingData.production_amount,
+              name: existingData.user?.name || existingData.name,
+              type: existingData.user?.user_type || existingData.type
+            };
+          }
+          return provider;
+        });
+        setTableData(mergedData);
+      } else {
+        setTableData(baseProviders);
+      }
     } catch (error) {}
-  };
+  }, [currentStepData]);
 
   useEffect(() => {
     fetchTargetGoal();
     fetchActiveProviders();
-  }, []);
+  }, [fetchTargetGoal, fetchActiveProviders]);
 
   return (
     <React.Fragment>

@@ -34,10 +34,10 @@ export default function PatientTracking({ onNext }) {
   const [actual, setActual] = useState(0);
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -162,7 +162,7 @@ export default function PatientTracking({ onNext }) {
         .filter((item) => item.patient_name && item.source)
         .map((item) => ({
           ...item,
-          eodsubmission: submissionId
+          eodsubmission: Number(id)
         }));
 
       if (payload.length > 0) {
@@ -185,10 +185,16 @@ export default function PatientTracking({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      setTableData(currentStepData);
       setActual(currentStepData.length);
+      const transformedData = currentStepData.map((item) => ({
+        source: item.source,
+        comments: item.comments,
+        patient_name: item.patient_name,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTableData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

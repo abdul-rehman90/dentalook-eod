@@ -39,7 +39,7 @@ const specialityOptions = [
 const defaultRow = {
   key: 1,
   reason: '',
-  speciality: '',
+  specialty: '',
   patient_name: '',
   provider_name: ''
 };
@@ -47,8 +47,9 @@ const defaultRow = {
 export default function Referrals() {
   const router = useRouter();
   const [providers, setProviders] = useState([]);
-  const { submissionId, setLoading } = useGlobalContext();
   const [tableData, setTableData] = useState([defaultRow]);
+  const { id, setLoading, getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
 
   const columns = [
     {
@@ -71,10 +72,10 @@ export default function Referrals() {
     {
       width: 150,
       editable: true,
-      key: 'speciality',
+      key: 'specialty',
       title: 'Speciality',
       inputType: 'select',
-      dataIndex: 'speciality',
+      dataIndex: 'specialty',
       selectOptions: specialityOptions
     },
     {
@@ -106,7 +107,7 @@ export default function Referrals() {
     try {
       setLoading(true);
       const response = await EODReportService.submissionEODReport({
-        eodsubmission_id: submissionId
+        eodsubmission_id: id
       });
       if (response.status === 200) {
         toast.success('EOD submission is successfully submitted');
@@ -136,7 +137,7 @@ export default function Referrals() {
       {
         key: newKey,
         reason: '',
-        speciality: '',
+        specialty: '',
         patient_name: '',
         provider_name: ''
       }
@@ -153,12 +154,12 @@ export default function Referrals() {
     try {
       const payload = tableData
         .filter(
-          (item) => item.patient_name && item.provider_name && item.speciality
+          (item) => item.patient_name && item.provider_name && item.specialty
         )
         .map((item) => ({
           ...item,
-          user: item.id,
-          eodsubmission: submissionId
+          user: item.provider_name,
+          eodsubmission: Number(id)
         }));
 
       if (payload.length > 0) {
@@ -174,7 +175,7 @@ export default function Referrals() {
 
   const fetchActiveProviders = async () => {
     try {
-      const { data } = await EODReportService.getActiveProviders(submissionId);
+      const { data } = await EODReportService.getActiveProviders(id);
       setProviders(
         data.providers.map((item) => ({
           value: item.id,
@@ -187,6 +188,19 @@ export default function Referrals() {
   useEffect(() => {
     fetchActiveProviders();
   }, []);
+
+  useEffect(() => {
+    if (currentStepData.length > 0) {
+      const transformedData = currentStepData.map((item) => ({
+        reason: item.reason,
+        specialty: item.specialty,
+        provider_name: item.user?.id,
+        patient_name: item.patient_name,
+        key: item.id?.toString() || item.key?.toString()
+      }));
+      setTableData(transformedData);
+    }
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

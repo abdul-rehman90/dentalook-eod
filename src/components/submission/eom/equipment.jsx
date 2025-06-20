@@ -27,10 +27,10 @@ const defaultRow = {
 export default function EquipmentRepairs({ onNext }) {
   const [tableData, setTableData] = useState([defaultRow]);
   const {
+    id,
     steps,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -145,7 +145,7 @@ export default function EquipmentRepairs({ onNext }) {
         )
         .map((item) => ({
           ...item,
-          submission: submissionId,
+          submission: id,
           last_maintenance_date: dayjs(item.last_maintenance_date).format(
             'YYYY-MM-DD'
           )
@@ -171,9 +171,17 @@ export default function EquipmentRepairs({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      setTableData(currentStepData);
+      const transformedData = currentStepData.map((item) => ({
+        cost: item.cost,
+        comments: item.comments,
+        equipment_repairs: item.equipment_repairs,
+        purchase_or_repair: item.purchase_or_repair,
+        key: item.id?.toString() || item.key?.toString(),
+        last_maintenance_date: dayjs(item.last_maintenance_date)
+      }));
+      setTableData(transformedData);
     }
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>

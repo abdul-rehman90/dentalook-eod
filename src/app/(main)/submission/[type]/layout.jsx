@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -19,15 +19,22 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
-  const { steps, reportData, type, submissionId, currentStep, totalSteps } =
+  const { steps, reportData, type, id, currentStep, totalSteps } =
     useGlobalContext();
   const submission_date = reportData?.eod?.basic?.submission_date;
+  const submission_month = reportData?.eom?.basic?.submission_month;
+
+  useEffect(() => {
+    if (currentStep > 1 && !id) {
+      router.push(`/submission/${type}/1`);
+    }
+  }, []);
 
   const handleSubmit = async () => {
     try {
       const service = type === 'eod' ? EODReportService : EOMReportService;
       const payload = {
-        [`${type}submission_id`]: submissionId
+        [`${type}submission_id`]: id
       };
 
       const response =
@@ -43,6 +50,10 @@ export default function SubmissionLayout({ children }) {
       }
     } catch (error) {}
   };
+
+  if (currentStep > 1 && !id) {
+    return null;
+  }
 
   return (
     <div className="p-6 flex bg-gray-50 min-h-screen">
@@ -62,9 +73,10 @@ export default function SubmissionLayout({ children }) {
                 <LeftOutlined />
               </Button>
               Submit End Of {type === 'eod' ? 'Day' : 'Month'}{' '}
-              {submission_date
-                ? `/ ${dayjs(submission_date).format('D MMMM YYYY')}`
-                : ''}
+              {id &&
+                (type === 'eod'
+                  ? ` / ${dayjs(submission_date).format('D MMMM YYYY')}`
+                  : ` / ${dayjs(submission_month).format('MMM YYYY')}`)}
               <div className="w-11 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center ml-3">
                 New
               </div>
@@ -80,9 +92,9 @@ export default function SubmissionLayout({ children }) {
               </Button>
               <Button
                 size="lg"
+                disabled={!id}
                 variant="secondary"
                 onClick={handleSubmit}
-                disabled={!submissionId}
                 className="h-9 !shadow-none text-black !rounded-lg"
               >
                 Submit

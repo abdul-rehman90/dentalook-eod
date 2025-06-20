@@ -17,11 +17,11 @@ const providerTypes = [
 
 export default function ActiveProviders({ onNext }) {
   const {
+    id,
     steps,
     reportData,
     setLoading,
     currentStep,
-    submissionId,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
@@ -230,7 +230,7 @@ export default function ActiveProviders({ onNext }) {
       const payload = activeProviders.map((provider) => ({
         ...provider,
         user: provider.id,
-        eod_submission: submissionId
+        eod_submission: Number(id)
       }));
       const response = await EODReportService.addActiveProviders(payload);
       if (response.status === 201) {
@@ -247,26 +247,47 @@ export default function ActiveProviders({ onNext }) {
   const fetchProviders = async () => {
     try {
       const { data } = await EODReportService.getProviders(clinicId);
-      setTableData(
-        data.providers.map((provider) => ({
-          id: provider.id,
-          key: provider.id,
-          name: provider.name,
-          type: provider.user_type,
-          end_time: null,
-          start_time: null,
-          is_active: false
-        }))
-      );
+      const baseProviders = data.providers.map((provider) => ({
+        id: provider.id,
+        key: provider.id,
+        name: provider.name,
+        type: provider.user_type,
+        end_time: null,
+        start_time: null,
+        is_active: false
+      }));
+
+      if (currentStepData.length > 0) {
+        const mergedData = baseProviders.map((provider) => {
+          const existingData = currentStepData.find(
+            (item) => item.user?.id === provider.id || item.id === provider.id
+          );
+
+          if (existingData) {
+            return {
+              ...provider,
+              is_active: existingData.is_active,
+              end_time: existingData.end_time
+                ? dayjs(existingData.end_time)
+                : null,
+              start_time: existingData.start_time
+                ? dayjs(existingData.start_time)
+                : null,
+              number_of_patients_seen: existingData.number_of_patients_seen
+            };
+          }
+          return provider;
+        });
+        setTableData(mergedData);
+      } else {
+        setTableData(baseProviders);
+      }
     } catch (error) {}
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
-      return setTableData(currentStepData);
-    }
     fetchProviders();
-  }, []);
+  }, [currentStepData]);
 
   return (
     <React.Fragment>
