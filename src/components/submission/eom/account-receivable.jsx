@@ -10,12 +10,14 @@ export default function AccountReceivable({ onNext }) {
     id,
     steps,
     setLoading,
+    reportData,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eom?.basic?.clinic;
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -146,7 +148,7 @@ export default function AccountReceivable({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId && currentStepData.length > 0) {
       const data = currentStepData[0];
       setTableData([
         {
@@ -169,7 +171,7 @@ export default function AccountReceivable({ onNext }) {
         }
       ]);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

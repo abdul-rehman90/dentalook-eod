@@ -194,7 +194,7 @@ export default function TeamAbsences({ onNext }) {
 
   useEffect(() => {
     const loadData = async () => {
-      if (currentStepData.length > 0) {
+      if (clinicId && currentStepData.length > 0) {
         const positions = [
           ...new Set(currentStepData.map((item) => item.position))
         ];
@@ -210,7 +210,7 @@ export default function TeamAbsences({ onNext }) {
       }
     };
     loadData();
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

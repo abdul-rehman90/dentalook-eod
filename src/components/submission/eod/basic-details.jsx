@@ -29,7 +29,6 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  console.log('render');
 
   const initialValues = {
     user: currentStepData?.user,
@@ -136,42 +135,38 @@ export default function BasicDetails() {
     }
   };
 
-  const initializeForm = useCallback(async () => {
-    if (!currentStepData?.province) return;
-
+  const initializeForm = async () => {
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
-        currentStepData.province_id
+        currentStepData?.province_id || currentStepData?.province
       );
-
-      const newPractices = data.clinics.map((clinic) => ({
-        value: clinic.clinic_id,
-        label: clinic.clinic_name,
-        unitLength: clinic.unit_length,
-        managers: clinic.regional_managers.map((manager) => ({
-          value: manager.id,
-          label: manager.name
-        }))
-      }));
-
-      const selectedClinic = data.clinics.find(
-        (clinic) => clinic.clinic_id === currentStepData.clinic
-      );
-
-      const newManagers = selectedClinic?.regional_managers
-        ? selectedClinic.regional_managers.map((manager) => ({
+      setPractices(
+        data.clinics.map((clinic) => ({
+          value: clinic.clinic_id,
+          label: clinic.clinic_name,
+          unitLength: clinic.unit_length,
+          managers: clinic.regional_managers.map((manager) => ({
             value: manager.id,
             label: manager.name
           }))
-        : [];
-
-      // Only set form values if they're different from current
-      const currentValues = form.getFieldsValue();
-      const newValues = {
-        user: currentStepData.user,
+        }))
+      );
+      const selectedClinic = data.clinics.find(
+        (clinic) => clinic.clinic_id === currentStepData.clinic
+      );
+      if (selectedClinic?.regional_managers) {
+        setRegionalManagers(
+          selectedClinic.regional_managers.map((manager) => ({
+            value: manager.id,
+            label: manager.name
+          }))
+        );
+      }
+      form.setFieldsValue({
         clinic: currentStepData.clinic,
         province: currentStepData.province,
         status: currentStepData.status || 'closed',
+        user: currentStepData.user || currentStepData.regional_manager_id,
         submission_date: currentStepData.submission_date
           ? dayjs(currentStepData.submission_date)
           : dayjs(),
@@ -181,21 +176,9 @@ export default function BasicDetails() {
         clinic_close_time: currentStepData.clinic_close_time
           ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
           : null
-      };
-
-      if (JSON.stringify(practices) !== JSON.stringify(newPractices)) {
-        setPractices(newPractices);
-      }
-
-      if (JSON.stringify(regionalManagers) !== JSON.stringify(newManagers)) {
-        setRegionalManagers(newManagers);
-      }
-
-      if (JSON.stringify(currentValues) !== JSON.stringify(newValues)) {
-        form.setFieldsValue(newValues);
-      }
+      });
     } catch (error) {}
-  }, [currentStepData, form, practices, regionalManagers]);
+  };
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -212,15 +195,8 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    const shouldInitialize =
-      currentStepData &&
-      (!form.getFieldValue('province') ||
-        form.getFieldValue('province') !== currentStepData.province);
-
-    if (shouldInitialize) {
-      initializeForm();
-    }
-  }, [currentStepData, initializeForm, form]);
+    if (currentStepData?.province && practices.length === 0) initializeForm();
+  }, [currentStepData?.province]);
 
   return (
     <React.Fragment>

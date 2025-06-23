@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -140,11 +140,14 @@ export default function DailyProduction({ onNext }) {
   const handleSubmit = async () => {
     try {
       const payload = tableData
-        .filter((item) => item.production_amount && item.production_amount > 0)
+        .filter(
+          (item) => item.production_amount && Number(item.production_amount > 0)
+        )
         .map((item) => ({
           ...item,
           user: item.id,
-          eodsubmission: Number(id)
+          eodsubmission: Number(id),
+          production_amount: Number(item.production_amount)
         }));
       if (payload.length > 0) {
         setLoading(true);
@@ -174,7 +177,7 @@ export default function DailyProduction({ onNext }) {
     } catch (error) {}
   };
 
-  const fetchActiveProviders = useCallback(async () => {
+  const fetchActiveProviders = async () => {
     try {
       const { data } = await EODReportService.getActiveProviders(id);
       const baseProviders = data.providers.map((provider) => ({
@@ -204,16 +207,11 @@ export default function DailyProduction({ onNext }) {
         setTableData(baseProviders);
       }
     } catch (error) {}
-  }, [currentStepData]);
+  };
 
   useEffect(() => {
-    fetchActiveProviders();
-  }, [currentStepData?.length]);
-
-  useEffect(() => {
-    if (clinicId) {
-      fetchTargetGoal();
-    }
+    if (clinicId) fetchTargetGoal();
+    if (clinicId && tableData.length === 0) fetchActiveProviders();
   }, [clinicId]);
 
   return (

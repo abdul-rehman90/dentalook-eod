@@ -23,7 +23,8 @@ const defaultRow = {
 export default function IssuesIdeas() {
   const router = useRouter();
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, setLoading, getCurrentStepData } = useGlobalContext();
+  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
+  const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepData = getCurrentStepData();
 
   const columns = [
@@ -125,7 +126,7 @@ export default function IssuesIdeas() {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId && currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         details: item.details,
         category: item.category,
@@ -133,7 +134,7 @@ export default function IssuesIdeas() {
       }));
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

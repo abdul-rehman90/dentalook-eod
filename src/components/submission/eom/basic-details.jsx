@@ -13,11 +13,11 @@ export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
     steps,
-    provinces,
     setLoading,
     currentStep,
     updateStepData,
@@ -99,11 +99,9 @@ export default function BasicDetails() {
   };
 
   const initializeForm = async () => {
-    if (!currentStepData?.province) return;
-
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
-        currentStepData.province_id
+        currentStepData?.province_id || currentStepData?.province
       );
       setPractices(
         data.clinics.map((clinic) => ({
@@ -127,10 +125,10 @@ export default function BasicDetails() {
         );
       }
       form.setFieldsValue({
-        user: currentStepData.user,
         clinic: currentStepData.clinic,
         province: currentStepData.province,
         proud_moment: currentStepData.proud_moment,
+        user: currentStepData.user || currentStepData.regional_manager_id,
         submission_month: currentStepData.submission_month
           ? dayjs(currentStepData.submission_month)
           : dayjs()
@@ -139,8 +137,22 @@ export default function BasicDetails() {
   };
 
   useEffect(() => {
-    initializeForm();
-  }, [currentStepData]);
+    const fetchProvinces = async () => {
+      try {
+        const { data } = await EODReportService.getAllProvinces();
+        const provinceOptions = data.map((province) => ({
+          value: province.id,
+          label: province.name
+        }));
+        setProvinces(provinceOptions);
+      } catch (error) {}
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (currentStepData?.province && practices.length === 0) initializeForm();
+  }, [currentStepData?.province]);
 
   return (
     <React.Fragment>

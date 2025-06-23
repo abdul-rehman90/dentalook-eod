@@ -48,7 +48,8 @@ export default function Referrals() {
   const router = useRouter();
   const [providers, setProviders] = useState([]);
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, setLoading, getCurrentStepData } = useGlobalContext();
+  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
+  const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepData = getCurrentStepData();
 
   const columns = [
@@ -186,11 +187,8 @@ export default function Referrals() {
   };
 
   useEffect(() => {
-    fetchActiveProviders();
-  }, []);
-
-  useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId) fetchActiveProviders();
+    if (clinicId && currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         specialty: item.specialty,
@@ -200,7 +198,7 @@ export default function Referrals() {
       }));
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>
