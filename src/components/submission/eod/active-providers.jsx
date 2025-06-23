@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
@@ -33,6 +33,7 @@ export default function ActiveProviders({ onNext }) {
   const provinceId = reportData?.eod?.basic?.province;
   const clinicOpenTime = reportData?.eod?.basic?.clinic_open_time;
   const clinicCloseTime = reportData?.eod?.basic?.clinic_close_time;
+  // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   // Convert to dayjs objects for comparison
@@ -244,7 +245,9 @@ export default function ActiveProviders({ onNext }) {
     }
   };
 
-  const fetchProviders = async () => {
+  const fetchProviders = useCallback(async () => {
+    if (!clinicId) return;
+
     try {
       const { data } = await EODReportService.getProviders(clinicId);
       const baseProviders = data.providers.map((provider) => ({
@@ -257,38 +260,38 @@ export default function ActiveProviders({ onNext }) {
         is_active: false
       }));
 
-      if (currentStepData.length > 0) {
+      // Only merge if we have existing data AND it's different from current
+      if (currentStepData?.length > 0) {
         const mergedData = baseProviders.map((provider) => {
           const existingData = currentStepData.find(
             (item) => item.user?.id === provider.id || item.id === provider.id
           );
-
-          if (existingData) {
-            return {
-              ...provider,
-              is_active: existingData.is_active,
-              end_time: existingData.end_time
-                ? dayjs(existingData.end_time)
-                : null,
-              start_time: existingData.start_time
-                ? dayjs(existingData.start_time)
-                : null,
-              number_of_patients_seen: existingData.number_of_patients_seen
-            };
-          }
-          return provider;
+          return existingData
+            ? {
+                ...provider,
+                is_active: existingData.is_active,
+                end_time: existingData.end_time
+                  ? dayjs(existingData.end_time)
+                  : null,
+                start_time: existingData.start_time
+                  ? dayjs(existingData.start_time)
+                  : null,
+                number_of_patients_seen: existingData.number_of_patients_seen
+              }
+            : provider;
         });
         setTableData(mergedData);
       } else {
         setTableData(baseProviders);
       }
     } catch (error) {}
-  };
+  }, [currentStepData?.length]);
 
   useEffect(() => {
     fetchProviders();
-  }, [currentStepData]);
+  }, [fetchProviders]);
 
+  console.log(currentStepData?.length);
   return (
     <React.Fragment>
       <AddModal

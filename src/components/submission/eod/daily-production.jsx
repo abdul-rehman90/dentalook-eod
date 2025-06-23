@@ -165,12 +165,14 @@ export default function DailyProduction({ onNext }) {
     }
   };
 
-  const fetchTargetGoal = useCallback(async () => {
+  const fetchTargetGoal = async () => {
     try {
       const response = await EODReportService.getTargetGoalByClinicId(clinicId);
-      setGoal(response.data.submission_month_target);
+      if (response.data.submission_month_target !== goal) {
+        setGoal(response.data.submission_month_target);
+      }
     } catch (error) {}
-  }, [clinicId]);
+  };
 
   const fetchActiveProviders = useCallback(async () => {
     try {
@@ -205,9 +207,14 @@ export default function DailyProduction({ onNext }) {
   }, [currentStepData]);
 
   useEffect(() => {
-    fetchTargetGoal();
     fetchActiveProviders();
-  }, [fetchTargetGoal, fetchActiveProviders]);
+  }, [currentStepData?.length]);
+
+  useEffect(() => {
+    if (clinicId) {
+      fetchTargetGoal();
+    }
+  }, [clinicId]);
 
   return (
     <React.Fragment>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Form } from 'antd';
 import toast from 'react-hot-toast';
@@ -17,11 +17,11 @@ export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
     steps,
-    provinces,
     setLoading,
     currentStep,
     updateStepData,
@@ -29,6 +29,7 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  console.log('render');
 
   const initialValues = {
     user: currentStepData?.user,
@@ -135,36 +136,38 @@ export default function BasicDetails() {
     }
   };
 
-  const initializeForm = async () => {
+  const initializeForm = useCallback(async () => {
     if (!currentStepData?.province) return;
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
         currentStepData.province_id
       );
-      setPractices(
-        data.clinics.map((clinic) => ({
-          value: clinic.clinic_id,
-          label: clinic.clinic_name,
-          unitLength: clinic.unit_length,
-          managers: clinic.regional_managers.map((manager) => ({
-            value: manager.id,
-            label: manager.name
-          }))
+
+      const newPractices = data.clinics.map((clinic) => ({
+        value: clinic.clinic_id,
+        label: clinic.clinic_name,
+        unitLength: clinic.unit_length,
+        managers: clinic.regional_managers.map((manager) => ({
+          value: manager.id,
+          label: manager.name
         }))
-      );
+      }));
+
       const selectedClinic = data.clinics.find(
         (clinic) => clinic.clinic_id === currentStepData.clinic
       );
-      if (selectedClinic?.regional_managers) {
-        setRegionalManagers(
-          selectedClinic.regional_managers.map((manager) => ({
+
+      const newManagers = selectedClinic?.regional_managers
+        ? selectedClinic.regional_managers.map((manager) => ({
             value: manager.id,
             label: manager.name
           }))
-        );
-      }
-      form.setFieldsValue({
+        : [];
+
+      // Only set form values if they're different from current
+      const currentValues = form.getFieldsValue();
+      const newValues = {
         user: currentStepData.user,
         clinic: currentStepData.clinic,
         province: currentStepData.province,
@@ -178,13 +181,46 @@ export default function BasicDetails() {
         clinic_close_time: currentStepData.clinic_close_time
           ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
           : null
-      });
+      };
+
+      if (JSON.stringify(practices) !== JSON.stringify(newPractices)) {
+        setPractices(newPractices);
+      }
+
+      if (JSON.stringify(regionalManagers) !== JSON.stringify(newManagers)) {
+        setRegionalManagers(newManagers);
+      }
+
+      if (JSON.stringify(currentValues) !== JSON.stringify(newValues)) {
+        form.setFieldsValue(newValues);
+      }
     } catch (error) {}
-  };
+  }, [currentStepData, form, practices, regionalManagers]);
 
   useEffect(() => {
-    initializeForm();
-  }, [currentStepData]);
+    const fetchProvinces = async () => {
+      try {
+        const { data } = await EODReportService.getAllProvinces();
+        const provinceOptions = data.map((province) => ({
+          value: province.id,
+          label: province.name
+        }));
+        setProvinces(provinceOptions);
+      } catch (error) {}
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    const shouldInitialize =
+      currentStepData &&
+      (!form.getFieldValue('province') ||
+        form.getFieldValue('province') !== currentStepData.province);
+
+    if (shouldInitialize) {
+      initializeForm();
+    }
+  }, [currentStepData, initializeForm, form]);
 
   return (
     <React.Fragment>
