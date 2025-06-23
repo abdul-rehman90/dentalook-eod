@@ -137,6 +137,7 @@ export default function BasicDetails() {
 
   const initializeForm = async () => {
     if (!currentStepData?.province) return;
+    console.log(currentStepData);
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
@@ -165,10 +166,10 @@ export default function BasicDetails() {
         );
       }
       form.setFieldsValue({
-        user: currentStepData.user,
         clinic: currentStepData.clinic,
         province: currentStepData.province,
         status: currentStepData.status || 'closed',
+        user: currentStepData.user || currentStepData.regional_manager_id,
         submission_date: currentStepData.submission_date
           ? dayjs(currentStepData.submission_date)
           : dayjs(),
