@@ -257,26 +257,24 @@ export default function ActiveProviders({ onNext }) {
         is_active: false
       }));
 
-      if (currentStepData.length > 0) {
+      if (currentStepData?.length > 0) {
         const mergedData = baseProviders.map((provider) => {
           const existingData = currentStepData.find(
             (item) => item.user?.id === provider.id || item.id === provider.id
           );
-
-          if (existingData) {
-            return {
-              ...provider,
-              is_active: existingData.is_active,
-              end_time: existingData.end_time
-                ? dayjs(existingData.end_time)
-                : null,
-              start_time: existingData.start_time
-                ? dayjs(existingData.start_time)
-                : null,
-              number_of_patients_seen: existingData.number_of_patients_seen
-            };
-          }
-          return provider;
+          return existingData
+            ? {
+                ...provider,
+                is_active: existingData.is_active,
+                end_time: existingData.end_time
+                  ? dayjs(existingData.end_time)
+                  : null,
+                start_time: existingData.start_time
+                  ? dayjs(existingData.start_time)
+                  : null,
+                number_of_patients_seen: existingData.number_of_patients_seen
+              }
+            : provider;
         });
         setTableData(mergedData);
       } else {
@@ -286,8 +284,8 @@ export default function ActiveProviders({ onNext }) {
   };
 
   useEffect(() => {
-    fetchProviders();
-  }, [currentStepData]);
+    if (clinicId && tableData.length === 0) fetchProviders();
+  }, [clinicId]);
 
   return (
     <React.Fragment>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Form } from 'antd';
 import toast from 'react-hot-toast';
@@ -17,11 +17,11 @@ export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
+  const [provinces, setProvinces] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
     steps,
-    provinces,
     setLoading,
     currentStep,
     updateStepData,
@@ -136,12 +136,9 @@ export default function BasicDetails() {
   };
 
   const initializeForm = async () => {
-    if (!currentStepData?.province) return;
-    console.log(currentStepData);
-
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
-        currentStepData.province_id
+        currentStepData?.province_id || currentStepData?.province
       );
       setPractices(
         data.clinics.map((clinic) => ({
@@ -184,8 +181,22 @@ export default function BasicDetails() {
   };
 
   useEffect(() => {
-    initializeForm();
-  }, [currentStepData]);
+    const fetchProvinces = async () => {
+      try {
+        const { data } = await EODReportService.getAllProvinces();
+        const provinceOptions = data.map((province) => ({
+          value: province.id,
+          label: province.name
+        }));
+        setProvinces(provinceOptions);
+      } catch (error) {}
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (currentStepData?.province && practices.length === 0) initializeForm();
+  }, [currentStepData?.province]);
 
   return (
     <React.Fragment>

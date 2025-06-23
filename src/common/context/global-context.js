@@ -4,6 +4,7 @@ import { useParams, usePathname } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { EOMReportService } from '../services/eom-report';
 import {
+  useMemo,
   useState,
   useEffect,
   useContext,
@@ -41,34 +42,42 @@ export const AppProvider = ({ children }) => {
   const pathname = usePathname();
   const { type, step, id } = useParams();
   const currentStep = parseInt(step);
-  const steps = stepConfig[type] || [];
   const [loading, setLoading] = useState(false);
-  const [provinces, setProvinces] = useState([]);
   const [reportData, setReportData] = useState({
     eod: {},
     eom: {}
   });
-  const totalSteps = steps.length;
+  const isReviewPath = pathname.includes('/review');
   const isSubmissionRoute = pathname.includes('/submission/');
+  const steps = useMemo(() => stepConfig[type] || [], [type]);
+  const totalSteps = steps.length;
 
-  const updateStepData = (stepId, data) => {
-    setReportData((prev) => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [stepId]: data
-      }
-    }));
-  };
+  const updateStepData = useCallback(
+    (stepId, data) => {
+      setReportData((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [stepId]: data
+        }
+      }));
+    },
+    [type]
+  );
 
-  const getCurrentStepData = () => {
+  const getCurrentStepData = useCallback(() => {
     if (!type) return null;
     const currentStepId = steps[currentStep - 1]?.id;
     return reportData[type]?.[currentStepId] || {};
-  };
+  }, [type, steps, currentStep, reportData]);
 
   const fetchAllReportData = useCallback(async () => {
-    if (!id) return;
+    const shouldFetch =
+      id &&
+      Object.keys(reportData.eod).length === 0 &&
+      Object.keys(reportData.eom).length === 0;
+
+    if (!shouldFetch) return;
     try {
       const service = type === 'eod' ? EODReportService : EOMReportService;
       const response =
@@ -120,57 +129,50 @@ export const AppProvider = ({ children }) => {
         }
       }
     } catch (error) {}
-  }, [id, type]);
+  }, [id]);
 
   useEffect(() => {
     fetchAllReportData();
   }, [fetchAllReportData]);
 
   useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        const { data } = await EODReportService.getAllProvinces();
-        const provinceOptions = data.map((province) => ({
-          value: province.id,
-          label: province.name
-        }));
-        setProvinces(provinceOptions);
-      } catch (error) {}
-    };
-
     if (
-      (type === 'eod' || type === 'eom') &&
-      isSubmissionRoute &&
-      currentStep === 1 &&
-      !provinces.length
+      Object.keys(reportData.eod).length > 0 ||
+      Object.keys(reportData.eom).length > 0
     ) {
-      fetchProvinces();
+      setReportData({ eod: {}, eom: {} });
     }
-  }, [type, currentStep]);
+  }, [type, isReviewPath, isSubmissionRoute]);
 
-  useEffect(() => {
-    setProvinces([]);
-    setReportData({ eod: {}, eom: {} });
-  }, [isSubmissionRoute, type]);
+  const contextValue = useMemo(
+    () => ({
+      id,
+      type,
+      steps,
+      loading,
+      totalSteps,
+      reportData,
+      setLoading,
+      currentStep,
+      updateStepData,
+      getCurrentStepData
+    }),
+    [
+      id,
+      type,
+      steps,
+      loading,
+      totalSteps,
+      reportData,
+      setLoading,
+      currentStep,
+      updateStepData,
+      getCurrentStepData
+    ]
+  );
 
   return (
-    <AppContext.Provider
-      value={{
-        id,
-        type,
-        steps,
-        loading,
-        provinces,
-        totalSteps,
-        reportData,
-        setLoading,
-        currentStep,
-        updateStepData,
-        getCurrentStepData
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 };
 
