@@ -39,6 +39,7 @@ export default function Payment({ onNext }) {
   const {
     id,
     steps,
+    reportData,
     setLoading,
     currentStep,
     updateStepData,
@@ -46,6 +47,7 @@ export default function Payment({ onNext }) {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
 
   const columns = [
     {
@@ -210,7 +212,10 @@ export default function Payment({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData) {
+    if (
+      clinicId &&
+      (currentStepData?.length > 0 || Object.keys(currentStepData).length > 0)
+    ) {
       const storedNotes = Array.isArray(currentStepData)
         ? currentStepData[0]?.notes
         : currentStepData.notes || '';
@@ -238,7 +243,7 @@ export default function Payment({ onNext }) {
       setNotes(storedNotes);
       setTableData(mergedPayments);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

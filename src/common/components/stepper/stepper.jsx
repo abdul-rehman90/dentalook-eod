@@ -1,14 +1,23 @@
 import React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
 function Stepper({ className }) {
-  const { steps, currentStep } = useGlobalContext();
+  const router = useRouter();
+  const { id, type, steps, currentStep } = useGlobalContext();
+
   const normalizedCurrentStep = Math.max(
     1,
     Math.min(currentStep, steps.length)
   );
+
+  const handleStepClick = (stepNumber) => {
+    if (id) {
+      router.push(`/submission/${type}/${stepNumber}/${id}`);
+    }
+  };
 
   return (
     <div
@@ -23,7 +32,10 @@ function Stepper({ className }) {
         return (
           <div
             key={index}
-            className="flex items-center gap-2 transition-colors"
+            onClick={() => handleStepClick(stepNumber)}
+            className={`flex items-center gap-2 transition-colors ${
+              id ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+            }`}
           >
             <div
               className={`relative ${index !== steps.length - 1 ? 'step' : ''}`}

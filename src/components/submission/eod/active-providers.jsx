@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
@@ -33,7 +33,6 @@ export default function ActiveProviders({ onNext }) {
   const provinceId = reportData?.eod?.basic?.province;
   const clinicOpenTime = reportData?.eod?.basic?.clinic_open_time;
   const clinicCloseTime = reportData?.eod?.basic?.clinic_close_time;
-  // const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
   // Convert to dayjs objects for comparison
@@ -245,9 +244,7 @@ export default function ActiveProviders({ onNext }) {
     }
   };
 
-  const fetchProviders = useCallback(async () => {
-    if (!clinicId) return;
-
+  const fetchProviders = async () => {
     try {
       const { data } = await EODReportService.getProviders(clinicId);
       const baseProviders = data.providers.map((provider) => ({
@@ -260,7 +257,6 @@ export default function ActiveProviders({ onNext }) {
         is_active: false
       }));
 
-      // Only merge if we have existing data AND it's different from current
       if (currentStepData?.length > 0) {
         const mergedData = baseProviders.map((provider) => {
           const existingData = currentStepData.find(
@@ -285,13 +281,12 @@ export default function ActiveProviders({ onNext }) {
         setTableData(baseProviders);
       }
     } catch (error) {}
-  }, [currentStepData?.length]);
+  };
 
   useEffect(() => {
-    fetchProviders();
-  }, [fetchProviders]);
+    if (clinicId && tableData.length === 0) fetchProviders();
+  }, [clinicId]);
 
-  console.log(currentStepData?.length);
   return (
     <React.Fragment>
       <AddModal

@@ -30,12 +30,14 @@ export default function AttritionTracking({ onNext }) {
     id,
     steps,
     setLoading,
+    reportData,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
 
   const columns = [
     {
@@ -137,7 +139,7 @@ export default function AttritionTracking({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId && currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         comments: item.comments,
@@ -146,7 +148,7 @@ export default function AttritionTracking({ onNext }) {
       }));
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

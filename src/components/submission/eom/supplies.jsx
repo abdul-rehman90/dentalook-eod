@@ -19,11 +19,13 @@ export default function Supplies({ onNext }) {
     id,
     steps,
     setLoading,
+    reportData,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
@@ -120,7 +122,7 @@ export default function Supplies({ onNext }) {
   };
 
   useEffect(() => {
-    if (Object.entries(currentStepData).length > 0) {
+    if (clinicId && Object.entries(currentStepData).length > 0) {
       const transformedData = [
         {
           key: '1',
@@ -131,7 +133,7 @@ export default function Supplies({ onNext }) {
       ];
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

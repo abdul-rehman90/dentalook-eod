@@ -51,7 +51,6 @@ export const AppProvider = ({ children }) => {
   const isSubmissionRoute = pathname.includes('/submission/');
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
-  // console.log(reportData);
 
   const updateStepData = useCallback(
     (stepId, data) => {
@@ -130,7 +129,7 @@ export const AppProvider = ({ children }) => {
         }
       }
     } catch (error) {}
-  }, [id, type]);
+  }, [id]);
 
   useEffect(() => {
     fetchAllReportData();
@@ -141,7 +140,6 @@ export const AppProvider = ({ children }) => {
       Object.keys(reportData.eod).length > 0 ||
       Object.keys(reportData.eom).length > 0
     ) {
-      console.log('Resetting report data');
       setReportData({ eod: {}, eom: {} });
     }
   }, [type, isReviewPath, isSubmissionRoute]);
