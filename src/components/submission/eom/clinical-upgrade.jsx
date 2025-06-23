@@ -21,11 +21,13 @@ export default function ClinicalUpgrade({ onNext }) {
     id,
     steps,
     setLoading,
+    reportData,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
 
   const columns = [
@@ -126,7 +128,7 @@ export default function ClinicalUpgrade({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId && currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         cost: item.cost,
         items: item.items,
@@ -135,7 +137,7 @@ export default function ClinicalUpgrade({ onNext }) {
       }));
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

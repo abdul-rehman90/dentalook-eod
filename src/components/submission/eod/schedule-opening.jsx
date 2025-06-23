@@ -19,6 +19,7 @@ export default function ScheduleOpening({ onNext }) {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
   const unitTime = reportData?.eod?.basic?.unit_length;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
 
@@ -155,8 +156,8 @@ export default function ScheduleOpening({ onNext }) {
   };
 
   useEffect(() => {
-    fetchActiveProviders();
-  }, [currentStepData]);
+    if (clinicId && tableData.length === 0) fetchActiveProviders();
+  }, [clinicId]);
 
   return (
     <React.Fragment>

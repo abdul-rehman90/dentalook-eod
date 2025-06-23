@@ -37,12 +37,14 @@ export default function PatientTracking({ onNext }) {
     id,
     steps,
     setLoading,
+    reportData,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eod?.basic?.clinic;
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -184,7 +186,7 @@ export default function PatientTracking({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
+    if (clinicId && currentStepData.length > 0) {
       setActual(currentStepData.length);
       const transformedData = currentStepData.map((item) => ({
         source: item.source,
@@ -194,7 +196,7 @@ export default function PatientTracking({ onNext }) {
       }));
       setTableData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>

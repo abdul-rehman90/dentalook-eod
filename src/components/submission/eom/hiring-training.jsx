@@ -42,12 +42,14 @@ export default function HiringTraining({ onNext }) {
   const {
     id,
     steps,
+    reportData,
     setLoading,
     currentStep,
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
 
   const hiringColumns = [
@@ -247,7 +249,7 @@ export default function HiringTraining({ onNext }) {
   };
 
   useEffect(() => {
-    if (currentStepData?.hiring?.length > 0) {
+    if (clinicId && currentStepData?.hiring?.length > 0) {
       const transformedData = currentStepData.hiring.map((item) => ({
         category: item.category,
         hiring_reason: item.hiring_reason,
@@ -256,7 +258,7 @@ export default function HiringTraining({ onNext }) {
       }));
       setHiringData(transformedData);
     }
-    if (currentStepData?.training?.length > 0) {
+    if (clinicId && currentStepData?.training?.length > 0) {
       const transformedData = currentStepData.training.map((item) => ({
         training_name: item.training_name,
         training_reason: item.training_reason,
@@ -265,7 +267,7 @@ export default function HiringTraining({ onNext }) {
       }));
       setTrainingData(transformedData);
     }
-  }, [currentStepData]);
+  }, [clinicId]);
 
   return (
     <React.Fragment>
