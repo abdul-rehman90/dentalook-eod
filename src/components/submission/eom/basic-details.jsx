@@ -127,10 +127,10 @@ export default function BasicDetails() {
         );
       }
       form.setFieldsValue({
-        user: currentStepData.user,
         clinic: currentStepData.clinic,
         province: currentStepData.province,
         proud_moment: currentStepData.proud_moment,
+        user: currentStepData.user || currentStepData.regional_manager_id,
         submission_month: currentStepData.submission_month
           ? dayjs(currentStepData.submission_month)
           : dayjs()
