@@ -18,7 +18,7 @@ export default function BasicDetails() {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
@@ -31,22 +31,6 @@ export default function BasicDetails() {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = currentStepData?.clinic;
-
-  // const initialValues = {
-  //   user: currentStepData?.user || undefined,
-  //   clinic: currentStepData?.clinic || undefined,
-  //   province: currentStepData?.province || undefined,
-  //   status: currentStepData?.status || 'closed',
-  //   submission_date: currentStepData?.submission_date
-  //     ? dayjs(currentStepData.submission_date)
-  //     : dayjs(),
-  //   clinic_open_time: currentStepData?.clinic_open_time
-  //     ? dayjs(currentStepData.clinic_open_time, 'HH:mm:ss')
-  //     : null,
-  //   clinic_close_time: currentStepData?.clinic_close_time
-  //     ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
-  //     : null
-  // };
 
   const clearTimeFieldValidations = () => {
     form.setFields([
@@ -129,7 +113,7 @@ export default function BasicDetails() {
       );
     } finally {
       setLoading(false);
-      setIsInitialLoad(false);
+      setIsInitialized(false);
     }
   };
 
@@ -204,20 +188,15 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    if (isInitialLoad) initializeForm();
-  }, [isInitialLoad, clinicId]);
+    if (isInitialized) initializeForm();
+  }, [isInitialized, clinicId]);
 
-  useEffect(() => setIsInitialLoad(true), []);
-
-  // useEffect(() => {
-  //   if (clinicId && practices.length === 0) initializeForm();
-  // }, [clinicId]);
+  useEffect(() => setIsInitialized(true), []);
 
   return (
     <React.Fragment>
       <Form
         form={form}
-        // initialValues={initialValues}
         style={{ width: '50%', padding: '0 24px' }}
         onValuesChange={(changedValues) => {
           if ('status' in changedValues) {

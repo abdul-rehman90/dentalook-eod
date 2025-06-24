@@ -39,7 +39,7 @@ export default function StepNavigation({ onNext }) {
       )}
       <Button
         size="lg"
-        isLoading={loading}
+        // isLoading={loading}
         onClick={() => onNext()}
         className="h-9 !shadow-none text-black !rounded-lg"
       >
