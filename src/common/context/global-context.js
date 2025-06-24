@@ -19,7 +19,7 @@ const stepConfig = {
     { id: 'daily', name: 'Daily Production' },
     { id: 'payment', name: 'Payment' },
     { id: 'team', name: 'Team Absences' },
-    { id: 'schedule', name: 'Schedule Openings' },
+    // { id: 'schedule', name: 'Schedule Openings' },
     { id: 'patient', name: 'Patient Tracking' },
     { id: 'auto', name: 'Attrition Tracking' },
     { id: 'referrals', name: 'Referrals' }
@@ -48,7 +48,7 @@ export const AppProvider = ({ children }) => {
     eom: {}
   });
   const isReviewPath = pathname.includes('/review');
-  const isSubmissionRoute = pathname.includes('/submission/');
+  const isSubmissionPath = pathname.includes('/submission/');
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
 
@@ -95,8 +95,8 @@ export const AppProvider = ({ children }) => {
             daily: response.data.daily_production || [],
             active: response.data.active_providers || [],
             auto: response.data.attrition_tracking || [],
-            patient: response.data.patient_tracking || [],
-            schedule: response.data.schedule_openings || []
+            patient: response.data.patient_tracking || []
+            // schedule: response.data.schedule_openings || []
           };
           setReportData((prev) => ({
             ...prev,
@@ -142,7 +142,7 @@ export const AppProvider = ({ children }) => {
     ) {
       setReportData({ eod: {}, eom: {} });
     }
-  }, [type, isReviewPath, isSubmissionRoute]);
+  }, [type, isReviewPath, isSubmissionPath]);
 
   const contextValue = useMemo(
     () => ({

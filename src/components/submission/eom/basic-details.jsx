@@ -25,6 +25,7 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = currentStepData?.clinic;
 
   const initialValues = {
     user: currentStepData?.user,
@@ -151,8 +152,8 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    if (currentStepData?.province && practices.length === 0) initializeForm();
-  }, [currentStepData?.province]);
+    if (clinicId && practices.length === 0) initializeForm();
+  }, [clinicId]);
 
   return (
     <React.Fragment>

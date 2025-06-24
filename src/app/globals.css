@@ -133,8 +133,8 @@
 
 .ant-table-tbody > tr > td {
   font-size: 15px;
+  padding: 6px !important;
   border: none !important;
-  padding: 8px !important;
   color: #777b8b !important;
   border-bottom: 1px solid #f0f0f0 !important;
 }
@@ -151,11 +151,11 @@
 .ant-table .ant-table-tbody .ant-select,
 .ant-table .ant-table-tbody .ant-picker {
   width: 100%;
-  height: 36px;
-  padding: 8px;
+  height: 30px;
+  padding: 5px;
   border-radius: 0;
   line-height: normal;
-  border: 1px solid #339d5c !important;
+  border: 1px solid #d9d9d9 !important;
 }
 .ant-table .ant-table-tbody .ant-select-selector {
   padding: 0 !important;

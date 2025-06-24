@@ -85,35 +85,19 @@ export default function Payment({ onNext }) {
       }
     },
     {
-      width: 150,
+      width: 200,
       key: 'amount',
       editable: true,
       inputType: 'number',
       title: 'Amount ($)',
       dataIndex: 'amount'
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      dataIndex: 'action',
-      render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 
   const footer = () => (
     <div className="flex items-center justify-between w-full">
-      <div className="flex-1 text-left p-2">Total Amount</div>
-      <div className="flex-1 text-left p-2">
+      <div className="flex-1 text-left p-1.5">Total Amount</div>
+      <div className="flex-1 text-left p-1.5">
         {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
     </div>
@@ -168,12 +152,6 @@ export default function Payment({ onNext }) {
       action: ''
     };
     setTableData([...tableData, newPayment]);
-  };
-
-  const handleDelete = (key) => {
-    if (tableData.length > 1) {
-      setTableData(tableData.filter((item) => item.key !== key));
-    }
   };
 
   const handleSubmit = async () => {

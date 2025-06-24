@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { Input, Select } from 'antd';
-import { Icons } from '@/common/assets';
-import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -73,17 +70,6 @@ export default function TeamAbsences({ onNext }) {
         { value: 'Full Day', label: 'Full Day' },
         { value: 'Partial Day', label: 'Partial Day' }
       ]
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      dataIndex: 'action',
-      render: (_, record) => (
-        <Button disabled size="icon" className="ml-3" variant="destructive">
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 
