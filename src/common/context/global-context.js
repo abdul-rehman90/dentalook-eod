@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { EOMReportService } from '../services/eom-report';
 import {
@@ -39,7 +39,6 @@ const stepConfig = {
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const pathname = usePathname();
   const { type, step, id } = useParams();
   const currentStep = parseInt(step);
   const [loading, setLoading] = useState(false);
@@ -47,8 +46,6 @@ export const AppProvider = ({ children }) => {
     eod: {},
     eom: {}
   });
-  const isReviewPath = pathname.includes('/review');
-  const isSubmissionPath = pathname.includes('/submission/');
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
 
@@ -78,7 +75,9 @@ export const AppProvider = ({ children }) => {
       Object.keys(reportData.eom).length === 0;
 
     if (!shouldFetch) return;
+    console.log(shouldFetch);
     try {
+      setLoading(true);
       const service = type === 'eod' ? EODReportService : EOMReportService;
       const response =
         type === 'eod'
@@ -128,8 +127,11 @@ export const AppProvider = ({ children }) => {
           }));
         }
       }
-    } catch (error) {}
-  }, [id]);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  }, [id, type]);
 
   useEffect(() => {
     fetchAllReportData();
@@ -142,7 +144,7 @@ export const AppProvider = ({ children }) => {
     ) {
       setReportData({ eod: {}, eom: {} });
     }
-  }, [type, isReviewPath, isSubmissionPath]);
+  }, [type, id]);
 
   const contextValue = useMemo(
     () => ({
