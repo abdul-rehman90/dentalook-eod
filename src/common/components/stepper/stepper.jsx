@@ -1,11 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
 function Stepper({ className }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isReviewPath = pathname.includes('/review');
+  const isSubmissionPath = pathname.includes('/submission/');
   const { id, type, steps, currentStep } = useGlobalContext();
 
   const normalizedCurrentStep = Math.max(
@@ -14,7 +17,9 @@ function Stepper({ className }) {
   );
 
   const handleStepClick = (stepNumber) => {
-    if (id) {
+    if (id && isReviewPath) {
+      router.push(`/review/${type}/${stepNumber}/${id}`);
+    } else if (id && isSubmissionPath) {
       router.push(`/submission/${type}/${stepNumber}/${id}`);
     }
   };

@@ -74,26 +74,34 @@ export default function HiringTraining({ onNext }) {
     {
       width: 300,
       editable: true,
-      title: 'Reason?',
+      title: 'Reason',
       inputType: 'text',
       key: 'hiring_reason',
       dataIndex: 'hiring_reason'
     },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleHiringDelete(record.key)}
-        >
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
-    }
+    ...(hiringData.length > 1
+      ? [
+          {
+            width: 50,
+            key: 'action',
+            title: 'Action',
+            render: (_, record) => (
+              <Button
+                size="icon"
+                className="ml-3"
+                variant="destructive"
+                onClick={() =>
+                  setHiringData(
+                    hiringData.filter((item) => item.key !== record.key)
+                  )
+                }
+              >
+                <Image src={Icons.cross} alt="cross" />
+              </Button>
+            )
+          }
+        ]
+      : [])
   ];
 
   const trainingColumns = [
@@ -117,26 +125,34 @@ export default function HiringTraining({ onNext }) {
     {
       width: 300,
       editable: true,
-      title: 'Reason?',
+      title: 'Reason',
       inputType: 'text',
       key: 'training_reason',
       dataIndex: 'training_reason'
     },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleTrainingDelete(record.key)}
-        >
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
-    }
+    ...(trainingData.length > 1
+      ? [
+          {
+            width: 50,
+            key: 'action',
+            title: 'Action',
+            render: (_, record) => (
+              <Button
+                size="icon"
+                className="ml-3"
+                variant="destructive"
+                onClick={() =>
+                  setTrainingData(
+                    trainingData.filter((item) => item.key !== record.key)
+                  )
+                }
+              >
+                <Image src={Icons.cross} alt="cross" />
+              </Button>
+            )
+          }
+        ]
+      : [])
   ];
 
   const handleHiringCellChange = (record, dataIndex, value) => {
@@ -153,18 +169,6 @@ export default function HiringTraining({ onNext }) {
         item.key === record.key ? { ...item, [dataIndex]: value } : item
       )
     );
-  };
-
-  const handleHiringDelete = (key) => {
-    if (hiringData.length > 1) {
-      setHiringData(hiringData.filter((item) => item.key !== key));
-    }
-  };
-
-  const handleTrainingDelete = (key) => {
-    if (trainingData.length > 1) {
-      setTrainingData(trainingData.filter((item) => item.key !== key));
-    }
   };
 
   const handleAddNewHiring = () => {

@@ -18,6 +18,7 @@ export default function BasicDetails() {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(false);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
@@ -29,22 +30,23 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = currentStepData?.clinic;
 
-  const initialValues = {
-    user: currentStepData?.user,
-    clinic: currentStepData?.clinic,
-    province: currentStepData?.province,
-    status: currentStepData?.status || 'closed',
-    submission_date: currentStepData?.submission_date
-      ? dayjs(currentStepData.submission_date)
-      : dayjs(),
-    clinic_open_time: currentStepData?.clinic_open_time
-      ? dayjs(currentStepData.clinic_open_time, 'HH:mm:ss')
-      : null,
-    clinic_close_time: currentStepData?.clinic_close_time
-      ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
-      : null
-  };
+  // const initialValues = {
+  //   user: currentStepData?.user || undefined,
+  //   clinic: currentStepData?.clinic || undefined,
+  //   province: currentStepData?.province || undefined,
+  //   status: currentStepData?.status || 'closed',
+  //   submission_date: currentStepData?.submission_date
+  //     ? dayjs(currentStepData.submission_date)
+  //     : dayjs(),
+  //   clinic_open_time: currentStepData?.clinic_open_time
+  //     ? dayjs(currentStepData.clinic_open_time, 'HH:mm:ss')
+  //     : null,
+  //   clinic_close_time: currentStepData?.clinic_close_time
+  //     ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
+  //     : null
+  // };
 
   const clearTimeFieldValidations = () => {
     form.setFields([
@@ -68,7 +70,6 @@ export default function BasicDetails() {
         data.clinics.map((clinic) => ({
           value: clinic.clinic_id,
           label: clinic.clinic_name,
-          unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
             label: manager.name,
             value: manager.id
@@ -100,12 +101,8 @@ export default function BasicDetails() {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      const selectedClinic = practices.find(
-        (clinic) => clinic.value === values.clinic
-      );
       const payload = {
         ...values,
-        unit_length: selectedClinic?.unitLength,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
         clinic_open_time:
           values.status === 'opened'
@@ -132,10 +129,23 @@ export default function BasicDetails() {
       );
     } finally {
       setLoading(false);
+      setIsInitialLoad(false);
     }
   };
 
   const initializeForm = async () => {
+    if (!clinicId) {
+      form.setFieldsValue({
+        user: undefined,
+        status: 'closed',
+        clinic: undefined,
+        province: undefined,
+        clinic_open_time: null,
+        clinic_close_time: null,
+        submission_date: dayjs()
+      });
+      return;
+    }
     try {
       const { data } = await EODReportService.getDataOfProvinceById(
         currentStepData?.province_id || currentStepData?.province
@@ -144,7 +154,6 @@ export default function BasicDetails() {
         data.clinics.map((clinic) => ({
           value: clinic.clinic_id,
           label: clinic.clinic_name,
-          unitLength: clinic.unit_length,
           managers: clinic.regional_managers.map((manager) => ({
             value: manager.id,
             label: manager.name
@@ -195,14 +204,20 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    if (currentStepData?.province && practices.length === 0) initializeForm();
-  }, [currentStepData?.province]);
+    if (isInitialLoad) initializeForm();
+  }, [isInitialLoad, clinicId]);
+
+  useEffect(() => setIsInitialLoad(true), []);
+
+  // useEffect(() => {
+  //   if (clinicId && practices.length === 0) initializeForm();
+  // }, [clinicId]);
 
   return (
     <React.Fragment>
       <Form
         form={form}
-        initialValues={initialValues}
+        // initialValues={initialValues}
         style={{ width: '50%', padding: '0 24px' }}
         onValuesChange={(changedValues) => {
           if ('status' in changedValues) {

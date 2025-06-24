@@ -1,7 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
-import { Icons } from '@/common/assets';
-import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -98,16 +95,6 @@ export default function DailyProduction({ onNext }) {
       title: 'Production',
       key: 'production_amount',
       dataIndex: 'production_amount'
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button disabled size="icon" className="ml-3" variant="destructive">
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 

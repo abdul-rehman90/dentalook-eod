@@ -85,21 +85,21 @@ export default function DailyProduction({ onNext }) {
 
   const providersColumns = [
     {
-      width: 150,
+      width: 100,
       key: 'type',
       title: 'Type',
       dataIndex: 'type',
       render: (type) => type || 'N/A'
     },
     {
-      width: 150,
+      width: 100,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
       render: (name) => name || 'N/A'
     },
     {
-      width: 150,
+      width: 100,
       editable: true,
       inputType: 'number',
       title: 'Production',
@@ -107,21 +107,29 @@ export default function DailyProduction({ onNext }) {
       key: 'production_amount',
       dataIndex: 'production_amount'
     },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          // onClick={() => handleDelete(record.id)}
-        >
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
-    }
+    ...(tableData.length > 1
+      ? [
+          {
+            width: 50,
+            key: 'action',
+            title: 'Action',
+            render: (_, record) => (
+              <Button
+                size="icon"
+                className="ml-3"
+                variant="destructive"
+                onClick={() =>
+                  setTableData(
+                    tableData.filter((item) => item.id !== record.id)
+                  )
+                }
+              >
+                <Image src={Icons.cross} alt="cross" />
+              </Button>
+            )
+          }
+        ]
+      : [])
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
@@ -210,8 +218,10 @@ export default function DailyProduction({ onNext }) {
   };
 
   useEffect(() => {
-    if (clinicId) fetchTargetGoal();
-    if (clinicId && tableData.length === 0) fetchActiveProviders();
+    if (clinicId) {
+      fetchTargetGoal();
+      fetchActiveProviders();
+    }
   }, [clinicId]);
 
   return (

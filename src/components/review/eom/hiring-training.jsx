@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Icons } from '@/common/assets';
-import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -52,19 +49,9 @@ export default function HiringTraining({ onNext }) {
       key: 'reason',
       disabled: true,
       editable: true,
-      title: 'Reason?',
+      title: 'Reason',
       inputType: 'text',
       dataIndex: 'reason'
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button disabled size="icon" className="ml-3" variant="destructive">
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 
@@ -93,19 +80,9 @@ export default function HiringTraining({ onNext }) {
       key: 'reason',
       disabled: true,
       editable: true,
-      title: 'Reason?',
+      title: 'Reason',
       inputType: 'text',
       dataIndex: 'reason'
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button disabled size="icon" className="ml-3" variant="destructive">
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 
