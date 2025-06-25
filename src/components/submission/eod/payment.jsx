@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Icons } from '@/common/assets';
 import { Col, Row, Input, Select } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 const { TextArea } = Input;
 
 const paymentOptions = [
@@ -28,14 +32,13 @@ const createInitialPayments = () => {
   return paymentOptions.map((option, index) => ({
     key: index + 1,
     type: option.value,
-    amount: '',
-    action: ''
+    amount: ''
   }));
 };
 
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
-  const [tableData, setTableData] = useState(createInitialPayments());
+  const [tableData, setTableData] = useState([]);
   const {
     id,
     steps,
@@ -48,6 +51,9 @@ export default function Payment({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinic;
+  const sensors = [
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  ];
 
   const columns = [
     {
@@ -103,6 +109,17 @@ export default function Payment({ onNext }) {
     </div>
   );
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active?.id !== over?.id) {
+      setTableData((items) => {
+        const oldIndex = items.findIndex((item) => item.key === active?.id);
+        const newIndex = items.findIndex((item) => item.key === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const handleTypeChange = (key, value) => {
     const newPayments = tableData.map((item) => {
       if (item.key === key) {
@@ -154,6 +171,19 @@ export default function Payment({ onNext }) {
     setTableData([...tableData, newPayment]);
   };
 
+  const handlePaymentTypeOrder = async () => {
+    try {
+      const paymentOrderPayload = {
+        clinic_id: clinicId,
+        payment_type_order: tableData.reduce((acc, item, index) => {
+          acc[item.type] = index + 1;
+          return acc;
+        }, {})
+      };
+      await EODReportService.handlePaymentTypeOrder(paymentOrderPayload);
+    } catch (error) {}
+  };
+
   const handleSubmit = async () => {
     try {
       const validPayments = tableData.filter(
@@ -174,8 +204,9 @@ export default function Payment({ onNext }) {
         setLoading(true);
         const response = await EODReportService.addPayment(payload);
         if (response.status === 201) {
-          updateStepData(currentStepId, { notes, payments: tableData });
+          handlePaymentTypeOrder();
           toast.success('Record is successfully saved');
+          updateStepData(currentStepId, { notes, payments: tableData });
           onNext();
         }
         return;
@@ -183,43 +214,60 @@ export default function Payment({ onNext }) {
 
       updateStepData(currentStepId, { notes: '', payments: tableData });
       onNext();
+      handlePaymentTypeOrder();
     } catch (error) {
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchAllPayments = async () => {
+    try {
+      const response = await EODReportService.getAllPaymentsOrderByClinic(
+        clinicId
+      );
+      if (response.status === 200) {
+        const basePayments = Object.entries(response.data.payment_type_order)
+          .map(([type, order]) => ({
+            amount: '',
+            key: order,
+            type: type
+          }))
+          .sort((a, b) => a.key - b.key);
+
+        if (currentStepData.length > 0) {
+          const storedNotes = currentStepData[0]?.notes;
+          const mergedData = basePayments.map((payment) => {
+            const existingData = currentStepData.find(
+              (item) => item.payment_type === payment.type
+            );
+            return existingData
+              ? {
+                  ...payment,
+                  amount: existingData.payment_amount
+                }
+              : payment;
+          });
+          setNotes(storedNotes);
+          setTableData(mergedData);
+        } else {
+          setTableData(basePayments);
+        }
+      }
+    } catch (error) {}
+  };
+
   useEffect(() => {
     if (
-      clinicId &&
-      (currentStepData?.length > 0 || Object.keys(currentStepData).length > 0)
+      !Array.isArray(currentStepData) &&
+      Object.keys(currentStepData).length > 0
     ) {
-      const storedNotes = Array.isArray(currentStepData)
-        ? currentStepData[0]?.notes
-        : currentStepData.notes || '';
-      const apiPayments = Array.isArray(currentStepData)
-        ? currentStepData
-        : currentStepData.payments || [];
-
-      const mergedPayments = createInitialPayments().map((initialPayment) => {
-        const foundPayment = apiPayments.find(
-          (payment) =>
-            payment.payment_type === initialPayment.type ||
-            payment.type === initialPayment.type
-        );
-
-        if (foundPayment) {
-          return {
-            ...initialPayment,
-            amount: foundPayment.payment_amount || foundPayment.amount || ''
-            // eftReference: foundPayment.eft_reference || foundPayment.eftReference
-          };
-        }
-        return initialPayment;
-      });
-
-      setNotes(storedNotes);
-      setTableData(mergedPayments);
+      const notes = currentStepData.notes || '';
+      const payments = currentStepData.payments || [];
+      setNotes(notes);
+      setTableData(payments);
+    } else if (clinicId) {
+      fetchAllPayments();
     }
   }, [clinicId]);
 
@@ -238,12 +286,19 @@ export default function Payment({ onNext }) {
         </div>
         <Row gutter={16}>
           <Col span={12}>
-            <GenericTable
-              footer={footer}
-              columns={columns}
-              dataSource={tableData}
-              onCellChange={handleCellChange}
-            />
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <SortableContext
+                strategy={verticalListSortingStrategy}
+                items={tableData.map((item) => item.key)}
+              >
+                <GenericTable
+                  footer={footer}
+                  columns={columns}
+                  dataSource={tableData}
+                  onCellChange={handleCellChange}
+                />
+              </SortableContext>
+            </DndContext>
           </Col>
           <Col span={12}>
             <Card className="!p-0 !gap-0 border border-secondary-50">

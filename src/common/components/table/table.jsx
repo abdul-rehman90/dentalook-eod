@@ -1,18 +1,47 @@
 import React from 'react';
+import { CSS } from '@dnd-kit/utilities';
 import { Table, Input, Select } from 'antd';
+import { useSortable } from '@dnd-kit/sortable';
 
-// const tableStyles = `
-//   .ant-table .ant-table-tbody > tr > td.editable-cell {
-//     // padding: 1px !important;
-//   }
-// `;
+const Row = ({ children, ...props }) => {
+  const {
+    listeners,
+    transform,
+    attributes,
+    setNodeRef,
+    transition,
+    isDragging
+  } = useSortable({
+    id: props['data-row-key']
+  });
+
+  const style = {
+    transition,
+    cursor: 'move',
+    ...props.style,
+    transform: CSS.Transform.toString(transform),
+    ...(isDragging ? { position: 'relative', zIndex: 9999 } : {})
+  };
+
+  return (
+    <tr
+      {...props}
+      style={style}
+      {...listeners}
+      {...attributes}
+      ref={setNodeRef}
+    >
+      {children}
+    </tr>
+  );
+};
 
 function GenericTable({
   columns,
   loading,
-  dataSource,
   onCellChange,
   footer = null,
+  dataSource = [],
   bordered = true,
   showHeader = true
 }) {
@@ -43,7 +72,6 @@ function GenericTable({
         return <div className="h-full">{cellContent}</div>;
       };
 
-      // Add onCell property to add class for editable cells
       col.onCell = () => {
         return {
           className: 'editable-cell'
@@ -54,18 +82,18 @@ function GenericTable({
   });
 
   return (
-    <React.Fragment>
-      <Table
-        size="middle"
-        footer={footer}
-        loading={loading}
-        pagination={false}
-        bordered={bordered}
-        dataSource={dataSource}
-        showHeader={showHeader}
-        columns={transformedColumns}
-      />
-    </React.Fragment>
+    <Table
+      rowKey="key"
+      size="middle"
+      footer={footer}
+      loading={loading}
+      pagination={false}
+      bordered={bordered}
+      showHeader={showHeader}
+      dataSource={dataSource}
+      columns={transformedColumns}
+      components={{ body: { row: Row } }}
+    />
   );
 }
 
