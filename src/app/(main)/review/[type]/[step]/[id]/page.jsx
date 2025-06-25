@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Spin } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 import {
@@ -27,7 +28,7 @@ import {
 
 export default function SubmissionPage() {
   const router = useRouter();
-  const { id, type, currentStep } = useGlobalContext();
+  const { id, type, loading, currentStep } = useGlobalContext();
 
   const stepComponents = {
     eod: {
@@ -36,10 +37,10 @@ export default function SubmissionPage() {
       3: <DailyProductionEOD onNext={handle} />,
       4: <PaymentEOD onNext={handle} />,
       5: <TeamAbsencesEOD onNext={handle} />,
-      6: <ScheduleOpeningEOD onNext={handle} />,
-      7: <PatientTrackingEOD onNext={handle} />,
-      8: <AttritionTrackingEOD onNext={handle} />,
-      9: <ReferralsEOD />
+      // 6: <ScheduleOpeningEOD onNext={handle} />,
+      6: <PatientTrackingEOD onNext={handle} />,
+      7: <AttritionTrackingEOD onNext={handle} />,
+      8: <ReferralsEOD />
     },
     eom: {
       1: <BasicDetailsEOM onNext={handle} />,
@@ -59,7 +60,7 @@ export default function SubmissionPage() {
 
   return (
     <div className="pt-6 border-t-1 border-t-secondary-50 ">
-      {stepComponents[type][currentStep]}
+      <Spin spinning={loading}>{stepComponents[type][currentStep]}</Spin>
     </div>
   );
 }

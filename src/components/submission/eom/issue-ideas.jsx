@@ -45,21 +45,29 @@ export default function IssuesIdeas() {
       inputType: 'text',
       dataIndex: 'details'
     },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button
-          size="icon"
-          className="ml-3"
-          variant="destructive"
-          onClick={() => handleDelete(record.key)}
-        >
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
-    }
+    ...(tableData.length > 1
+      ? [
+          {
+            width: 50,
+            key: 'action',
+            title: 'Action',
+            render: (_, record) => (
+              <Button
+                size="icon"
+                className="ml-3"
+                variant="destructive"
+                onClick={() =>
+                  setTableData(
+                    tableData.filter((item) => item.key !== record.key)
+                  )
+                }
+              >
+                <Image src={Icons.cross} alt="cross" />
+              </Button>
+            )
+          }
+        ]
+      : [])
   ];
 
   const handleSubmitEOMReport = async () => {
@@ -84,12 +92,6 @@ export default function IssuesIdeas() {
         item.key === record.key ? { ...item, [dataIndex]: value } : item
       )
     );
-  };
-
-  const handleDelete = (key) => {
-    if (tableData.length > 1) {
-      setTableData(tableData.filter((item) => item.key !== key));
-    }
   };
 
   const handleAddNew = () => {

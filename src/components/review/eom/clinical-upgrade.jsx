@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Icons } from '@/common/assets';
-import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -38,16 +35,6 @@ export default function ClinicalUpgrade({ onNext }) {
       title: 'Comments',
       inputType: 'text',
       dataIndex: 'comments'
-    },
-    {
-      width: 50,
-      key: 'action',
-      title: 'Action',
-      render: (_, record) => (
-        <Button disabled size="icon" className="ml-3" variant="destructive">
-          <Image src={Icons.cross} alt="cross" />
-        </Button>
-      )
     }
   ];
 

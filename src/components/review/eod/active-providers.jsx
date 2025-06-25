@@ -12,19 +12,19 @@ export default function ActiveProviders({ onNext }) {
 
   const columns = [
     {
-      width: 200,
+      width: 50,
       key: 'type',
       title: 'Type',
       dataIndex: 'type'
     },
     {
-      width: 200,
+      width: 150,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 100,
+      width: 50,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -37,7 +37,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
+      width: 50,
       editable: true,
       inputType: 'number',
       title: 'Patients Seen',
@@ -52,7 +52,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
+      width: 100,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -69,7 +69,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
+      width: 100,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -84,6 +84,37 @@ export default function ActiveProviders({ onNext }) {
           value={record.end_time}
         />
       )
+    },
+    {
+      width: 50,
+      key: 'unfilled_spots',
+      title: 'Unfilled Spots',
+      dataIndex: 'unfilled_spots',
+      render: (_, record) => (
+        <Input disabled type="number" value={record.unfilled_spots} />
+      )
+    },
+    {
+      width: 50,
+      key: 'no_shows',
+      title: 'No Shows',
+      dataIndex: 'no_shows',
+      render: (_, record) => (
+        <Input disabled type="number" value={record.no_shows} />
+      )
+    },
+    {
+      width: 50,
+      key: 'short_notice_cancellations',
+      title: 'Short Notice Cancellations',
+      dataIndex: 'short_notice_cancellations',
+      render: (_, record) => (
+        <Input
+          disabled
+          type="number"
+          value={record.short_notice_cancellations}
+        />
+      )
     }
   ];
 
@@ -92,10 +123,13 @@ export default function ActiveProviders({ onNext }) {
       const transformedData = currentStepData.map((item) => ({
         name: item.user?.name,
         key: item.id.toString(),
+        no_shows: item.no_shows,
         is_active: item.is_active,
         type: item.user?.user_type,
+        unfilled_spots: item.unfilled_spots,
         end_time: item.end_time ? dayjs(item.end_time) : null,
         number_of_patients_seen: item.number_of_patients_seen,
+        short_notice_cancellations: item.short_notice_cancellations,
         start_time: item.start_time ? dayjs(item.start_time) : null
       }));
       setTableData(transformedData);

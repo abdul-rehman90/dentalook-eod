@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { EOMReportService } from '../services/eom-report';
 import {
@@ -19,7 +19,7 @@ const stepConfig = {
     { id: 'daily', name: 'Daily Production' },
     { id: 'payment', name: 'Payment' },
     { id: 'team', name: 'Team Absences' },
-    { id: 'schedule', name: 'Schedule Openings' },
+    // { id: 'schedule', name: 'Schedule Openings' },
     { id: 'patient', name: 'Patient Tracking' },
     { id: 'auto', name: 'Attrition Tracking' },
     { id: 'referrals', name: 'Referrals' }
@@ -39,7 +39,6 @@ const stepConfig = {
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const pathname = usePathname();
   const { type, step, id } = useParams();
   const currentStep = parseInt(step);
   const [loading, setLoading] = useState(false);
@@ -47,8 +46,6 @@ export const AppProvider = ({ children }) => {
     eod: {},
     eom: {}
   });
-  const isReviewPath = pathname.includes('/review');
-  const isSubmissionRoute = pathname.includes('/submission/');
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
 
@@ -79,6 +76,7 @@ export const AppProvider = ({ children }) => {
 
     if (!shouldFetch) return;
     try {
+      setLoading(true);
       const service = type === 'eod' ? EODReportService : EOMReportService;
       const response =
         type === 'eod'
@@ -95,8 +93,8 @@ export const AppProvider = ({ children }) => {
             daily: response.data.daily_production || [],
             active: response.data.active_providers || [],
             auto: response.data.attrition_tracking || [],
-            patient: response.data.patient_tracking || [],
-            schedule: response.data.schedule_openings || []
+            patient: response.data.patient_tracking || []
+            // schedule: response.data.schedule_openings || []
           };
           setReportData((prev) => ({
             ...prev,
@@ -128,8 +126,11 @@ export const AppProvider = ({ children }) => {
           }));
         }
       }
-    } catch (error) {}
-  }, [id]);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  }, [id, type]);
 
   useEffect(() => {
     fetchAllReportData();
@@ -137,12 +138,12 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     if (
-      Object.keys(reportData.eod).length > 0 ||
-      Object.keys(reportData.eom).length > 0
+      Object.keys(reportData.eod).length > 1 ||
+      Object.keys(reportData.eom).length > 1
     ) {
       setReportData({ eod: {}, eom: {} });
     }
-  }, [type, isReviewPath, isSubmissionRoute]);
+  }, [type, id]);
 
   const contextValue = useMemo(
     () => ({

@@ -30,7 +30,6 @@ export default function ActiveProviders({ onNext }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
-  const provinceId = reportData?.eod?.basic?.province;
   const clinicOpenTime = reportData?.eod?.basic?.clinic_open_time;
   const clinicCloseTime = reportData?.eod?.basic?.clinic_close_time;
   const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
@@ -61,19 +60,19 @@ export default function ActiveProviders({ onNext }) {
 
   const columns = [
     {
-      width: 200,
+      width: 50,
       key: 'type',
       title: 'Type',
       dataIndex: 'type'
     },
     {
-      width: 200,
+      width: 150,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 100,
+      width: 50,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -92,9 +91,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
-      editable: true,
-      inputType: 'number',
+      width: 50,
       title: 'Patients Seen',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
@@ -120,7 +117,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
+      width: 100,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -144,7 +141,7 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 150,
+      width: 100,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -166,6 +163,82 @@ export default function ActiveProviders({ onNext }) {
           }}
         />
       )
+    },
+    {
+      width: 50,
+      key: 'unfilled_spots',
+      title: 'Unfilled Spots',
+      dataIndex: 'unfilled_spots',
+      render: (_, record) => (
+        <Input
+          type="number"
+          disabled={!record.is_active}
+          value={record.unfilled_spots}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    unfilled_spots: e.target.value
+                      ? parseInt(e.target.value)
+                      : null
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 50,
+      key: 'no_shows',
+      title: 'No Shows',
+      dataIndex: 'no_shows',
+      render: (_, record) => (
+        <Input
+          type="number"
+          value={record.no_shows}
+          disabled={!record.is_active}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    no_shows: e.target.value ? parseInt(e.target.value) : null
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 50,
+      key: 'short_notice_cancellations',
+      title: 'Short Notice Cancellations',
+      dataIndex: 'short_notice_cancellations',
+      render: (_, record) => (
+        <Input
+          type="number"
+          disabled={!record.is_active}
+          value={record.short_notice_cancellations}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    short_notice_cancellations: e.target.value
+                      ? parseInt(e.target.value)
+                      : null
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
     }
   ];
 
@@ -181,7 +254,7 @@ export default function ActiveProviders({ onNext }) {
         />
         <FormControl
           required
-          name="type"
+          name="user_type"
           control="select"
           label="Provider Type"
           options={providerTypes}
@@ -192,15 +265,26 @@ export default function ActiveProviders({ onNext }) {
 
   const addNewProvider = async (values) => {
     const payload = {
-      name: values.name,
-      clinic_id: clinicId,
-      province_id: provinceId,
-      provider_title: values.type
+      ...values,
+      clinic_id: clinicId
     };
     const response = await EODReportService.addNewProvider(payload);
     if (response.status === 201) {
-      fetchProviders();
+      const newProvider = {
+        no_shows: '',
+        end_time: null,
+        start_time: null,
+        is_active: false,
+        unfilled_spots: '',
+        name: values.name,
+        type: values.user_type,
+        id: response.data.user_id,
+        key: response.data.user_id,
+        number_of_patients_seen: null,
+        short_notice_cancellations: ''
+      };
       toast.success('Record is successfully saved');
+      setTableData((prev) => [...prev, newProvider]);
     }
   };
 
@@ -248,13 +332,16 @@ export default function ActiveProviders({ onNext }) {
     try {
       const { data } = await EODReportService.getProviders(clinicId);
       const baseProviders = data.providers.map((provider) => ({
+        no_shows: '',
+        end_time: null,
         id: provider.id,
+        start_time: null,
         key: provider.id,
+        is_active: false,
+        unfilled_spots: '',
         name: provider.name,
         type: provider.user_type,
-        end_time: null,
-        start_time: null,
-        is_active: false
+        short_notice_cancellations: ''
       }));
 
       if (currentStepData?.length > 0) {
@@ -265,14 +352,18 @@ export default function ActiveProviders({ onNext }) {
           return existingData
             ? {
                 ...provider,
+                no_shows: existingData.no_shows,
                 is_active: existingData.is_active,
+                unfilled_spots: existingData.unfilled_spots,
+                number_of_patients_seen: existingData.number_of_patients_seen,
+                short_notice_cancellations:
+                  existingData.short_notice_cancellations,
                 end_time: existingData.end_time
                   ? dayjs(existingData.end_time)
                   : null,
                 start_time: existingData.start_time
                   ? dayjs(existingData.start_time)
-                  : null,
-                number_of_patients_seen: existingData.number_of_patients_seen
+                  : null
               }
             : provider;
         });
@@ -284,7 +375,7 @@ export default function ActiveProviders({ onNext }) {
   };
 
   useEffect(() => {
-    if (clinicId && tableData.length === 0) fetchProviders();
+    if (clinicId) fetchProviders();
   }, [clinicId]);
 
   return (
