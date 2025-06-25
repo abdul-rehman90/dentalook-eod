@@ -46,6 +46,18 @@ export const EODReportService = {
     return response;
   },
 
+  async handlePaymentTypeOrder(payload) {
+    const response = await apiClient.post('/payment-type-order/', payload);
+    return response;
+  },
+
+  async getAllPaymentsOrderByClinic(id) {
+    const response = await apiClient.get(
+      `/payment-type-order/?clinic_id=${id}`
+    );
+    return response;
+  },
+
   async getProduction() {
     const response = await apiClient.get('/eod-production/');
     return response;
