@@ -14,6 +14,7 @@ export default function BasicDetails() {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
@@ -25,6 +26,7 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
+  const clinicId = currentStepData?.clinic;
 
   const initialValues = {
     user: currentStepData?.user,
@@ -95,6 +97,7 @@ export default function BasicDetails() {
       );
     } finally {
       setLoading(false);
+      setIsInitialized(false);
     }
   };
 
@@ -151,8 +154,10 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    if (currentStepData?.province && practices.length === 0) initializeForm();
-  }, [currentStepData?.province]);
+    if (isInitialized) initializeForm();
+  }, [isInitialized, clinicId]);
+
+  useEffect(() => setIsInitialized(true), []);
 
   return (
     <React.Fragment>

@@ -59,7 +59,7 @@ export default function Supplies({ onNext }) {
       editable: true,
       inputType: 'text',
       dataIndex: 'reason',
-      title: 'Reason for Overage:'
+      title: 'Reason for Overage'
     }
   ];
 
