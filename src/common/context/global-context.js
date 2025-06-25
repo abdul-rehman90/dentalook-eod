@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { EOMReportService } from '../services/eom-report';
 import {
@@ -39,7 +39,6 @@ const stepConfig = {
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const pathName = usePathname();
   const { type, step, id } = useParams();
   const currentStep = parseInt(step);
   const [loading, setLoading] = useState(false);
@@ -49,7 +48,6 @@ export const AppProvider = ({ children }) => {
   });
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
-  const isReviewPath = pathName.includes('/review');
 
   const updateStepData = useCallback(
     (stepId, data) => {
@@ -140,8 +138,8 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     if (
-      Object.keys(reportData.eod).length > 0 ||
-      Object.keys(reportData.eom).length > 0
+      Object.keys(reportData.eod).length > 1 ||
+      Object.keys(reportData.eom).length > 1
     ) {
       setReportData({ eod: {}, eom: {} });
     }
