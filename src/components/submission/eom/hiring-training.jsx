@@ -55,8 +55,8 @@ export default function HiringTraining({ onNext }) {
   const hiringColumns = [
     {
       width: 100,
+      title: 'Title',
       editable: true,
-      title: 'Position',
       inputType: 'select',
       key: 'hiring_position',
       dataIndex: 'hiring_position',
@@ -107,8 +107,8 @@ export default function HiringTraining({ onNext }) {
   const trainingColumns = [
     {
       width: 100,
+      title: 'Title',
       editable: true,
-      title: 'Position',
       inputType: 'select',
       key: 'training_position',
       dataIndex: 'training_position',

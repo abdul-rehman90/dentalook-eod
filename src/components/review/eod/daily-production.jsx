@@ -78,7 +78,7 @@ export default function DailyProduction({ onNext }) {
     {
       width: 150,
       key: 'type',
-      title: 'Type',
+      title: 'Title',
       dataIndex: 'type'
     },
     {
