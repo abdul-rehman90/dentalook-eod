@@ -167,7 +167,7 @@ export default function BasicDetails() {
         style={{ width: '50%', padding: '0 24px' }}
       >
         <FormControl
-          required
+          required={!id}
           name="province"
           control="select"
           label="Province"
@@ -175,8 +175,8 @@ export default function BasicDetails() {
           onChange={handleProvinceChange}
         />
         <FormControl
-          required
           name="clinic"
+          required={!id}
           control="select"
           options={practices}
           label="Practice Name"
@@ -189,9 +189,9 @@ export default function BasicDetails() {
           options={regionalManagers}
         />
         <FormControl
-          required
           control="date"
           picker="month"
+          required={!id}
           format="MMM YYYY"
           name="submission_month"
           label="Submission Month"

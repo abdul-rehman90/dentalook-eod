@@ -14,7 +14,7 @@ export default function ActiveProviders({ onNext }) {
     {
       width: 50,
       key: 'type',
-      title: 'Type',
+      title: 'Title',
       dataIndex: 'type'
     },
     {

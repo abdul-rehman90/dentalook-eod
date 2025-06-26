@@ -45,9 +45,9 @@ export default function TeamAbsences({ onNext }) {
   const columns = [
     {
       width: 150,
+      title: 'Title',
       editable: true,
       key: 'position',
-      title: 'Position',
       inputType: 'select',
       dataIndex: 'position',
       selectOptions: positionOptions
@@ -55,8 +55,8 @@ export default function TeamAbsences({ onNext }) {
     {
       width: 150,
       key: 'name',
-      title: 'Name',
       dataIndex: 'name',
+      title: 'Provider Name',
       render: (text, record) => {
         if (['DDS', 'RDH'].includes(record.position)) {
           return (
