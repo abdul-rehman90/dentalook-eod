@@ -87,7 +87,7 @@ export default function DailyProduction({ onNext }) {
     {
       width: 100,
       key: 'type',
-      title: 'Type',
+      title: 'Title',
       dataIndex: 'type',
       render: (type) => type || 'N/A'
     },

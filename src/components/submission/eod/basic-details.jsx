@@ -207,7 +207,7 @@ export default function BasicDetails() {
         }}
       >
         <FormControl
-          required
+          required={!id}
           name="province"
           control="select"
           label="Province"
@@ -215,8 +215,8 @@ export default function BasicDetails() {
           onChange={handleProvinceChange}
         />
         <FormControl
-          required
           name="clinic"
+          required={!id}
           control="select"
           options={practices}
           label="Practice Name"
@@ -230,7 +230,7 @@ export default function BasicDetails() {
           disabled={!form.getFieldValue('clinic')}
         />
         <FormControl
-          required
+          required={!id}
           control="date"
           name="submission_date"
           label="Submission Date"
