@@ -72,7 +72,6 @@ export default function Payment({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <h1 className="text-base font-medium text-black mb-4">Payments</h1>
         <Row gutter={16}>
           <Col span={12}>
             <GenericTable

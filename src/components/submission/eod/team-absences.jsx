@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
+import { Input, Select, TimePicker } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -23,7 +23,9 @@ const defaultRow = {
   name: '',
   reason: '',
   absence: '',
-  position: ''
+  position: '',
+  startTime: null,
+  endTime: null
 };
 
 export default function TeamAbsences({ onNext }) {
@@ -90,14 +92,66 @@ export default function TeamAbsences({ onNext }) {
     {
       width: 150,
       key: 'absence',
-      editable: true,
-      inputType: 'select',
       dataIndex: 'absence',
       title: 'Absent/Present',
-      selectOptions: [
-        { value: 'Full Day', label: 'Full Day' },
-        { value: 'Partial Day', label: 'Partial Day' }
-      ]
+      render: (text, record) => (
+        <Select
+          value={text}
+          options={[
+            { value: 'Full Day', label: 'Full Day' },
+            { value: 'Partial Day', label: 'Partial Day' }
+          ]}
+          onChange={(value) => {
+            handleCellChange(record, 'absence', value);
+          }}
+        />
+      )
+    },
+    {
+      width: 100,
+      key: 'start_time',
+      title: 'Start Time',
+      dataIndex: 'start_time',
+      render: (_, record) => (
+        <TimePicker
+          format="HH:mm"
+          showNow={false}
+          minuteStep={30}
+          hideDisabledOptions
+          inputReadOnly={true}
+          value={record.start_time}
+          disabled={record.absence !== 'Partial Day'}
+          onChange={(time) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key ? { ...p, start_time: time } : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 100,
+      key: 'end_time',
+      title: 'End Time',
+      dataIndex: 'end_time',
+      render: (_, record) => (
+        <TimePicker
+          format="HH:mm"
+          showNow={false}
+          minuteStep={30}
+          hideDisabledOptions
+          inputReadOnly={true}
+          value={record.end_time}
+          disabled={record.absence !== 'Partial Day'}
+          onChange={(time) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key ? { ...p, end_time: time } : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
     },
     ...(tableData.length > 1
       ? [
@@ -161,7 +215,9 @@ export default function TeamAbsences({ onNext }) {
       name: '',
       reason: '',
       absence: '',
-      position: ''
+      position: '',
+      startTime: null,
+      endTime: null
     };
     setTableData([...tableData, newAbsence]);
   };
@@ -173,7 +229,16 @@ export default function TeamAbsences({ onNext }) {
         .map((item) => ({
           ...item,
           user: item.name,
-          eodsubmission: Number(id)
+          eodsubmission: Number(id),
+          // Convert time objects to strings if they exist
+          startTime:
+            item.absence === 'Partial Day' && item.startTime
+              ? item.startTime.format('HH:mm')
+              : null,
+          endTime:
+            item.absence === 'Partial Day' && item.endTime
+              ? item.endTime.format('HH:mm')
+              : null
         }));
       if (payload.length > 0) {
         setLoading(true);
@@ -205,7 +270,9 @@ export default function TeamAbsences({ onNext }) {
           absence: item.absence,
           position: item.position,
           name: item.user?.id || item.name,
-          key: item.id?.toString() || item.key?.toString()
+          key: item.id?.toString() || item.key?.toString(),
+          startTime: item.startTime || null,
+          endTime: item.endTime || null
         }));
         setTableData(transformedData);
       }
@@ -216,8 +283,7 @@ export default function TeamAbsences({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-medium text-black">Current Day</h1>
+        <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
             onClick={handleAddNew}

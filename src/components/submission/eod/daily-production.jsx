@@ -56,11 +56,7 @@ export default function DailyProduction({ onNext }) {
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
-    {
-      key: 'totalProduction',
-      title: 'Total Production',
-      dataIndex: 'totalProduction'
-    },
+
     {
       key: 'DDS',
       dataIndex: 'DDS',
@@ -70,6 +66,11 @@ export default function DailyProduction({ onNext }) {
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
+    },
+    {
+      key: 'totalProduction',
+      title: 'Total Production',
+      dataIndex: 'totalProduction'
     },
     {
       key: 'goal',
@@ -85,21 +86,21 @@ export default function DailyProduction({ onNext }) {
 
   const providersColumns = [
     {
-      width: 100,
+      width: 250,
       key: 'type',
       title: 'Title',
       dataIndex: 'type',
       render: (type) => type || 'N/A'
     },
     {
-      width: 100,
+      width: 250,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
       render: (name) => name || 'N/A'
     },
     {
-      width: 100,
+      width: 50,
       editable: true,
       inputType: 'number',
       title: 'Production',
@@ -231,16 +232,11 @@ export default function DailyProduction({ onNext }) {
           dataSource={summaryData}
           columns={totalProductionColumns}
         />
-        <div>
-          <h1 className="text-base font-medium text-black mb-4">
-            Daily Production ($)
-          </h1>
-          <GenericTable
-            dataSource={tableData}
-            columns={providersColumns}
-            onCellChange={handleCellChange}
-          />
-        </div>
+        <GenericTable
+          dataSource={tableData}
+          columns={providersColumns}
+          onCellChange={handleCellChange}
+        />
       </div>
       <StepNavigation onNext={handleSubmit} />
     </React.Fragment>

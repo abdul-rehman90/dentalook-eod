@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Dropdown, Tabs } from 'antd';
 import { Icons } from '@/common/assets';
-import { DownOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
-import { Button } from '@/common/components/button/button';
 import { removeUserAndToken } from '@/common/utils/auth-user';
+import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
 
 const items = [
   {
@@ -31,6 +30,7 @@ const items = [
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const [currentTime, setCurrentTime] = useState(getCanadianTimeFormatted());
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
 
   const menuProps = {
@@ -111,18 +111,8 @@ export default function Header() {
             />
           )}
         </div>
-        <div className="flex items-center space-x-3">
-          <Dropdown menu={menuProps}>
-            <Button
-              size="sm"
-              variant="outline"
-              className="!px-5 h-8.5 text-black"
-            >
-              <Image src={Icons.share} alt="share" />
-              Share
-              <DownOutlined style={{ width: 14, height: 14 }} />
-            </Button>
-          </Dropdown>
+        <div className="flex items-center gap-8">
+          <p className="text-xs text-black font-medium">{currentTime}</p>
           <Dropdown
             menu={{
               items: [
