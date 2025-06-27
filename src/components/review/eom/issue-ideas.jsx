@@ -51,7 +51,6 @@ export default function IssuesIdeas() {
   return (
     <React.Fragment>
       <div className="px-6">
-        <h1 className="text-base font-medium text-black mb-4">Issues/Ideas</h1>
         <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={() => router.push('/review/list/eom')} />

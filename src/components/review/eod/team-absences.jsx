@@ -70,6 +70,40 @@ export default function TeamAbsences({ onNext }) {
         { value: 'Full Day', label: 'Full Day' },
         { value: 'Partial Day', label: 'Partial Day' }
       ]
+    },
+    {
+      width: 100,
+      key: 'start_time',
+      title: 'Start Time',
+      dataIndex: 'start_time',
+      render: (_, record) => (
+        <TimePicker
+          disabled
+          format="HH:mm"
+          showNow={false}
+          minuteStep={30}
+          hideDisabledOptions
+          inputReadOnly={true}
+          value={record.start_time}
+        />
+      )
+    },
+    {
+      width: 100,
+      key: 'end_time',
+      title: 'End Time',
+      dataIndex: 'end_time',
+      render: (_, record) => (
+        <TimePicker
+          disabled
+          format="HH:mm"
+          showNow={false}
+          minuteStep={30}
+          hideDisabledOptions
+          inputReadOnly={true}
+          value={record.start_time}
+        />
+      )
     }
   ];
 
@@ -89,7 +123,6 @@ export default function TeamAbsences({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <h1 className="text-base font-medium text-black mb-4">Current Day</h1>
         <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />

@@ -17,7 +17,7 @@ const stepConfig = {
     { id: 'basic', name: 'Basic Details' },
     { id: 'active', name: 'Active Providers' },
     { id: 'daily', name: 'Daily Production' },
-    { id: 'payment', name: 'Payment' },
+    { id: 'payment', name: 'Payments' },
     { id: 'team', name: 'Team Absences' },
     // { id: 'schedule', name: 'Schedule Openings' },
     { id: 'patient', name: 'Patient Tracking' },

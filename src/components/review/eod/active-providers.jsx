@@ -37,21 +37,6 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 50,
-      editable: true,
-      inputType: 'number',
-      title: 'Patients Seen',
-      key: 'number_of_patients_seen',
-      dataIndex: 'number_of_patients_seen',
-      render: (_, record) => (
-        <Input
-          disabled
-          type="number"
-          value={record.number_of_patients_seen || ''}
-        />
-      )
-    },
-    {
       width: 100,
       key: 'start_time',
       title: 'Start Time',
@@ -82,6 +67,21 @@ export default function ActiveProviders({ onNext }) {
           hideDisabledOptions
           inputReadOnly={true}
           value={record.end_time}
+        />
+      )
+    },
+    {
+      width: 50,
+      editable: true,
+      inputType: 'number',
+      title: 'Patients Seen',
+      key: 'number_of_patients_seen',
+      dataIndex: 'number_of_patients_seen',
+      render: (_, record) => (
+        <Input
+          disabled
+          type="number"
+          value={record.number_of_patients_seen || ''}
         />
       )
     },
@@ -139,9 +139,6 @@ export default function ActiveProviders({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="mb-4">
-          <h1 className="text-base font-medium text-black">Active Providers</h1>
-        </div>
         <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />

@@ -107,19 +107,11 @@ export default function PatientTracking({ onNext }) {
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
+      <div className="flex flex-col gap-6 px-6">
         <Col span={10}>
-          <h2 className="text-base font-medium text-black mb-4">
-            New Patients
-          </h2>
           <GenericTable dataSource={summaryData} columns={newPatientColumns} />
         </Col>
-        <div>
-          <h1 className="text-base font-medium text-black mb-4">
-            Patient Source
-          </h1>
-          <GenericTable dataSource={tableData} columns={patientSourceColumns} />
-        </div>
+        <GenericTable dataSource={tableData} columns={patientSourceColumns} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

@@ -53,9 +53,6 @@ export default function ClinicalUpgrade({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <h1 className="text-base font-medium text-black mb-4">
-          Clinic Upgrades
-        </h1>
         <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />

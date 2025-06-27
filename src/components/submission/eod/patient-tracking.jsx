@@ -201,30 +201,24 @@ export default function PatientTracking({ onNext }) {
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
+      <div className="flex flex-col gap-4 px-6">
         <Col span={10}>
-          <h2 className="text-base font-medium text-black mb-4">
-            New Patients
-          </h2>
           <GenericTable dataSource={summaryData} columns={newPatientColumns} />
         </Col>
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">Patient Source</h1>
-            <Button
-              size="lg"
-              onClick={handleAddNew}
-              className="h-9 !shadow-none text-black !rounded-lg"
-            >
-              Add New Patient
-            </Button>
-          </div>
-          <GenericTable
-            dataSource={tableData}
-            columns={patientSourceColumns}
-            onCellChange={handleCellChange}
-          />
+        <div className="flex items-center justify-end">
+          <Button
+            size="lg"
+            onClick={handleAddNew}
+            className="h-9 !shadow-none text-black !rounded-lg"
+          >
+            Add New Patient
+          </Button>
         </div>
+        <GenericTable
+          dataSource={tableData}
+          columns={patientSourceColumns}
+          onCellChange={handleCellChange}
+        />
       </div>
       <StepNavigation onNext={handleSubmit} />
     </React.Fragment>

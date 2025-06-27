@@ -91,32 +91,6 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
-      width: 50,
-      title: 'Patients Seen',
-      key: 'number_of_patients_seen',
-      dataIndex: 'number_of_patients_seen',
-      render: (_, record) => (
-        <Input
-          type="number"
-          disabled={!record.is_active}
-          value={record.number_of_patients_seen || ''}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    number_of_patients_seen: e.target.value
-                      ? parseInt(e.target.value)
-                      : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
-        />
-      )
-    },
-    {
       width: 100,
       key: 'start_time',
       title: 'Start Time',
@@ -158,6 +132,32 @@ export default function ActiveProviders({ onNext }) {
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, end_time: time } : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 50,
+      title: 'Patients Seen',
+      key: 'number_of_patients_seen',
+      dataIndex: 'number_of_patients_seen',
+      render: (_, record) => (
+        <Input
+          type="number"
+          disabled={!record.is_active}
+          value={record.number_of_patients_seen || ''}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    number_of_patients_seen: e.target.value
+                      ? parseInt(e.target.value)
+                      : null
+                  }
+                : p
             );
             setTableData(updatedProviders);
           }}
@@ -216,8 +216,8 @@ export default function ActiveProviders({ onNext }) {
     },
     {
       width: 50,
+      title: 'Short Notice',
       key: 'short_notice_cancellations',
-      title: 'Short Notice Cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
         <Input
@@ -284,7 +284,14 @@ export default function ActiveProviders({ onNext }) {
         short_notice_cancellations: ''
       };
       toast.success('Record is successfully saved');
-      setTableData((prev) => [...prev, newProvider]);
+      setTableData((prev) => {
+        const updatedProviders = [newProvider, ...prev];
+        return updatedProviders.sort((a, b) => {
+          if (a.type === 'DDS' && b.type !== 'DDS') return -1;
+          if (a.type !== 'DDS' && b.type === 'DDS') return 1;
+          return 0;
+        });
+      });
     }
   };
 
@@ -331,18 +338,24 @@ export default function ActiveProviders({ onNext }) {
   const fetchProviders = async () => {
     try {
       const { data } = await EODReportService.getProviders(clinicId);
-      const baseProviders = data.providers.map((provider) => ({
-        no_shows: '',
-        end_time: null,
-        id: provider.id,
-        start_time: null,
-        key: provider.id,
-        is_active: false,
-        unfilled_spots: '',
-        name: provider.name,
-        type: provider.user_type,
-        short_notice_cancellations: ''
-      }));
+      const baseProviders = data.providers
+        .map((provider) => ({
+          no_shows: '',
+          end_time: null,
+          id: provider.id,
+          start_time: null,
+          key: provider.id,
+          is_active: false,
+          unfilled_spots: '',
+          name: provider.name,
+          type: provider.user_type,
+          short_notice_cancellations: ''
+        }))
+        .sort((a, b) => {
+          if (a.type === 'DDS' && b.type !== 'DDS') return -1;
+          if (a.type !== 'DDS' && b.type === 'DDS') return 1;
+          return 0;
+        });
 
       if (currentStepData?.length > 0) {
         const mergedData = baseProviders.map((provider) => {
@@ -388,8 +401,7 @@ export default function ActiveProviders({ onNext }) {
         <GetModalContent />
       </AddModal>
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-medium text-black">Active Providers</h1>
+        <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
             onClick={() => setIsModalOpen(true)}

@@ -141,8 +141,7 @@ export default function IssuesIdeas() {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-medium text-black">Issues/Ideas</h1>
+        <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
             onClick={handleAddNew}
