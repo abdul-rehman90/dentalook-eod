@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
@@ -280,9 +281,11 @@ export default function HiringTraining({ onNext }) {
           <div className="flex items-center justify-end mb-4">
             <Button
               size="lg"
+              variant="destructive"
               onClick={handleAddNewHiring}
-              className="h-9 !shadow-none text-black !rounded-lg"
+              className="!px-0 text-primary-300"
             >
+              <PlusOutlined />
               Add New Hiring
             </Button>
           </div>
@@ -296,9 +299,11 @@ export default function HiringTraining({ onNext }) {
           <div className="flex items-center justify-end mb-4">
             <Button
               size="lg"
+              variant="destructive"
               onClick={handleAddNewTraining}
-              className="h-9 !shadow-none text-black !rounded-lg"
+              className="!px-0 text-primary-300"
             >
+              <PlusOutlined />
               Add New Training
             </Button>
           </div>

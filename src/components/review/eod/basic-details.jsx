@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Form } from 'antd';
+import { Form, Row } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -40,45 +40,53 @@ export default function BasicDetails({ onNext }) {
 
   return (
     <React.Fragment>
-      <Form form={form} style={{ width: '50%', padding: '0 24px' }}>
-        <FormControl
-          disabled
-          name="province"
-          control="input"
-          label="Province"
-        />
-        <FormControl
-          disabled
-          control="input"
-          name="regional_manager"
-          label="Regional Manager"
-        />
-        <FormControl
-          disabled
-          control="input"
-          name="practice_name"
-          label="Practice Name"
-        />
-        <FormControl
-          disabled
-          control="date"
-          name="submission_date"
-          label="Submission Date"
-        />
-        <FormControl
-          disabled
-          name="clinic"
-          control="radio"
-          options={options}
-          label="Clinic Open/Closed?"
-        />
-        <FormControl
-          disabled
-          control="time"
-          name="open_from"
-          label="Open From"
-        />
-        <FormControl disabled control="time" name="open_to" label="Open To" />
+      <Form form={form} style={{ padding: '0 24px' }}>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            name="province"
+            control="input"
+            label="Province"
+          />
+          <FormControl
+            disabled
+            control="input"
+            name="regional_manager"
+            label="Regional Manager"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            control="input"
+            name="practice_name"
+            label="Practice Name"
+          />
+          <FormControl
+            disabled
+            control="date"
+            name="submission_date"
+            label="Submission Date"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            name="clinic"
+            control="radio"
+            options={options}
+            label="Clinic Open/Closed?"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            control="time"
+            name="open_from"
+            label="Open From"
+          />
+          <FormControl disabled control="time" name="open_to" label="Open To" />
+        </Row>
       </Form>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

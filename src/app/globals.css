@@ -227,6 +227,7 @@
 
 .ant-tabs .ant-tabs-tab-active {
   font-weight: 700;
+  color: '#030303';
   border-bottom: 2px solid #339d5c;
 }
 
@@ -259,6 +260,10 @@
 
 .custom-checkbox .ant-checkbox-checked::after {
   border-color: #339d5c;
+}
+
+.add-provider-form > div {
+  width: 100% !important;
 }
 
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {

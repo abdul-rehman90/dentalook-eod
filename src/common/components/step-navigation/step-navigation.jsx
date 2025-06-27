@@ -26,7 +26,7 @@ export default function StepNavigation({ onNext }) {
   };
 
   return (
-    <div className="flex items-center gap-4 border-t-1 border-t-secondary-50 mt-6 pt-6 px-6">
+    <div className="flex items-center gap-4 border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6">
       {currentStep > 1 && (
         <Button
           size="lg"
