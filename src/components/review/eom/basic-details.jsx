@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Form } from 'antd';
+import { Form, Row } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -26,34 +26,38 @@ export default function BasicDetails({ onNext }) {
 
   return (
     <React.Fragment>
-      <Form form={form} style={{ width: '50%', padding: '0 24px' }}>
-        <FormControl
-          disabled
-          name="province"
-          control="input"
-          label="Province"
-        />
-        <FormControl
-          disabled
-          control="input"
-          name="regional_manager"
-          label="Regional Manager"
-        />
-        <FormControl
-          disabled
-          control="input"
-          name="practice_name"
-          label="Practice Name"
-        />
-        <FormControl
-          disabled
-          control="date"
-          picker="month"
-          format="MMM YYYY"
-          name="submission_month"
-          label="Submission Month"
-          placeholder="Select Date"
-        />
+      <Form form={form} style={{ padding: '0 24px' }}>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            name="province"
+            control="input"
+            label="Province"
+          />
+          <FormControl
+            disabled
+            control="input"
+            name="regional_manager"
+            label="Regional Manager"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            disabled
+            control="input"
+            name="practice_name"
+            label="Practice Name"
+          />
+          <FormControl
+            disabled
+            control="date"
+            picker="month"
+            format="MMM YYYY"
+            name="submission_month"
+            label="Submission Month"
+            placeholder="Select Date"
+          />
+        </Row>
         <div className="proud-moment">
           <FormControl
             disabled

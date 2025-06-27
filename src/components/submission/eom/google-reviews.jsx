@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
+import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-import { EOMReportService } from '@/common/services/eom-report';
-import toast from 'react-hot-toast';
 
 const defaultRow = {
   key: '1',

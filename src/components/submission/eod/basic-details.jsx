@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Form } from 'antd';
+import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { FormControl } from '@/common/utils/form-control';
@@ -197,7 +197,7 @@ export default function BasicDetails() {
     <React.Fragment>
       <Form
         form={form}
-        style={{ width: '50%', padding: '0 24px' }}
+        style={{ padding: '0 24px' }}
         onValuesChange={(changedValues) => {
           if ('status' in changedValues) {
             if (changedValues.status !== 'opened') {
@@ -206,41 +206,47 @@ export default function BasicDetails() {
           }
         }}
       >
-        <FormControl
-          required={!id}
-          name="province"
-          control="select"
-          label="Province"
-          options={provinces}
-          onChange={handleProvinceChange}
-        />
-        <FormControl
-          name="clinic"
-          required={!id}
-          control="select"
-          options={practices}
-          label="Practice Name"
-          onChange={handleClinicChange}
-        />
-        <FormControl
-          name="user"
-          control="select"
-          label="Regional Manager"
-          options={regionalManagers}
-          disabled={!form.getFieldValue('clinic')}
-        />
-        <FormControl
-          required={!id}
-          control="date"
-          name="submission_date"
-          label="Submission Date"
-        />
-        <FormControl
-          name="status"
-          control="radio"
-          options={options}
-          label="Clinic Open/Closed?"
-        />
+        <Row justify="space-between">
+          <FormControl
+            required={!id}
+            name="province"
+            control="select"
+            label="Province"
+            options={provinces}
+            onChange={handleProvinceChange}
+          />
+          <FormControl
+            name="user"
+            control="select"
+            label="Regional Manager"
+            options={regionalManagers}
+            disabled={!form.getFieldValue('clinic')}
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            name="clinic"
+            required={!id}
+            control="select"
+            options={practices}
+            label="Practice Name"
+            onChange={handleClinicChange}
+          />
+          <FormControl
+            required={!id}
+            control="date"
+            name="submission_date"
+            label="Submission Date"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            name="status"
+            control="radio"
+            options={options}
+            label="Clinic Open/Closed?"
+          />
+        </Row>
         <Form.Item
           noStyle
           shouldUpdate={(prevValues, currentValues) =>
@@ -250,7 +256,7 @@ export default function BasicDetails() {
           {({ getFieldValue }) => {
             const isOpened = getFieldValue('status') === 'opened';
             return (
-              <React.Fragment>
+              <Row justify="space-between">
                 <FormControl
                   control="time"
                   label="Open From"
@@ -265,7 +271,7 @@ export default function BasicDetails() {
                   disabled={!isOpened}
                   name="clinic_close_time"
                 />
-              </React.Fragment>
+              </Row>
             );
           }}
         </Form.Item>

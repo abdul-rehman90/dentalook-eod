@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Col, Row, Input, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -27,14 +28,6 @@ const paymentOptions = [
   { value: 'EFT PAYMENT', label: 'EFT PAYMENT' },
   { value: 'CASH', label: 'CASH' }
 ];
-
-const createInitialPayments = () => {
-  return paymentOptions.map((option, index) => ({
-    key: index + 1,
-    type: option.value,
-    amount: ''
-  }));
-};
 
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
@@ -277,9 +270,11 @@ export default function Payment({ onNext }) {
         <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
+            variant="destructive"
             onClick={handleAddNew}
-            className="h-9 !shadow-none text-black !rounded-lg"
+            className="!px-0 text-primary-300"
           >
+            <PlusOutlined />
             Add New Payment
           </Button>
         </div>

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { useRouter } from 'next/navigation';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -208,9 +209,11 @@ export default function Referrals() {
         <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
+            variant="destructive"
             onClick={handleAddNew}
-            className="h-9 !shadow-none text-black !rounded-lg"
+            className="!px-0 text-primary-300"
           >
+            <PlusOutlined />
             Add New Refferals
           </Button>
         </div>

@@ -33,20 +33,6 @@ export default function Header() {
   const [currentTime, setCurrentTime] = useState(getCanadianTimeFormatted());
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
 
-  const menuProps = {
-    items: [
-      {
-        label: 'Copy link',
-        key: '1'
-      },
-      {
-        label: 'Add to Teams',
-        key: '2'
-      }
-    ],
-    onClick: handleMenuClick
-  };
-
   const getActiveKey = () => {
     if (pathname.startsWith('/submission/eod')) {
       return '/submission/eod';
@@ -79,24 +65,20 @@ export default function Header() {
     }
   };
 
-  function handleMenuClick(e) {
-    console.log('click', e);
-  }
-
   function handleSignOut() {
     removeUserAndToken();
     router.push('/login');
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-secondary-50 p-6">
+    <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-13 py-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center gap-8">
           <div
             className="cursor-pointer"
             onClick={() => router.push('/clinics-reporting')}
           >
-            <Image src={Icons.logo} alt="logo" />
+            <Image src={Icons.logo2} alt="logo" />
           </div>
           {!isMainRoute && (
             <Tabs
@@ -104,10 +86,6 @@ export default function Header() {
               onChange={onChange}
               activeKey={activeKey}
               className="[&_.ant-tabs-nav]:!mb-0"
-              tabBarStyle={{
-                fontWeight: 500,
-                color: '#030303'
-              }}
             />
           )}
         </div>
