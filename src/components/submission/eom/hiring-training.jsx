@@ -277,8 +277,7 @@ export default function HiringTraining({ onNext }) {
     <React.Fragment>
       <div className="flex flex-col gap-8 px-6">
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">Hiring</h1>
+          <div className="flex items-center justify-end mb-4">
             <Button
               size="lg"
               onClick={handleAddNewHiring}
@@ -294,8 +293,7 @@ export default function HiringTraining({ onNext }) {
           />
         </div>
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-medium text-black">Training</h1>
+          <div className="flex items-center justify-end mb-4">
             <Button
               size="lg"
               onClick={handleAddNewTraining}
@@ -315,3 +313,5 @@ export default function HiringTraining({ onNext }) {
     </React.Fragment>
   );
 }
+
+//  <h1 className="text-base font-medium text-black">Hiring</h1>

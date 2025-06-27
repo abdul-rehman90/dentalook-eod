@@ -42,11 +42,7 @@ export default function DailyProduction({ onNext }) {
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
-    {
-      key: 'totalProduction',
-      title: 'Total Production',
-      dataIndex: 'totalProduction'
-    },
+
     {
       key: 'DDS',
       dataIndex: 'DDS',
@@ -57,10 +53,11 @@ export default function DailyProduction({ onNext }) {
       dataIndex: 'RDH',
       title: 'Total (RDH)'
     },
+
     {
-      key: 'RDT',
-      dataIndex: 'RDT',
-      title: 'Total (RDT)'
+      key: 'totalProduction',
+      title: 'Total Production',
+      dataIndex: 'totalProduction'
     },
     {
       key: 'goal',
@@ -76,19 +73,19 @@ export default function DailyProduction({ onNext }) {
 
   const dailyProductionColumns = [
     {
-      width: 150,
+      width: 300,
       key: 'type',
       title: 'Title',
       dataIndex: 'type'
     },
     {
-      width: 150,
+      width: 300,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 150,
+      width: 50,
       editable: true,
       disabled: true,
       inputType: 'number',
@@ -117,15 +114,7 @@ export default function DailyProduction({ onNext }) {
           dataSource={summaryData}
           columns={totalProductionColumns}
         />
-        <div>
-          <h1 className="text-base font-medium text-black mb-4">
-            Daily Production ($)
-          </h1>
-          <GenericTable
-            dataSource={tableData}
-            columns={dailyProductionColumns}
-          />
-        </div>
+        <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>
