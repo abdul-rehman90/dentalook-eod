@@ -155,8 +155,7 @@ export default function AttritionTracking({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-medium text-black">Attrition Reason</h1>
+        <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
             onClick={handleAddNew}
@@ -175,11 +174,3 @@ export default function AttritionTracking({ onNext }) {
     </React.Fragment>
   );
 }
-
-// <Col span={10}>
-//         <h2 className="text-base font-medium text-black mb-4">Attrition</h2>
-//         <GenericTable
-//           dataSource={summaryData}
-//           columns={newAttritionColumns}
-//         />
-//       </Col>

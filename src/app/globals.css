@@ -157,6 +157,11 @@
   line-height: normal;
   border: 1px solid #d9d9d9 !important;
 }
+
+/* .ant-table .ant-table-tbody .ant-input {
+  width: 30%;
+} */
+
 .ant-table .ant-table-tbody .ant-select-selector {
   padding: 0 !important;
   border: none !important;
@@ -164,6 +169,7 @@
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
 .ant-table .ant-table-tbody .ant-input:focus,
 .ant-table .ant-table-tbody .ant-picker:focus,
 .ant-table .ant-table-tbody .ant-input-focused,
@@ -213,11 +219,14 @@
 }
 
 .ant-tabs .ant-tabs-tab {
+  font-weight: 500;
+  color: #030303;
   padding: 6px 0 !important;
   margin-left: 20px !important;
 }
 
 .ant-tabs .ant-tabs-tab-active {
+  font-weight: 700;
   border-bottom: 2px solid #339d5c;
 }
 

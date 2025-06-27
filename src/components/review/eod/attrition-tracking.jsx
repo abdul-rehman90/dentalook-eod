@@ -63,9 +63,6 @@ export default function AttritionTracking({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
-        <div className="mb-4">
-          <h1 className="text-base font-medium text-black">Attrition Reason</h1>
-        </div>
         <GenericTable columns={columns} dataSource={tableData} />
       </div>
       <StepNavigation onNext={onNext} />

@@ -109,15 +109,9 @@ export default function HiringTraining({ onNext }) {
 
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
-        <div>
-          <h1 className="text-base font-medium text-black mb-4">Hiring</h1>
-          <GenericTable columns={hiringColumns} dataSource={hiringData} />
-        </div>
-        <div>
-          <h1 className="text-base font-medium text-black mb-4">Training</h1>
-          <GenericTable columns={trainingColumns} dataSource={trainingData} />
-        </div>
+      <div className="flex flex-col gap-6 px-6">
+        <GenericTable columns={hiringColumns} dataSource={hiringData} />
+        <GenericTable columns={trainingColumns} dataSource={trainingData} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>
