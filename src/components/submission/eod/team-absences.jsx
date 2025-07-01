@@ -8,6 +8,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import dayjs from 'dayjs';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
@@ -24,8 +25,8 @@ const defaultRow = {
   reason: '',
   absence: '',
   position: '',
-  startTime: null,
-  endTime: null
+  end_time: null,
+  start_time: null
 };
 
 export default function TeamAbsences({ onNext }) {
@@ -216,8 +217,8 @@ export default function TeamAbsences({ onNext }) {
       reason: '',
       absence: '',
       position: '',
-      startTime: null,
-      endTime: null
+      end_time: null,
+      start_time: null
     };
     setTableData([...tableData, newAbsence]);
   };
@@ -230,14 +231,13 @@ export default function TeamAbsences({ onNext }) {
           ...item,
           user: item.name,
           eodsubmission: Number(id),
-          // Convert time objects to strings if they exist
-          startTime:
-            item.absence === 'Partial Day' && item.startTime
-              ? item.startTime.format('HH:mm')
+          start_time:
+            item.absence === 'Partial Day' && item.start_time
+              ? dayjs(item.start_time)
               : null,
-          endTime:
-            item.absence === 'Partial Day' && item.endTime
-              ? item.endTime.format('HH:mm')
+          end_time:
+            item.absence === 'Partial Day' && item.end_time
+              ? dayjs(item.end_time)
               : null
         }));
       if (payload.length > 0) {
@@ -271,8 +271,8 @@ export default function TeamAbsences({ onNext }) {
           position: item.position,
           name: item.user?.id || item.name,
           key: item.id?.toString() || item.key?.toString(),
-          startTime: item.startTime || null,
-          endTime: item.endTime || null
+          end_time: item.end_time ? dayjs(item.end_time) : null,
+          start_time: item.start_time ? dayjs(item.start_time) : null
         }));
         setTableData(transformedData);
       }
