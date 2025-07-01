@@ -40,20 +40,41 @@ export default function GoogleReviews({ onNext }) {
     {
       editable: true,
       inputType: 'number',
-      key: 'google_review_count',
-      dataIndex: 'google_review_count',
+      key: 'google_review_score',
+      dataIndex: 'google_review_score',
       title: 'Current Google Score (Out of 5)'
     },
     {
       editable: true,
       inputType: 'number',
-      key: 'google_review_score',
+      key: 'google_review_count',
       title: 'Google Reviews (#)',
-      dataIndex: 'google_review_score'
+      dataIndex: 'google_review_count'
     }
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
+    if (dataIndex === 'google_review_score') {
+      const numericValue = parseFloat(value);
+      if (numericValue > 5) {
+        toast.error('Google review score cannot be greater than 5');
+        return;
+      }
+
+      if (numericValue < 0) {
+        toast.error('Google review score cannot be negative');
+        return;
+      }
+    }
+
+    if (dataIndex === 'google_review_count') {
+      const numericValue = parseInt(value);
+      if (numericValue < 0) {
+        toast.error('Review count cannot be negative');
+        return;
+      }
+    }
+
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -67,7 +88,9 @@ export default function GoogleReviews({ onNext }) {
 
       if (rowData.google_review_count && rowData.google_review_score) {
         setLoading(true);
-        const payload = { ...rowData };
+        const payload = {
+          ...rowData
+        };
         const response = await EOMReportService.addSuppliesAndGoogleReviews(
           id,
           payload
