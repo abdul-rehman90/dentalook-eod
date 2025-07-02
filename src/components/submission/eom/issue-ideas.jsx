@@ -3,6 +3,7 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { useRouter } from 'next/navigation';
+import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
@@ -144,9 +145,11 @@ export default function IssuesIdeas() {
         <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
+            variant="destructive"
             onClick={handleAddNew}
-            className="h-9 !shadow-none text-black !rounded-lg"
+            className="!px-0 text-primary-300"
           >
+            <PlusOutlined />
             Add Issue/Idea
           </Button>
         </div>

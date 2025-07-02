@@ -49,8 +49,9 @@ export default function DatePickerField({
     <Form.Item
       name={name}
       labelAlign="left"
-      labelCol={{ span: 12 }}
-      wrapperCol={{ span: 12 }}
+      labelCol={{ span: 10 }}
+      style={{ width: '50%' }}
+      wrapperCol={{ span: 13 }}
       rules={[{ required, message: `${label} is required` }]}
       label={
         <span className="text-base font-medium text-black">

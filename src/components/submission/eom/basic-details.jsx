@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { Form } from 'antd';
+import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { FormControl } from '@/common/utils/form-control';
@@ -164,39 +164,43 @@ export default function BasicDetails() {
       <Form
         form={form}
         initialValues={initialValues}
-        style={{ width: '50%', padding: '0 24px' }}
+        style={{ padding: '0 24px' }}
       >
-        <FormControl
-          required={!id}
-          name="province"
-          control="select"
-          label="Province"
-          options={provinces}
-          onChange={handleProvinceChange}
-        />
-        <FormControl
-          name="clinic"
-          required={!id}
-          control="select"
-          options={practices}
-          label="Practice Name"
-          onChange={handleClinicChange}
-        />
-        <FormControl
-          name="user"
-          control="select"
-          label="Regional Manager"
-          options={regionalManagers}
-        />
-        <FormControl
-          control="date"
-          picker="month"
-          required={!id}
-          format="MMM YYYY"
-          name="submission_month"
-          label="Submission Month"
-          placeholder="Select Date"
-        />
+        <Row justify="space-between">
+          <FormControl
+            required={!id}
+            name="province"
+            control="select"
+            label="Province"
+            options={provinces}
+            onChange={handleProvinceChange}
+          />
+          <FormControl
+            name="user"
+            control="select"
+            label="Regional Manager"
+            options={regionalManagers}
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            name="clinic"
+            required={!id}
+            control="select"
+            options={practices}
+            label="Practice Name"
+            onChange={handleClinicChange}
+          />
+          <FormControl
+            control="date"
+            picker="month"
+            required={!id}
+            format="MMM YYYY"
+            name="submission_month"
+            label="Submission Month"
+            placeholder="Select Date"
+          />
+        </Row>
         <div className="proud-moment">
           <FormControl
             control="input"
