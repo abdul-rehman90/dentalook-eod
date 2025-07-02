@@ -15,13 +15,33 @@ export default function DatePickerField({
   const disabledDate = disableFutureDates
     ? (current) => {
         if (!current) return false;
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // Get tomorrow's date by adding 1 day
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        // Disable dates after tomorrow (starting from day after tomorrow)
-        return current.toDate() > tomorrow;
+
+        if (picker === 'month') {
+          // For month picker, compare year and month only
+          const currentYear = current.year();
+          const currentMonth = current.month(); // 0-11 (Jan-Dec)
+          const todayYear = today.getFullYear();
+          const todayMonth = today.getMonth();
+
+          // Allow current month and next month
+          const nextMonth = new Date(todayYear, todayMonth + 1, 1);
+          const nextMonthYear = nextMonth.getFullYear();
+          const nextMonthMonth = nextMonth.getMonth();
+
+          // Disable months after next month
+          return (
+            currentYear > nextMonthYear ||
+            (currentYear === nextMonthYear && currentMonth > nextMonthMonth)
+          );
+        } else {
+          // Original day-level logic
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          return current.toDate() > tomorrow;
+        }
       }
     : undefined;
 
