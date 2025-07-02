@@ -26,7 +26,7 @@ function Stepper({ className }) {
 
   return (
     <div
-      className={`p-6 w-full max-w-[263px] sticky top-[86px] flex flex-col gap-12 bg-white overflow-auto max-h-[calc(100vh-88px)] rounded-l-lg ${className}`}
+      className={`py-3 sticky flex flex-col gap-12 overflow-auto max-h-[calc(100vh-77px)] ${className}`}
     >
       {steps.map((step, index) => {
         const stepNumber = index + 1;

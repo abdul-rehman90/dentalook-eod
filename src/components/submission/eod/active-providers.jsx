@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
+import { PlusOutlined } from '@ant-design/icons';
 import { Checkbox, Input, TimePicker } from 'antd';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
@@ -244,7 +245,7 @@ export default function ActiveProviders({ onNext }) {
 
   const GetModalContent = () => {
     return (
-      <React.Fragment>
+      <div className="add-provider-form">
         <FormControl
           required
           name="name"
@@ -259,7 +260,7 @@ export default function ActiveProviders({ onNext }) {
           label="Provider Type"
           options={providerTypes}
         />
-      </React.Fragment>
+      </div>
     );
   };
 
@@ -404,9 +405,11 @@ export default function ActiveProviders({ onNext }) {
         <div className="flex items-center justify-end mb-4">
           <Button
             size="lg"
+            variant="destructive"
+            className="!px-0 text-primary-300"
             onClick={() => setIsModalOpen(true)}
-            className="h-9 !shadow-none text-black !rounded-lg"
           >
+            <PlusOutlined />
             Add New Provider
           </Button>
         </div>
