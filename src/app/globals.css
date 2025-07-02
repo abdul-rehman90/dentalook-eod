@@ -147,6 +147,10 @@
   border-bottom: none !important;
 }
 
+.ant-table-placeholder {
+  z-index: 1 !important;
+}
+
 .ant-table .ant-table-tbody .ant-input,
 .ant-table .ant-table-tbody .ant-select,
 .ant-table .ant-table-tbody .ant-picker {
