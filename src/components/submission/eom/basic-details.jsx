@@ -42,18 +42,30 @@ export default function BasicDetails() {
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(provinceId);
-      setPractices(
-        data.clinics.map((clinic) => ({
-          value: clinic.clinic_id,
-          label: clinic.clinic_name,
-          managers: clinic.regional_managers.map((manager) => ({
-            label: manager.name,
-            value: manager.id
-          }))
+      const clinics = data.clinics.map((clinic) => ({
+        value: clinic.clinic_id,
+        label: clinic.clinic_name,
+        managers: clinic.regional_managers.map((manager) => ({
+          value: manager.id,
+          label: manager.name
         }))
-      );
-      setRegionalManagers([]);
-      form.setFieldsValue({ clinic: undefined, user: undefined });
+      }));
+
+      if (clinicId) {
+        const selectedClinic = clinics.find(
+          (clinic) => clinic.value === currentStepData.clinic
+        );
+        setPractices(clinics);
+        setRegionalManagers(selectedClinic?.managers || []);
+      } else {
+        form.setFieldsValue({
+          province: provinceId,
+          clinic: clinics[0]?.value,
+          user: clinics[0]?.managers[0]?.value
+        });
+        setPractices(clinics);
+        setRegionalManagers(clinics[0]?.managers || []);
+      }
     } catch (error) {}
   };
 
@@ -102,41 +114,15 @@ export default function BasicDetails() {
   };
 
   const initializeForm = async () => {
-    try {
-      const { data } = await EODReportService.getDataOfProvinceById(
-        currentStepData?.province_id || currentStepData?.province
-      );
-      setPractices(
-        data.clinics.map((clinic) => ({
-          value: clinic.clinic_id,
-          label: clinic.clinic_name,
-          managers: clinic.regional_managers.map((manager) => ({
-            label: manager.name,
-            value: manager.id
-          }))
-        }))
-      );
-      const selectedClinic = data.clinics.find(
-        (clinic) => clinic.clinic_id === currentStepData.clinic
-      );
-      if (selectedClinic?.regional_managers) {
-        setRegionalManagers(
-          selectedClinic.regional_managers.map((manager) => ({
-            value: manager.id,
-            label: manager.name
-          }))
-        );
-      }
-      form.setFieldsValue({
-        clinic: currentStepData.clinic,
-        province: currentStepData.province,
-        proud_moment: currentStepData.proud_moment,
-        user: currentStepData.user || currentStepData.regional_manager_id,
-        submission_month: currentStepData.submission_month
-          ? dayjs(currentStepData.submission_month)
-          : dayjs()
-      });
-    } catch (error) {}
+    form.setFieldsValue({
+      clinic: currentStepData.clinic,
+      province: currentStepData.province,
+      proud_moment: currentStepData.proud_moment,
+      user: currentStepData.user || currentStepData.regional_manager_id,
+      submission_month: currentStepData.submission_month
+        ? dayjs(currentStepData.submission_month)
+        : dayjs()
+    });
   };
 
   useEffect(() => {
@@ -154,10 +140,16 @@ export default function BasicDetails() {
   }, []);
 
   useEffect(() => {
-    if (isInitialized) initializeForm();
-  }, [isInitialized, clinicId]);
-
-  useEffect(() => setIsInitialized(true), []);
+    if (!provinces.length) return;
+    if (clinicId) {
+      handleProvinceChange(
+        currentStepData?.province_id || currentStepData?.province
+      );
+      initializeForm();
+    } else if (!id) {
+      handleProvinceChange(provinces[0].value);
+    }
+  }, [clinicId, provinces]);
 
   return (
     <React.Fragment>
