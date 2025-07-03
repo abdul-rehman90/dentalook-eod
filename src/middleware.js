@@ -20,11 +20,11 @@ export function middleware(req) {
   return NextResponse.next();
 }
 
-// export const config = {
-//   matcher: [
-//     '/login',
-//     '/clinics-reporting',
-//     '/submission/:path*',
-//     '/review/:path*'
-//   ]
-// };
+export const config = {
+  matcher: [
+    '/login',
+    '/clinics-reporting',
+    '/submission/:path*',
+    '/review/:path*'
+  ]
+};
