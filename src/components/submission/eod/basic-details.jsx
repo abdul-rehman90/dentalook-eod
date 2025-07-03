@@ -50,18 +50,26 @@ export default function BasicDetails() {
 
     try {
       const { data } = await EODReportService.getDataOfProvinceById(provinceId);
-      setPractices(
-        data.clinics.map((clinic) => ({
-          value: clinic.clinic_id,
-          label: clinic.clinic_name,
-          managers: clinic.regional_managers.map((manager) => ({
-            label: manager.name,
-            value: manager.id
-          }))
+      const clinics = data.clinics.map((clinic) => ({
+        value: clinic.clinic_id,
+        label: clinic.clinic_name,
+        managers: clinic.regional_managers.map((manager) => ({
+          value: manager.id,
+          label: manager.name
         }))
-      );
-      setRegionalManagers([]);
-      form.setFieldsValue({ clinic: undefined, user: undefined });
+      }));
+      setPractices(clinics);
+
+      if (clinics.length > 0) {
+        form.setFieldsValue({
+          clinic: clinics[0].value,
+          user: clinics[0].managers[0]?.value
+        });
+        setRegionalManagers(clinics[0].managers);
+      }
+
+      // setRegionalManagers([]);
+      // form.setFieldsValue({ clinic: undefined, user: undefined });
     } catch (error) {}
   };
 
@@ -182,6 +190,10 @@ export default function BasicDetails() {
           label: province.name
         }));
         setProvinces(provinceOptions);
+        if (data.length > 0) {
+          form.setFieldsValue({ province: data[0].id });
+          handleProvinceChange(data[0].id);
+        }
       } catch (error) {}
     };
     fetchProvinces();
