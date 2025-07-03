@@ -1,9 +1,7 @@
 import axios from 'axios';
-import { getUserAndToken } from '../utils/auth-user';
+import { getUserAndToken, removeUserAndToken } from '../utils/auth-user';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-// const BASE_URL = 'https://1030-39-53-99-222.ngrok-free.app/api/v1';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -30,6 +28,8 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     if (error.response && error.response.status === 401) {
+      removeUserAndToken();
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
