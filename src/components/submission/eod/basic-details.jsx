@@ -18,7 +18,6 @@ export default function BasicDetails() {
   const [form] = Form.useForm();
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const {
     id,
@@ -135,7 +134,6 @@ export default function BasicDetails() {
       );
     } finally {
       setLoading(false);
-      setIsInitialized(false);
     }
   };
 
