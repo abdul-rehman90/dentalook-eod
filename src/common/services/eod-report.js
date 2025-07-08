@@ -1,8 +1,8 @@
 import apiClient from '../api/axios-config';
 
 export const EODReportService = {
-  async getAllClinics() {
-    const response = await apiClient.get('/all-clinics-by-user/');
+  async getAllProvinces() {
+    const response = await apiClient.get('/upload-provinces');
     return response;
   },
 
@@ -11,28 +11,8 @@ export const EODReportService = {
     return response;
   },
 
-  async getAllProvinces() {
-    const response = await apiClient.get('/upload-provinces');
-    return response;
-  },
-
   async getDataOfProvinceById(id) {
     const response = await apiClient.get(`/province-data/${id}`);
-    return response;
-  },
-
-  async sumbmissionOfBasicDetails(payload) {
-    const response = await apiClient.post('/eod-submission/', payload);
-    return response;
-  },
-
-  async getTargetGoalByClinicId(id) {
-    const response = await apiClient.get(`/clinic-by-id/${id}`);
-    return response;
-  },
-
-  async addNewProvider(payload) {
-    const response = await apiClient.post('/add-provider/', payload);
     return response;
   },
 
@@ -41,13 +21,18 @@ export const EODReportService = {
     return response;
   },
 
-  async getActiveProviders(id) {
-    const response = await apiClient.get(`/active-providers-eod/${id}`);
+  async addNewProvider(payload) {
+    const response = await apiClient.post('/add-provider/', payload);
     return response;
   },
 
-  async handlePaymentTypeOrder(payload) {
-    const response = await apiClient.post('/payment-type-order/', payload);
+  async getTargetGoalByClinicId(id) {
+    const response = await apiClient.get(`/clinic-by-id/${id}`);
+    return response;
+  },
+
+  async getActiveProviders(id) {
+    const response = await apiClient.get(`/active-providers-eod/${id}`);
     return response;
   },
 
@@ -58,8 +43,13 @@ export const EODReportService = {
     return response;
   },
 
-  async getProduction() {
-    const response = await apiClient.get('/eod-production/');
+  async handlePaymentTypeOrder(payload) {
+    const response = await apiClient.post('/payment-type-order/', payload);
+    return response;
+  },
+
+  async addBasicDetails(payload) {
+    const response = await apiClient.post('/eod-submission/', payload);
     return response;
   },
 
@@ -83,11 +73,6 @@ export const EODReportService = {
     return response;
   },
 
-  async addScheduleOpening(payload) {
-    const response = await apiClient.post('/eod-schedule/', payload);
-    return response;
-  },
-
   async addPatientTracking(payload) {
     const response = await apiClient.post('/eod-patient-tracking/', payload);
     return response;
@@ -108,6 +93,11 @@ export const EODReportService = {
     return response;
   },
 
+  async getAllEODData(id) {
+    const response = await apiClient.get(`/eod-data/${id}/`);
+    return response;
+  },
+
   async getAllSubmissionList(filters = {}) {
     const params = new URLSearchParams();
 
@@ -123,11 +113,6 @@ export const EODReportService = {
     const response = await apiClient.get(
       `/review-eod-submission/?${params.toString()}`
     );
-    return response;
-  },
-
-  async getAllEODData(id) {
-    const response = await apiClient.get(`/eod-data/${id}/`);
     return response;
   }
 };
