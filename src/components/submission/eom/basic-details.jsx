@@ -75,11 +75,14 @@ export default function BasicDetails() {
       (clinic) => clinic.value === clinicId
     );
 
-    if (selectedClinic?.managers) {
+    if (selectedClinic?.managers?.length) {
       setRegionalManagers(selectedClinic.managers);
       form.setFieldsValue({
         user: selectedClinic.managers[0].value
       });
+    } else {
+      setRegionalManagers([]);
+      form.setFieldsValue({ user: undefined });
     }
   };
 
@@ -93,9 +96,7 @@ export default function BasicDetails() {
         submission_month: dayjs(values.submission_month).format('YYYY-MM-DD')
       };
 
-      const response = await EOMReportService.sumbmissionOfBasicDetails(
-        payload
-      );
+      const response = await EOMReportService.addBasicDetails(payload);
       if (response.status === 201) {
         updateStepData(currentStepId, payload);
         const submission_id = response.data.id;
