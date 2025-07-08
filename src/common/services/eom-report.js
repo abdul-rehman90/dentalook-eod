@@ -1,12 +1,7 @@
 import apiClient from '../api/axios-config';
 
 export const EOMReportService = {
-  async getAllClinics() {
-    const response = await apiClient.get('/all-clinics-by-user/');
-    return response;
-  },
-
-  async sumbmissionOfBasicDetails(payload) {
+  async addBasicDetails(payload) {
     const response = await apiClient.post('/eom-submission/', payload);
     return response;
   },
@@ -26,16 +21,6 @@ export const EOMReportService = {
     return response;
   },
 
-  async addIssueIdeas(payload) {
-    const response = await apiClient.post('/eom-issues-ideas/', payload);
-    return response;
-  },
-
-  async addSuppliesAndGoogleReviews(id, payload) {
-    const response = await apiClient.patch(`/eom-submission/${id}/`, payload);
-    return response;
-  },
-
   async addHiringNeed(payload) {
     const response = await apiClient.post('/eom-hiring-need/', payload);
     return response;
@@ -46,8 +31,23 @@ export const EOMReportService = {
     return response;
   },
 
+  async addSuppliesAndGoogleReviews(id, payload) {
+    const response = await apiClient.patch(`/eom-submission/${id}/`, payload);
+    return response;
+  },
+
+  async addIssueIdeas(payload) {
+    const response = await apiClient.post('/eom-issues-ideas/', payload);
+    return response;
+  },
+
   async submissionEOMReport(payload) {
     const response = await apiClient.post('/submit-eom/', payload);
+    return response;
+  },
+
+  async getAllEOMData(id) {
+    const response = await apiClient.get(`/eom-data/${id}/`);
     return response;
   },
 
@@ -67,11 +67,6 @@ export const EOMReportService = {
     const response = await apiClient.get(
       `/review-eom-submissions/?${params.toString()}`
     );
-    return response;
-  },
-
-  async getAllEOMData(id) {
-    const response = await apiClient.get(`/eom-data/${id}/`);
     return response;
   }
 };

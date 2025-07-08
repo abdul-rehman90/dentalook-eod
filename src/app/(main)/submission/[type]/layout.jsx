@@ -1,14 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import dayjs from 'dayjs';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
-import { EODReportService } from '@/common/services/eod-report';
-import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import {
   Card,
@@ -24,35 +21,8 @@ export default function SubmissionLayout({ children }) {
   const submission_date = reportData?.eod?.basic?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
 
-  useEffect(() => {
-    if (currentStep > 1 && !id) {
-      router.push(`/submission/${type}/1`);
-    }
-  }, []);
-
-  const handleSubmit = async () => {
-    try {
-      const service = type === 'eod' ? EODReportService : EOMReportService;
-      const payload = {
-        [`${type}submission_id`]: id
-      };
-
-      const response =
-        type === 'eod'
-          ? await service.submissionEODReport(payload)
-          : await service.submissionEOMReport(payload);
-
-      if (response.status === 200) {
-        toast.success(
-          `${type.toUpperCase()} submission successfully submitted`
-        );
-        router.push(`/review/list/${type}`);
-      }
-    } catch (error) {}
-  };
-
   if (currentStep > 1 && !id) {
-    return null;
+    redirect(`/submission/${type}/1`);
   }
 
   return (
