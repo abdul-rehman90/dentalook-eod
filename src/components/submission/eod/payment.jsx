@@ -43,14 +43,14 @@ export default function Payment({ onNext }) {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  const clinicId = reportData?.eod?.basic?.clinic;
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
   const sensors = [
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   ];
 
   const columns = [
     {
-      width: 200,
+      width: 50,
       key: 'type',
       editable: true,
       dataIndex: 'type',
@@ -84,21 +84,30 @@ export default function Payment({ onNext }) {
       }
     },
     {
-      width: 200,
+      width: 50,
       key: 'amount',
       editable: true,
       inputType: 'number',
       title: 'Amount ($)',
       dataIndex: 'amount'
+    },
+    {
+      width: 200,
+      key: 'remarks',
+      editable: true,
+      title: 'Remarks',
+      inputType: 'text',
+      dataIndex: 'remarks'
     }
   ];
 
   const footer = () => (
     <div className="flex items-center justify-between w-full">
       <div className="flex-1 text-left p-1.5">Total Amount</div>
-      <div className="flex-1 text-left p-1.5">
+      <div className="flex-1 text-center p-1.5">
         {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
+      <div className="flex-1 text-left p-1.5"></div>
     </div>
   );
 
@@ -159,6 +168,7 @@ export default function Payment({ onNext }) {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
       type: '',
       amount: '',
+      remarks: '',
       action: ''
     };
     setTableData([...tableData, newPayment]);
@@ -224,7 +234,8 @@ export default function Payment({ onNext }) {
           .map(([type, order]) => ({
             amount: '',
             key: order,
-            type: type
+            type: type,
+            remarks: ''
           }))
           .sort((a, b) => a.key - b.key);
 
@@ -237,6 +248,7 @@ export default function Payment({ onNext }) {
             return existingData
               ? {
                   ...payment,
+                  remarks: existingData.remarks,
                   amount: existingData.payment_amount
                 }
               : payment;
@@ -272,7 +284,7 @@ export default function Payment({ onNext }) {
             size="lg"
             variant="destructive"
             onClick={handleAddNew}
-            className="!px-0 text-primary-300"
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
           >
             <PlusOutlined />
             Add New Payment

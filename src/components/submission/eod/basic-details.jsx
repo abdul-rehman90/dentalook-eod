@@ -3,7 +3,10 @@ import dayjs from 'dayjs';
 import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import ActiveProviders from './active-providers';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
+import { formatTimeForUI } from '@/common/utils/time-handling';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -13,9 +16,25 @@ const options = [
   { label: 'Close', value: 'closed' }
 ];
 
+function generateTimeSlots(startHour, endHour, intervalMinutes) {
+  const slots = [];
+  for (let hour = startHour; hour <= endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += intervalMinutes) {
+      const period = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const timeString = `${displayHour}:${
+        minute === 0 ? '00' : minute
+      } ${period}`;
+      slots.push({ label: timeString, value: timeString });
+    }
+  }
+  return slots;
+}
+
 export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
+  const [tableData, setTableData] = useState([]);
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
@@ -29,29 +48,16 @@ export default function BasicDetails() {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  const clinicId = currentStepData?.clinic;
+  const clinicId = currentStepData?.clinicDetails?.clinic;
 
   const initialValues = {
-    user: undefined,
+    user: null,
+    clinic: null,
+    province: null,
     status: 'closed',
-    clinic: undefined,
-    province: undefined,
     clinic_open_time: null,
     clinic_close_time: null,
     submission_date: dayjs()
-  };
-
-  const clearTimeFieldValidations = () => {
-    form.setFields([
-      {
-        name: 'clinic_open_time',
-        errors: []
-      },
-      {
-        name: 'clinic_close_time',
-        errors: []
-      }
-    ]);
   };
 
   const handleProvinceChange = async (provinceId) => {
@@ -70,7 +76,7 @@ export default function BasicDetails() {
 
       if (clinicId) {
         const selectedClinic = clinics.find(
-          (clinic) => clinic.value === currentStepData.clinic
+          (clinic) => clinic.value === clinicId
         );
         setPractices(clinics);
         setRegionalManagers(selectedClinic?.managers || []);
@@ -104,8 +110,60 @@ export default function BasicDetails() {
     }
   };
 
+  const moveRouter = (submission_id, values, activeProviders = []) => {
+    toast.success('Record is successfully saved');
+    updateStepData(currentStepId, {
+      clinicDetails: values,
+      activeProviders: activeProviders
+    });
+    router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
+  };
+
+  const addActiveProviders = async (values, submission_id) => {
+    const activeProviders = tableData.filter((provider) => provider.is_active);
+
+    // If no active providers, just go to next step
+    if (activeProviders.length === 0) {
+      moveRouter(submission_id, values);
+      return;
+    }
+
+    try {
+      const payload = activeProviders.map((provider) => ({
+        ...provider,
+        user: provider.id,
+        eod_submission: Number(submission_id),
+        start_time: provider.start_time
+          ? dayjs(provider.start_time, 'h:mm a').format('HH:mm:ss')
+          : null,
+        end_time: provider.end_time
+          ? dayjs(provider.end_time, 'h:mm a').format('HH:mm:ss')
+          : null
+      }));
+      const response = await EODReportService.addActiveProviders(payload);
+      if (response.status === 201) {
+        moveRouter(submission_id, values, payload);
+      }
+    } catch (error) {}
+  };
+
   const handleSubmit = async () => {
     if (id) return router.push(`/submission/eod/${currentStep + 1}/${id}`);
+    const invalidProviders = tableData.filter(
+      (provider) =>
+        provider.is_active &&
+        (!provider.end_time ||
+          !provider.no_shows ||
+          !provider.start_time ||
+          !provider.unfilled_spots ||
+          !provider.number_of_patients_seen ||
+          !provider.short_notice_cancellations)
+    );
+
+    if (invalidProviders.length > 0) {
+      toast.error('Please set all the field values for all active providers');
+      return;
+    }
     try {
       const values = await form.validateFields();
       setLoading(true);
@@ -114,20 +172,18 @@ export default function BasicDetails() {
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
         clinic_open_time:
           values.status === 'opened'
-            ? dayjs(values.clinic_open_time).format('HH:mm:ss')
-            : undefined,
+            ? dayjs(values.clinic_open_time, 'h:mm a').format('HH:mm:ss')
+            : null,
         clinic_close_time:
           values.status === 'opened'
-            ? dayjs(values.clinic_close_time).format('HH:mm:ss')
-            : undefined
+            ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
+            : null
       };
 
       const response = await EODReportService.addBasicDetails(payload);
       if (response.status === 201) {
-        updateStepData(currentStepId, payload);
         const submission_id = response.data.data.id;
-        toast.success('Record is successfully saved');
-        router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
+        addActiveProviders(payload, submission_id);
       }
     } catch (error) {
       toast.error(
@@ -140,19 +196,21 @@ export default function BasicDetails() {
 
   const initializeForm = async () => {
     form.setFieldsValue({
-      clinic: currentStepData.clinic,
-      province: currentStepData.province,
-      status: currentStepData.status || 'closed',
-      user: currentStepData.user || currentStepData.regional_manager_id,
-      submission_date: currentStepData.submission_date
-        ? dayjs(currentStepData.submission_date)
-        : dayjs(),
-      clinic_open_time: currentStepData.clinic_open_time
-        ? dayjs(currentStepData.clinic_open_time, 'HH:mm:ss')
-        : null,
-      clinic_close_time: currentStepData.clinic_close_time
-        ? dayjs(currentStepData.clinic_close_time, 'HH:mm:ss')
-        : null
+      clinic: currentStepData.clinicDetails.clinic,
+      province: currentStepData.clinicDetails.province,
+      status: currentStepData.clinicDetails.status || 'closed',
+      clinic_open_time: formatTimeForUI(
+        currentStepData.clinicDetails.clinic_open_time
+      ),
+      clinic_close_time: formatTimeForUI(
+        currentStepData.clinicDetails.clinic_close_time
+      ),
+      user:
+        currentStepData.clinicDetails.user ||
+        currentStepData.clinicDetails.regional_manager_id,
+      submission_date: currentStepData.clinicDetails.submission_date
+        ? dayjs(currentStepData.clinicDetails.submission_date)
+        : dayjs()
     });
   };
 
@@ -174,7 +232,8 @@ export default function BasicDetails() {
     if (!provinces.length) return;
     if (clinicId) {
       handleProvinceChange(
-        currentStepData?.province_id || currentStepData?.province
+        currentStepData?.clinicDetails?.province_id ||
+          currentStepData?.clinicDetails?.province
       );
       initializeForm();
     } else if (!id) {
@@ -188,13 +247,6 @@ export default function BasicDetails() {
         form={form}
         initialValues={initialValues}
         style={{ padding: '0 24px' }}
-        onValuesChange={(changedValues) => {
-          if ('status' in changedValues) {
-            if (changedValues.status !== 'opened') {
-              clearTimeFieldValidations();
-            }
-          }
-        }}
       >
         <Row justify="space-between">
           <FormControl
@@ -240,28 +292,46 @@ export default function BasicDetails() {
         <Form.Item
           noStyle
           shouldUpdate={(prevValues, currentValues) =>
-            prevValues.status !== currentValues.status
+            prevValues.status !== currentValues.status ||
+            prevValues.clinic_open_time !== currentValues.clinic_open_time ||
+            prevValues.clinic_close_time !== currentValues.clinic_close_time
           }
         >
           {({ getFieldValue }) => {
+            const openTime = getFieldValue('clinic_open_time');
+            const closeTime = getFieldValue('clinic_close_time');
             const isOpened = getFieldValue('status') === 'opened';
+            const shouldShowProviders = isOpened && openTime && closeTime;
             return (
-              <Row justify="space-between">
-                <FormControl
-                  control="time"
-                  label="Open From"
-                  required={isOpened}
-                  disabled={!isOpened}
-                  name="clinic_open_time"
-                />
-                <FormControl
-                  control="time"
-                  label="Open To"
-                  required={isOpened}
-                  disabled={!isOpened}
-                  name="clinic_close_time"
-                />
-              </Row>
+              <React.Fragment>
+                <Row justify="space-between">
+                  <FormControl
+                    control="select"
+                    label="Open From"
+                    required={isOpened}
+                    disabled={!isOpened}
+                    name="clinic_open_time"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                  <FormControl
+                    label="Open To"
+                    control="select"
+                    required={isOpened}
+                    disabled={!isOpened}
+                    name="clinic_close_time"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                </Row>
+                {shouldShowProviders && (
+                  <ActiveProviders
+                    form={form}
+                    tableData={tableData}
+                    setTableData={setTableData}
+                  />
+                )}
+              </React.Fragment>
             );
           }}
         </Form.Item>

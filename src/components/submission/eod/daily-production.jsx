@@ -21,9 +21,10 @@ export default function DailyProduction({ onNext }) {
     getCurrentStepData
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
-  const clinicId = reportData?.eod?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
-  const isClinicClosed = reportData?.eod?.basic?.status === 'closed';
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+  const isClinicClosed =
+    reportData?.eod?.basic?.clinicDetails?.status === 'closed';
 
   const summaryData = useMemo(() => {
     const totalDDS = tableData
@@ -43,8 +44,8 @@ export default function DailyProduction({ onNext }) {
         goal: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
-        '+/-': `${difference.toLocaleString()}`,
         totalProduction: `${totalProduction.toLocaleString()}`
+        // target: `${totalProduction.toLocaleString()}/${goal.toLocaleString()}`
       }
     ];
   }, [tableData, goal]);
@@ -52,85 +53,103 @@ export default function DailyProduction({ onNext }) {
   const totalProductionColumns = [
     {
       title: '',
+      width: 150,
       key: 'summary',
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
-
     {
+      width: 150,
       key: 'DDS',
       dataIndex: 'DDS',
       title: 'Total (DDS)'
     },
     {
+      width: 150,
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
     },
     {
+      width: 150,
       key: 'totalProduction',
       title: 'Total Production',
       dataIndex: 'totalProduction'
     },
     {
-      key: 'goal',
-      dataIndex: 'goal',
-      title: 'Target (Goal)'
-    },
-    {
-      key: '+/-',
-      title: '+/-',
-      dataIndex: '+/-'
+      width: 50,
+      title: '',
+      key: 'target',
+      dataIndex: 'target',
+      render: (_, record) => (
+        <div className="text-xs text-[#333333] flex justify-end">
+          Target{' '}
+          <span className="ml-1 text-primary-400">
+            {record.totalProduction}
+          </span>
+          <span>/{record.goal}</span>
+        </div>
+      )
     }
   ];
 
   const providersColumns = [
     {
-      width: 250,
+      // width: 200,
       key: 'type',
       title: 'Title',
       dataIndex: 'type',
       render: (type) => type || 'N/A'
     },
     {
-      width: 250,
+      // width: 400,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
       render: (name) => name || 'N/A'
     },
     {
-      width: 50,
+      width: 150,
       editable: true,
       inputType: 'number',
       title: 'Production',
       disabled: isClinicClosed,
       key: 'production_amount',
       dataIndex: 'production_amount'
+      // width: tableData.length > 1 ? 50 : 150
     },
-    ...(tableData.length > 1
-      ? [
-          {
-            width: 50,
-            key: 'action',
-            title: 'Action',
-            render: (_, record) => (
-              <Button
-                size="icon"
-                className="ml-3"
-                variant="destructive"
-                onClick={() =>
-                  setTableData(
-                    tableData.filter((item) => item.id !== record.id)
-                  )
-                }
-              >
-                <Image src={Icons.cross} alt="cross" />
-              </Button>
-            )
-          }
-        ]
-      : [])
+
+    {
+      key: '',
+      title: '',
+      width: 200,
+      dataIndex: ''
+      // width: tableData.length > 1 ? 50 : 150
+    }
+
+    // ...(tableData.length > 1
+    //   ? [
+    //       {
+    //         width: 50,
+    //         key: 'action',
+    //         title: 'Action',
+    //         render: (_, record) => (
+    //           <Button
+    //             size="icon"
+    //             className="ml-3"
+    //             variant="destructive"
+    //             onClick={() =>
+    //               setTableData(
+    //                 tableData.filter((item) => item.id !== record.id)
+    //               )
+    //             }
+    //           >
+    //             <Image src={Icons.cross} alt="cross" />
+    //           </Button>
+    //         )
+    //       }
+    //     ]
+    //   : [])
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
@@ -229,13 +248,13 @@ export default function DailyProduction({ onNext }) {
     <React.Fragment>
       <div className="flex flex-col gap-6 px-6">
         <GenericTable
-          dataSource={summaryData}
-          columns={totalProductionColumns}
-        />
-        <GenericTable
           dataSource={tableData}
           columns={providersColumns}
           onCellChange={handleCellChange}
+        />
+        <GenericTable
+          dataSource={summaryData}
+          columns={totalProductionColumns}
         />
       </div>
       <StepNavigation onNext={handleSubmit} />

@@ -25,12 +25,10 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
-        totalProduction: `${totalProduction.toLocaleString()}`,
+        goal: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
-        RDT: `---`,
-        goal: `${goal.toLocaleString()}`,
-        '+/-': `${difference.toLocaleString()}`
+        totalProduction: `${totalProduction.toLocaleString()}`
       }
     ];
   }, [tableData, goal]);
@@ -38,60 +36,73 @@ export default function DailyProduction({ onNext }) {
   const totalProductionColumns = [
     {
       title: '',
+      width: 150,
       key: 'summary',
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
-
     {
+      width: 150,
       key: 'DDS',
       dataIndex: 'DDS',
       title: 'Total (DDS)'
     },
     {
+      width: 150,
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
     },
-
     {
+      width: 150,
       key: 'totalProduction',
       title: 'Total Production',
       dataIndex: 'totalProduction'
     },
     {
-      key: 'goal',
-      dataIndex: 'goal',
-      title: 'Target (Goal)'
-    },
-    {
-      key: '+/-',
-      title: '+/-',
-      dataIndex: '+/-'
+      width: 50,
+      title: '',
+      key: 'target',
+      dataIndex: 'target',
+      render: (_, record) => (
+        <div className="text-xs text-[#333333] flex justify-end">
+          Target{' '}
+          <span className="ml-1 text-primary-400">
+            {record.totalProduction}
+          </span>
+          <span>/{record.goal}</span>
+        </div>
+      )
     }
   ];
 
   const dailyProductionColumns = [
     {
-      width: 300,
+      // width: 300,
       key: 'type',
       title: 'Title',
       dataIndex: 'type'
     },
     {
-      width: 300,
+      // width: 300,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 50,
+      width: 150,
       editable: true,
       disabled: true,
       inputType: 'number',
       title: 'Production',
       key: 'production_amount',
       dataIndex: 'production_amount'
+    },
+    {
+      key: '',
+      title: '',
+      width: 200,
+      dataIndex: ''
     }
   ];
 
@@ -110,11 +121,11 @@ export default function DailyProduction({ onNext }) {
   return (
     <React.Fragment>
       <div className="flex flex-col gap-6 px-6">
+        <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
         <GenericTable
           dataSource={summaryData}
           columns={totalProductionColumns}
         />
-        <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>

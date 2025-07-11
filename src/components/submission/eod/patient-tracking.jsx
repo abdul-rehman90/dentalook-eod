@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Col } from 'antd';
 import Image from 'next/image';
+import { Col, Input } from 'antd';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { PlusOutlined } from '@ant-design/icons';
@@ -27,6 +27,7 @@ const defaultRow = {
   key: 1,
   source: '',
   comments: '',
+  other_source: '',
   patient_name: ''
 };
 
@@ -45,7 +46,7 @@ export default function PatientTracking({ onNext }) {
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
-  const clinicId = reportData?.eod?.basic?.clinic;
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -104,6 +105,29 @@ export default function PatientTracking({ onNext }) {
     },
     {
       width: 250,
+      key: 'other_source',
+      title: 'Other Source',
+      dataIndex: 'other_source',
+      render: (_, record) => (
+        <Input
+          value={record.other_source}
+          disabled={record.source !== 'Others'}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    other_source: e.target.value
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 250,
       editable: true,
       key: 'comments',
       title: 'Comments',
@@ -154,6 +178,7 @@ export default function PatientTracking({ onNext }) {
         key: newKey,
         source: '',
         comments: '',
+        other_source: '',
         patient_name: ''
       }
     ]);
@@ -193,6 +218,7 @@ export default function PatientTracking({ onNext }) {
       const transformedData = currentStepData.map((item) => ({
         source: item.source,
         comments: item.comments,
+        other_source: item.other_source,
         patient_name: item.patient_name,
         key: item.id?.toString() || item.key?.toString()
       }));
@@ -211,7 +237,7 @@ export default function PatientTracking({ onNext }) {
             size="lg"
             variant="destructive"
             onClick={handleAddNew}
-            className="!px-0 text-primary-300"
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
           >
             <PlusOutlined />
             Add New Patient
