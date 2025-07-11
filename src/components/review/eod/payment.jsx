@@ -27,7 +27,7 @@ export default function Payment({ onNext }) {
 
   const columns = [
     {
-      width: 200,
+      width: 50,
       key: 'type',
       disabled: true,
       editable: true,
@@ -37,13 +37,22 @@ export default function Payment({ onNext }) {
       selectOptions: paymentOptions
     },
     {
-      width: 200,
+      width: 50,
       key: 'amount',
       editable: true,
       disabled: true,
       inputType: 'number',
       title: 'Amount ($)',
       dataIndex: 'amount'
+    },
+    {
+      width: 100,
+      key: 'remarks',
+      disabled: true,
+      editable: true,
+      title: 'Remarks',
+      inputType: 'text',
+      dataIndex: 'remarks'
     }
   ];
 
@@ -53,6 +62,7 @@ export default function Payment({ onNext }) {
       <div className="flex-1 text-left p-1.5">
         ${tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
+      <div className="flex-1 text-left p-1.5"></div>
     </div>
   );
 
@@ -60,6 +70,7 @@ export default function Payment({ onNext }) {
     if (currentStepData.length > 0) {
       const storedNotes = currentStepData[0]?.notes;
       const transformedData = currentStepData.map((item) => ({
+        remarks: item.remarks,
         type: item.payment_type,
         key: item.id.toString(),
         amount: item.payment_amount

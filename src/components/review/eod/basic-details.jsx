@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
 import { Form, Row } from 'antd';
+import ActiveProviders from './active-providers';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
+import { formatTimeForUI } from '@/common/utils/time-handling';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
@@ -10,28 +13,44 @@ const options = [
   { label: 'Close', value: 'close' }
 ];
 
+function generateTimeSlots(startHour, endHour, intervalMinutes) {
+  const slots = [];
+  for (let hour = startHour; hour <= endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += intervalMinutes) {
+      const period = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const timeString = `${displayHour}:${
+        minute === 0 ? '00' : minute
+      } ${period}`;
+      slots.push({ label: timeString, value: timeString });
+    }
+  }
+  return slots;
+}
+
 export default function BasicDetails({ onNext }) {
   const [form] = Form.useForm();
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
 
   useEffect(() => {
-    if (Object.entries(currentStepData).length > 0) {
-      const parseTimeString = (timeString) => {
-        if (!timeString) return null;
-        return dayjs(timeString, 'HH:mm:ss').isValid()
-          ? dayjs(timeString, 'HH:mm:ss')
-          : null;
-      };
-
+    if (
+      currentStepData?.clinicDetails &&
+      Object.entries(currentStepData.clinicDetails).length > 0
+    ) {
       const formValues = {
-        province: currentStepData.province,
-        practice_name: currentStepData.clinic_name,
-        regional_manager: currentStepData.regional_manager,
-        submission_date: dayjs(currentStepData.submission_date),
-        open_to: parseTimeString(currentStepData.clinic_close_time),
-        open_from: parseTimeString(currentStepData.clinic_open_time),
-        clinic: currentStepData.status === 'opened' ? 'open' : 'close'
+        province: currentStepData.clinicDetails.province,
+        practice_name: currentStepData.clinicDetails.clinic_name,
+        regional_manager: currentStepData.clinicDetails.regional_manager,
+        submission_date: dayjs(currentStepData.clinicDetails.submission_date),
+        open_to: formatTimeForUI(
+          currentStepData.clinicDetails.clinic_close_time
+        ),
+        open_from: formatTimeForUI(
+          currentStepData.clinicDetails.clinic_open_time
+        ),
+        clinic:
+          currentStepData.clinicDetails.status === 'opened' ? 'open' : 'close'
       };
 
       form.setFieldsValue(formValues);
@@ -78,15 +97,44 @@ export default function BasicDetails({ onNext }) {
             label="Clinic Open/Closed?"
           />
         </Row>
-        <Row justify="space-between">
-          <FormControl
-            disabled
-            control="time"
-            name="open_from"
-            label="Open From"
-          />
-          <FormControl disabled control="time" name="open_to" label="Open To" />
-        </Row>
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, currentValues) =>
+            prevValues.clinic !== currentValues.clinic ||
+            prevValues.open_to !== currentValues.open_to ||
+            prevValues.open_from !== currentValues.open_from
+          }
+        >
+          {({ getFieldValue }) => {
+            const closeTime = getFieldValue('open_to');
+            const openTime = getFieldValue('open_from');
+            const isOpened = getFieldValue('clinic') === 'open';
+            const shouldShowProviders = isOpened && openTime && closeTime;
+            return (
+              <React.Fragment>
+                <Row justify="space-between">
+                  <FormControl
+                    disabled
+                    control="select"
+                    name="open_from"
+                    label="Open From"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                  <FormControl
+                    disabled
+                    name="open_to"
+                    label="Open To"
+                    control="select"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                </Row>
+                {shouldShowProviders && <ActiveProviders form={form} />}
+              </React.Fragment>
+            );
+          }}
+        </Form.Item>
       </Form>
       <StepNavigation onNext={onNext} />
     </React.Fragment>
