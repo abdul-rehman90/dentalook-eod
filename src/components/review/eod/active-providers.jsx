@@ -135,8 +135,8 @@ export default function ActiveProviders({ form }) {
     },
     {
       width: 50,
+      title: 'Short Notice',
       key: 'short_notice_cancellations',
-      title: 'Short Notice Cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
         <Input
