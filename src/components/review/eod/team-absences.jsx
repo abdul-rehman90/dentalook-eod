@@ -3,6 +3,7 @@ import { Input, Select, TimePicker } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import dayjs from 'dayjs';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
@@ -101,7 +102,7 @@ export default function TeamAbsences({ onNext }) {
           minuteStep={30}
           hideDisabledOptions
           inputReadOnly={true}
-          value={record.start_time}
+          value={record.end_time}
         />
       )
     }
@@ -114,7 +115,9 @@ export default function TeamAbsences({ onNext }) {
         status: item.absence,
         name: item.user?.name,
         key: item.id.toString(),
-        position: item.position
+        position: item.position,
+        end_time: item.end_time ? dayjs(item.end_time) : null,
+        start_time: item.start_time ? dayjs(item.start_time) : null
       }));
       setTableData(transformedData);
     }

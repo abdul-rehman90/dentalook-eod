@@ -8,10 +8,8 @@ import {
   PaymentEOD,
   ReferralsEOD,
   BasicDetailsEOD,
-  ActiveProviders,
   TeamAbsencesEOD,
   DailyProductionEOD,
-  ScheduleOpeningEOD,
   PatientTrackingEOD,
   AttritionTrackingEOD
 } from '@/components/review/eod';
@@ -33,7 +31,6 @@ export default function SubmissionPage() {
   const stepComponents = {
     eod: {
       1: <BasicDetailsEOD onNext={handle} />,
-      // 2: <ActiveProviders onNext={handle} />,
       2: <DailyProductionEOD onNext={handle} />,
       3: <PaymentEOD onNext={handle} />,
       4: <TeamAbsencesEOD onNext={handle} />,

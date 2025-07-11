@@ -168,6 +168,7 @@ export default function Payment({ onNext }) {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
       type: '',
       amount: '',
+      remarks: '',
       action: ''
     };
     setTableData([...tableData, newPayment]);

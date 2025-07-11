@@ -52,7 +52,7 @@ export default function BasicDetails() {
 
       if (clinicId) {
         const selectedClinic = clinics.find(
-          (clinic) => clinic.value === currentStepData.clinic
+          (clinic) => clinic.value === clinicId
         );
         setPractices(clinics);
         setRegionalManagers(selectedClinic?.managers || []);
