@@ -236,7 +236,7 @@ export default function HiringTraining({ onNext }) {
             hiring: hiringData,
             training: trainingData
           });
-          toast.success('Records are successfully saved');
+          toast.success('Record is successfully saved');
           onNext();
         }
         return;
@@ -283,7 +283,7 @@ export default function HiringTraining({ onNext }) {
               size="lg"
               variant="destructive"
               onClick={handleAddNewHiring}
-              className="!px-0 text-primary-300"
+              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
             >
               <PlusOutlined />
               Add New Hiring
@@ -301,7 +301,7 @@ export default function HiringTraining({ onNext }) {
               size="lg"
               variant="destructive"
               onClick={handleAddNewTraining}
-              className="!px-0 text-primary-300"
+              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
             >
               <PlusOutlined />
               Add New Training

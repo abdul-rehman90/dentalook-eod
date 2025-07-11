@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Select } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 
 export default function SelectField({
   name,
@@ -9,7 +10,8 @@ export default function SelectField({
   onChange,
   message = '',
   disabled = false,
-  placeholder = 'Select one'
+  placeholder = 'Select one',
+  suffixIcon = <DownOutlined />
 }) {
   return (
     <Form.Item
@@ -20,12 +22,17 @@ export default function SelectField({
       wrapperCol={{ span: 13 }}
       rules={[{ required, message: `${label} is required` }]}
       label={
-        <span className="text-base font-medium text-black">
+        <span className="text-[15px] font-medium text-black">
           {label} {required ? <span className="text-[#E62E2E]">*</span> : null}
         </span>
       }
     >
-      <Select onChange={onChange} disabled={disabled} placeholder={placeholder}>
+      <Select
+        onChange={onChange}
+        disabled={disabled}
+        suffixIcon={suffixIcon}
+        placeholder={placeholder}
+      >
         {options.map((item) => (
           <Select.Option value={item.value}>{item.label}</Select.Option>
         ))}

@@ -14,18 +14,17 @@ import {
 
 const stepConfig = {
   eod: [
-    { id: 'basic', name: 'Basic Details' },
-    { id: 'active', name: 'Active Providers' },
+    { id: 'basic', name: 'Clinic Details' },
+    // { id: 'active', name: 'Active Providers' },
     { id: 'daily', name: 'Daily Production' },
     { id: 'payment', name: 'Payments' },
     { id: 'team', name: 'Team Absences' },
-    // { id: 'schedule', name: 'Schedule Openings' },
     { id: 'patient', name: 'Patient Tracking' },
     { id: 'auto', name: 'Attrition Tracking' },
     { id: 'referrals', name: 'Referrals' }
   ],
   eom: [
-    { id: 'basic', name: 'Basic Details' },
+    { id: 'basic', name: 'Clinic Details' },
     { id: 'account', name: 'Account Receivable' },
     { id: 'equipment', name: 'Equipment' },
     { id: 'clinical', name: 'Clinic Upgrades' },
@@ -87,14 +86,16 @@ export const AppProvider = ({ children }) => {
         if (type === 'eod') {
           const stepDataMapping = {
             payment: response.data.payments || [],
-            basic: response.data.basic_detail || {},
             team: response.data.team_absences || [],
             referrals: response.data.referrals || [],
             daily: response.data.daily_production || [],
-            active: response.data.active_providers || [],
             auto: response.data.attrition_tracking || [],
-            patient: response.data.patient_tracking || []
-            // schedule: response.data.schedule_openings || []
+            patient: response.data.patient_tracking || [],
+            basic:
+              {
+                clinicDetails: response.data.basic_detail,
+                activeProviders: response.data.active_providers
+              } || {}
           };
           setReportData((prev) => ({
             ...prev,

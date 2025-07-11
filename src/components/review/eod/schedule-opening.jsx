@@ -7,7 +7,7 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function ScheduleOpening({ onNext }) {
   const [tableData, setTableData] = useState([]);
   const { reportData, getCurrentStepData } = useGlobalContext();
-  const unitTime = reportData?.eod?.basic?.unit_length;
+  const unitTime = reportData?.eod?.basic?.clinicDetails?.unit_length;
   const currentStepData = getCurrentStepData();
 
   const columns = [

@@ -1,28 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
-import { Checkbox, Input, TimePicker } from 'antd';
+import { Checkbox, Input, Select } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
+import { formatTimeForUI } from '@/common/utils/time-handling';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
-export default function ActiveProviders({ onNext }) {
+const generateTimeOptions = (startTime, endTime) => {
+  if (!startTime || !endTime) return [];
+
+  const format = 'h:mm a';
+  const start = dayjs(startTime, format);
+  const end = dayjs(endTime, format);
+
+  let options = [];
+  let current = start;
+
+  while (current.isBefore(end) || current.isSame(end)) {
+    options.push({
+      label: current.format(format),
+      value: current.format(format)
+    });
+    current = current.add(30, 'minute');
+  }
+
+  return options;
+};
+
+export default function ActiveProviders({ form }) {
   const [tableData, setTableData] = useState([]);
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const clinicOpenTime = form.getFieldValue('clinic_open_time');
+  const clinicCloseTime = form.getFieldValue('clinic_close_time');
 
   const columns = [
-    {
-      width: 50,
-      key: 'type',
-      title: 'Title',
-      dataIndex: 'type'
-    },
-    {
-      width: 150,
-      key: 'name',
-      dataIndex: 'name',
-      title: 'Provider Name'
-    },
     {
       width: 50,
       title: 'Active',
@@ -37,38 +47,58 @@ export default function ActiveProviders({ onNext }) {
       )
     },
     {
+      width: 50,
+      key: 'type',
+      title: 'Title',
+      dataIndex: 'type'
+    },
+    {
+      width: 150,
+      key: 'name',
+      dataIndex: 'name',
+      title: 'Provider Name'
+    },
+    {
       width: 100,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
-      render: (_, record) => (
-        <TimePicker
-          disabled
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
-          value={record.start_time}
-        />
-      )
+      render: (_, record) => {
+        const timeOptions = generateTimeOptions(
+          clinicOpenTime,
+          clinicCloseTime
+        );
+        return (
+          <Select
+            disabled
+            options={timeOptions}
+            placeholder="Select one"
+            value={record.start_time}
+            style={{ width: '100%' }}
+          />
+        );
+      }
     },
     {
       width: 100,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
-      render: (_, record) => (
-        <TimePicker
-          disabled
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
-          value={record.end_time}
-        />
-      )
+      render: (_, record) => {
+        const timeOptions = generateTimeOptions(
+          clinicOpenTime,
+          clinicCloseTime
+        );
+        return (
+          <Select
+            disabled
+            options={timeOptions}
+            value={record.end_time}
+            placeholder="Select one"
+            style={{ width: '100%' }}
+          />
+        );
+      }
     },
     {
       width: 50,
@@ -105,8 +135,8 @@ export default function ActiveProviders({ onNext }) {
     },
     {
       width: 50,
+      title: 'Short Notice',
       key: 'short_notice_cancellations',
-      title: 'Short Notice Cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
         <Input
@@ -119,29 +149,26 @@ export default function ActiveProviders({ onNext }) {
   ];
 
   useEffect(() => {
-    if (currentStepData.length > 0) {
-      const transformedData = currentStepData.map((item) => ({
+    if (currentStepData.activeProviders.length > 0) {
+      const transformedData = currentStepData.activeProviders.map((item) => ({
         name: item.user?.name,
         key: item.id.toString(),
         no_shows: item.no_shows,
         is_active: item.is_active,
         type: item.user?.user_type,
         unfilled_spots: item.unfilled_spots,
-        end_time: item.end_time ? dayjs(item.end_time) : null,
+        end_time: formatTimeForUI(item.end_time),
+        start_time: formatTimeForUI(item.start_time),
         number_of_patients_seen: item.number_of_patients_seen,
-        short_notice_cancellations: item.short_notice_cancellations,
-        start_time: item.start_time ? dayjs(item.start_time) : null
+        short_notice_cancellations: item.short_notice_cancellations
       }));
       setTableData(transformedData);
     }
   }, [currentStepData]);
 
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <GenericTable columns={columns} dataSource={tableData} />
-      </div>
-      <StepNavigation onNext={onNext} />
-    </React.Fragment>
+    <div className="pr-6">
+      <GenericTable columns={columns} dataSource={tableData} />
+    </div>
   );
 }

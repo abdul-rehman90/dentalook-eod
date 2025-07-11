@@ -85,6 +85,15 @@ export default function PatientTracking({ onNext }) {
       width: 250,
       disabled: true,
       editable: true,
+      inputType: 'text',
+      key: 'other_source',
+      title: 'Other Source',
+      dataIndex: 'other_source'
+    },
+    {
+      width: 250,
+      disabled: true,
+      editable: true,
       key: 'comments',
       title: 'Comments',
       inputType: 'text',
@@ -98,6 +107,7 @@ export default function PatientTracking({ onNext }) {
         source: item.source,
         key: item.id.toString(),
         comments: item.comments,
+        other_source: item.other_source,
         patient_name: item.patient_name
       }));
       setTableData(transformedData);
