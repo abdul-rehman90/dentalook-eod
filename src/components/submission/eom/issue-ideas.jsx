@@ -147,7 +147,7 @@ export default function IssuesIdeas() {
             size="lg"
             variant="destructive"
             onClick={handleAddNew}
-            className="!px-0 text-primary-300"
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
           >
             <PlusOutlined />
             Add Issue/Idea

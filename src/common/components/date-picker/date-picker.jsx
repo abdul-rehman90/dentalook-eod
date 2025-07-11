@@ -54,7 +54,7 @@ export default function DatePickerField({
       wrapperCol={{ span: 13 }}
       rules={[{ required, message: `${label} is required` }]}
       label={
-        <span className="text-base font-medium text-black">
+        <span className="text-[15px] font-medium text-black">
           {label} {required ? <span className="text-[#E62E2E]">*</span> : null}
         </span>
       }

@@ -11,7 +11,6 @@ import {
   ActiveProviders,
   TeamAbsencesEOD,
   DailyProductionEOD,
-  ScheduleOpeningEOD,
   PatientTrackingEOD,
   AttritionTrackingEOD
 } from '@/components/submission/eod';
@@ -33,14 +32,13 @@ export default function SubmissionPage() {
   const stepComponents = {
     eod: {
       1: <BasicDetailsEOD onNext={handle} />,
-      2: <ActiveProviders onNext={handle} />,
-      3: <DailyProductionEOD onNext={handle} />,
-      4: <PaymentEOD onNext={handle} />,
-      5: <TeamAbsencesEOD onNext={handle} />,
-      // 6: <ScheduleOpeningEOD onNext={handle} />,
-      6: <PatientTrackingEOD onNext={handle} />,
-      7: <AttritionTrackingEOD onNext={handle} />,
-      8: <ReferralsEOD />
+      // 2: <ActiveProviders onNext={handle} />,
+      2: <DailyProductionEOD onNext={handle} />,
+      3: <PaymentEOD onNext={handle} />,
+      4: <TeamAbsencesEOD onNext={handle} />,
+      5: <PatientTrackingEOD onNext={handle} />,
+      6: <AttritionTrackingEOD onNext={handle} />,
+      7: <ReferralsEOD />
     },
     eom: {
       1: <BasicDetailsEOM onNext={handle} />,
