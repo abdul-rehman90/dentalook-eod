@@ -2,14 +2,18 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
-import { Input, Select, TimePicker } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import { ClockCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import {
+  formatTimeForUI,
+  generateTimeSlots
+} from '@/common/utils/time-handling';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
@@ -115,13 +119,11 @@ export default function TeamAbsences({ onNext }) {
       title: 'Start Time',
       dataIndex: 'start_time',
       render: (_, record) => (
-        <TimePicker
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
+        <Select
+          placeholder="Select one"
           value={record.start_time}
+          suffixIcon={<ClockCircleOutlined />}
+          options={generateTimeSlots(7, 23, 30)}
           disabled={record.absence !== 'Partial Day'}
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
@@ -138,13 +140,11 @@ export default function TeamAbsences({ onNext }) {
       title: 'End Time',
       dataIndex: 'end_time',
       render: (_, record) => (
-        <TimePicker
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
+        <Select
           value={record.end_time}
+          placeholder="Select one"
+          suffixIcon={<ClockCircleOutlined />}
+          options={generateTimeSlots(7, 23, 30)}
           disabled={record.absence !== 'Partial Day'}
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
@@ -234,11 +234,11 @@ export default function TeamAbsences({ onNext }) {
           eodsubmission: Number(id),
           start_time:
             item.absence === 'Partial Day' && item.start_time
-              ? dayjs(item.start_time)
+              ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
               : null,
           end_time:
             item.absence === 'Partial Day' && item.end_time
-              ? dayjs(item.end_time)
+              ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
               : null
         }));
       if (payload.length > 0) {
@@ -272,8 +272,12 @@ export default function TeamAbsences({ onNext }) {
           position: item.position,
           name: item.user?.id || item.name,
           key: item.id?.toString() || item.key?.toString(),
-          end_time: item.end_time ? dayjs(item.end_time) : null,
-          start_time: item.start_time ? dayjs(item.start_time) : null
+          end_time: item.end_time.includes('m')
+            ? item.end_time
+            : formatTimeForUI(item.end_time),
+          start_time: item.start_time.includes('m')
+            ? item.start_time
+            : formatTimeForUI(item.start_time)
         }));
         setTableData(transformedData);
       }
