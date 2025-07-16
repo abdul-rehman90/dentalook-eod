@@ -6,30 +6,18 @@ import { useRouter } from 'next/navigation';
 import ActiveProviders from './active-providers';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
-import { formatTimeForUI } from '@/common/utils/time-handling';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import {
+  formatTimeForUI,
+  generateTimeSlots
+} from '@/common/utils/time-handling';
 
 const options = [
   { label: 'Open', value: 'opened' },
   { label: 'Close', value: 'closed' }
 ];
-
-function generateTimeSlots(startHour, endHour, intervalMinutes) {
-  const slots = [];
-  for (let hour = startHour; hour <= endHour; hour++) {
-    for (let minute = 0; minute < 60; minute += intervalMinutes) {
-      const period = hour >= 12 ? 'pm' : 'am';
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const timeString = `${displayHour}:${
-        minute === 0 ? '00' : minute
-      } ${period}`;
-      slots.push({ label: timeString, value: timeString });
-    }
-  }
-  return slots;
-}
 
 export default function BasicDetails() {
   const router = useRouter();

@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Select, TimePicker } from 'antd';
+import { Input, Select } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-import dayjs from 'dayjs';
+import {
+  formatTimeForUI,
+  generateTimeSlots
+} from '@/common/utils/time-handling';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
@@ -78,14 +82,12 @@ export default function TeamAbsences({ onNext }) {
       title: 'Start Time',
       dataIndex: 'start_time',
       render: (_, record) => (
-        <TimePicker
-          disabled
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
+        <Select
+          placeholder="Select one"
           value={record.start_time}
+          suffixIcon={<ClockCircleOutlined />}
+          options={generateTimeSlots(7, 23, 30)}
+          disabled={record.absence !== 'Partial Day'}
         />
       )
     },
@@ -95,14 +97,12 @@ export default function TeamAbsences({ onNext }) {
       title: 'End Time',
       dataIndex: 'end_time',
       render: (_, record) => (
-        <TimePicker
-          disabled
-          format="HH:mm"
-          showNow={false}
-          minuteStep={30}
-          hideDisabledOptions
-          inputReadOnly={true}
+        <Select
+          placeholder="Select one"
           value={record.end_time}
+          suffixIcon={<ClockCircleOutlined />}
+          options={generateTimeSlots(7, 23, 30)}
+          disabled={record.absence !== 'Partial Day'}
         />
       )
     }
@@ -116,8 +116,8 @@ export default function TeamAbsences({ onNext }) {
         name: item.user?.name,
         key: item.id.toString(),
         position: item.position,
-        end_time: item.end_time ? dayjs(item.end_time) : null,
-        start_time: item.start_time ? dayjs(item.start_time) : null
+        end_time: formatTimeForUI(item.end_time),
+        start_time: formatTimeForUI(item.start_time)
       }));
       setTableData(transformedData);
     }

@@ -216,7 +216,12 @@ export default function List() {
               placeholder="Select date"
               style={{ width: '100%' }}
               value={filters.submission_month}
-              onChange={(date) => handleFilterChange('submission_month', date)}
+              onChange={(date) =>
+                handleFilterChange(
+                  'submission_month',
+                  dayjs(date).startOf('month')
+                )
+              }
             />
           </div>
         </div>
