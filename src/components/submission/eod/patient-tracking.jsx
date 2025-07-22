@@ -20,7 +20,7 @@ const sourceOptions = [
   { value: 'Online Meta Ads', label: 'Online Meta Ads' },
   { value: 'Social Media', label: 'Social Media' },
   { value: 'Radio', label: 'Radio' },
-  { value: 'Others', label: 'Others' }
+  { value: 'Other', label: 'Other' }
 ];
 
 const defaultRow = {
@@ -111,7 +111,7 @@ export default function PatientTracking({ onNext }) {
       render: (_, record) => (
         <Input
           value={record.other_source}
-          disabled={record.source !== 'Others'}
+          disabled={record.source !== 'Other'}
           onChange={(e) => {
             const updatedProviders = tableData.map((p) =>
               p.key === record.key
@@ -187,6 +187,17 @@ export default function PatientTracking({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithMissingOtherSource = tableData.filter(
+        (item) => item.source === 'Other' && !item.other_source
+      );
+
+      if (rowsWithMissingOtherSource.length > 0) {
+        toast.error(
+          'Please specify the "Other Source" for all rows where source is "Other"'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter((item) => item.patient_name && item.source)
         .map((item) => ({

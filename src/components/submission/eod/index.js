@@ -1,4 +1,5 @@
 import PaymentEOD from './payment';
+import SuppliesEOD from './supplies';
 import ReferralsEOD from './referrals';
 import TeamAbsencesEOD from './team-absences';
 import BasicDetailsEOD from './basic-details';
@@ -10,6 +11,7 @@ import AttritionTrackingEOD from './attrition-tracking';
 
 export {
   PaymentEOD,
+  SuppliesEOD,
   ReferralsEOD,
   TeamAbsencesEOD,
   BasicDetailsEOD,
