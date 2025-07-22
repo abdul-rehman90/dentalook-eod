@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 import {
   PaymentEOD,
+  SuppliesEOD,
   ReferralsEOD,
   BasicDetailsEOD,
   TeamAbsencesEOD,
@@ -36,6 +37,7 @@ export default function SubmissionPage() {
       4: <TeamAbsencesEOD onNext={handle} />,
       5: <PatientTrackingEOD onNext={handle} />,
       6: <AttritionTrackingEOD onNext={handle} />,
+      // 7: <SuppliesEOD onNext={handle} />,
       7: <ReferralsEOD />
     },
     eom: {
