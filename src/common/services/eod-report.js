@@ -43,6 +43,13 @@ export const EODReportService = {
     return response;
   },
 
+  async getAllSupplies(id, date) {
+    const response = await apiClient.get(
+      `/eod-submission-supplies/?clinic_id=${id}&month=${date}`
+    );
+    return response;
+  },
+
   async handlePaymentTypeOrder(payload) {
     const response = await apiClient.post('/payment-type-order/', payload);
     return response;
@@ -80,6 +87,11 @@ export const EODReportService = {
 
   async addAttritionTracking(payload) {
     const response = await apiClient.post('/eod-attrition/', payload);
+    return response;
+  },
+
+  async addSupplies(id, payload) {
+    const response = await apiClient.patch(`/eod-submission/${id}/`, payload);
     return response;
   },
 

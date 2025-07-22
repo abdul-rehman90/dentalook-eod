@@ -102,12 +102,12 @@ export default function Payment({ onNext }) {
   ];
 
   const footer = () => (
-    <div className="flex items-center justify-between w-full">
-      <div className="flex-1 text-left p-1.5">Total Amount</div>
-      <div className="flex-1 text-center p-1.5">
+    <div className="grid grid-cols-[1fr_1fr_1fr] p-1.5">
+      <div className="">Total Amount</div>
+      <div className="ml-13">
         {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
-      <div className="flex-1 text-left p-1.5"></div>
+      <div className=""></div>
     </div>
   );
 

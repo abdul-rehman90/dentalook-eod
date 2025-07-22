@@ -260,7 +260,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           required
           name="user_type"
           control="select"
-          label="Provider Type"
+          label="Provider Title"
           options={providerTypes}
         />
       </div>
@@ -275,17 +275,17 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     const response = await EODReportService.addNewProvider(payload);
     if (response.status === 201) {
       const newProvider = {
-        no_shows: '',
+        no_shows: null,
         end_time: null,
         start_time: null,
         is_active: false,
-        unfilled_spots: '',
         name: values.name,
+        unfilled_spots: null,
         type: values.user_type,
         id: response.data.user_id,
         key: response.data.user_id,
         number_of_patients_seen: null,
-        short_notice_cancellations: ''
+        short_notice_cancellations: null
       };
       toast.success('Record is successfully saved');
       setTableData((prev) => {
@@ -304,16 +304,16 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       const { data } = await EODReportService.getProviders(clinicId);
       const baseProviders = data.providers
         .map((provider) => ({
-          no_shows: '',
+          no_shows: null,
           end_time: null,
           id: provider.id,
           start_time: null,
           key: provider.id,
           is_active: false,
-          unfilled_spots: '',
           name: provider.name,
+          unfilled_spots: null,
           type: provider.user_type,
-          short_notice_cancellations: ''
+          short_notice_cancellations: null
         }))
         .sort((a, b) => {
           if (a.type === 'DDS' && b.type !== 'DDS') return -1;
