@@ -8,6 +8,22 @@ import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
+// {
+//   width: 50,
+//   title: '',
+//   key: 'target',
+//   dataIndex: 'target',
+//   render: (_, record) => (
+//     <div className="text-xs text-[#333333] flex justify-end">
+//       Target{' '}
+//       <span className="ml-1 text-primary-400">
+//         {record.totalProduction}
+//       </span>
+//       <span>/{record.goal}</span>
+//     </div>
+//   )
+// }
+
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
@@ -41,11 +57,11 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
-        goal: `${goal.toLocaleString()}`,
+        variance: difference,
+        target: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
         totalProduction: `${totalProduction.toLocaleString()}`
-        // target: `${totalProduction.toLocaleString()}/${goal.toLocaleString()}`
       }
     ];
   }, [tableData, goal]);
@@ -53,103 +69,68 @@ export default function DailyProduction({ onNext }) {
   const totalProductionColumns = [
     {
       title: '',
-      width: 150,
       key: 'summary',
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
     {
-      width: 150,
       key: 'DDS',
       dataIndex: 'DDS',
       title: 'Total (DDS)'
     },
     {
-      width: 150,
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
     },
     {
-      width: 150,
       key: 'totalProduction',
       title: 'Total Production',
       dataIndex: 'totalProduction'
     },
     {
-      width: 50,
-      title: '',
       key: 'target',
-      dataIndex: 'target',
-      render: (_, record) => (
-        <div className="text-xs text-[#333333] flex justify-end">
-          Target{' '}
-          <span className="ml-1 text-primary-400">
-            {record.totalProduction}
-          </span>
-          <span>/{record.goal}</span>
-        </div>
-      )
+      title: 'Target',
+      dataIndex: 'target'
+    },
+    {
+      key: 'variance',
+      title: 'Variance',
+      dataIndex: 'variance'
     }
   ];
 
   const providersColumns = [
     {
-      // width: 200,
+      width: 150,
       key: 'type',
       title: 'Title',
       dataIndex: 'type',
       render: (type) => type || 'N/A'
     },
     {
-      // width: 400,
+      width: 250,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
       render: (name) => name || 'N/A'
     },
     {
-      width: 150,
+      width: 100,
       editable: true,
       inputType: 'number',
       title: 'Production',
       disabled: isClinicClosed,
       key: 'production_amount',
       dataIndex: 'production_amount'
-      // width: tableData.length > 1 ? 50 : 150
     },
 
     {
       key: '',
       title: '',
-      width: 200,
+      width: 250,
       dataIndex: ''
-      // width: tableData.length > 1 ? 50 : 150
     }
-
-    // ...(tableData.length > 1
-    //   ? [
-    //       {
-    //         width: 50,
-    //         key: 'action',
-    //         title: 'Action',
-    //         render: (_, record) => (
-    //           <Button
-    //             size="icon"
-    //             className="ml-3"
-    //             variant="destructive"
-    //             onClick={() =>
-    //               setTableData(
-    //                 tableData.filter((item) => item.id !== record.id)
-    //               )
-    //             }
-    //           >
-    //             <Image src={Icons.cross} alt="cross" />
-    //           </Button>
-    //         )
-    //       }
-    //     ]
-    //   : [])
   ];
 
   const handleCellChange = (record, dataIndex, value) => {

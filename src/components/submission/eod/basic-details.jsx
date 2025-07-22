@@ -136,25 +136,21 @@ export default function BasicDetails() {
   };
 
   const handleSubmit = async () => {
-    if (id) return router.push(`/submission/eod/${currentStep + 1}/${id}`);
-    const invalidProviders = tableData.filter(
-      (provider) =>
-        provider.is_active &&
-        (!provider.end_time ||
-          !provider.no_shows ||
-          !provider.start_time ||
-          !provider.unfilled_spots ||
-          !provider.number_of_patients_seen ||
-          !provider.short_notice_cancellations)
-    );
-
-    if (invalidProviders.length > 0) {
-      toast.error('Please set all the field values for all active providers');
-      return;
-    }
     try {
+      const invalidProviders = tableData.filter(
+        (provider) =>
+          provider.is_active &&
+          (!provider.end_time ||
+            !provider.start_time ||
+            !provider.number_of_patients_seen)
+      );
+
+      if (invalidProviders.length > 0) {
+        toast.error('Please set all the field values for all active providers');
+        return;
+      }
+
       const values = await form.validateFields();
-      setLoading(true);
       const payload = {
         ...values,
         submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
@@ -167,7 +163,13 @@ export default function BasicDetails() {
             ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
             : null
       };
+      if (id) {
+        await addActiveProviders(payload, id);
+        //  router.push(`/submission/eod/${currentStep + 1}/${id}`)
+        return;
+      }
 
+      setLoading(true);
       const response = await EODReportService.addBasicDetails(payload);
       if (response.status === 201) {
         const submission_id = response.data.data.id;
@@ -185,7 +187,9 @@ export default function BasicDetails() {
   const initializeForm = async () => {
     form.setFieldsValue({
       clinic: currentStepData.clinicDetails.clinic,
-      province: currentStepData.clinicDetails.province,
+      province:
+        currentStepData?.clinicDetails?.province_id ||
+        currentStepData?.clinicDetails?.province,
       status: currentStepData.clinicDetails.status || 'closed',
       clinic_open_time: formatTimeForUI(
         currentStepData.clinicDetails.clinic_open_time
@@ -228,6 +232,8 @@ export default function BasicDetails() {
       handleProvinceChange(provinces[0].value);
     }
   }, [clinicId, provinces]);
+
+  console.log(currentStepData);
 
   return (
     <React.Fragment>
