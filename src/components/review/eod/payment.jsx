@@ -46,7 +46,7 @@ export default function Payment({ onNext }) {
       dataIndex: 'amount'
     },
     {
-      width: 100,
+      width: 210,
       key: 'remarks',
       disabled: true,
       editable: true,
@@ -57,12 +57,12 @@ export default function Payment({ onNext }) {
   ];
 
   const footer = () => (
-    <div className="flex items-center justify-between w-full">
-      <div className="flex-1 text-left p-1.5">Total Amount</div>
-      <div className="flex-1 text-left p-1.5">
-        ${tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
+    <div className="grid grid-cols-[1fr_1fr_1fr] p-1.5">
+      <div className="font-semibold">Total Amount</div>
+      <div>
+        {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
-      <div className="flex-1 text-left p-1.5"></div>
+      <div></div>
     </div>
   );
 

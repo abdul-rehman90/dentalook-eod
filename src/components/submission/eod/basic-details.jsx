@@ -199,10 +199,10 @@ export default function BasicDetails() {
   const initializeForm = async () => {
     form.setFieldsValue({
       clinic: currentStepData.clinicDetails.clinic,
-      province:
-        currentStepData?.clinicDetails?.province_id ||
-        currentStepData?.clinicDetails?.province,
       status: currentStepData.clinicDetails.status || 'closed',
+      province:
+        currentStepData.clinicDetails.province_id ||
+        currentStepData.clinicDetails.province,
       clinic_open_time: formatTimeForUI(
         currentStepData.clinicDetails.clinic_open_time
       ),
