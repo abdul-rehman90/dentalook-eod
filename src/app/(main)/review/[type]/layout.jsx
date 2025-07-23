@@ -19,7 +19,7 @@ export default function ReviewLayout({ children }) {
   const { reportData, steps, type, currentStep, totalSteps } =
     useGlobalContext();
   const submission_date =
-    reportData?.eom?.basic?.clinicDetails?.submission_date;
+    reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
 
   return (
