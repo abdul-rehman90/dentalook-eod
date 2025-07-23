@@ -1,28 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Icons } from '@/common/assets';
-import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-
-// {
-//   width: 50,
-//   title: '',
-//   key: 'target',
-//   dataIndex: 'target',
-//   render: (_, record) => (
-//     <div className="text-xs text-[#333333] flex justify-end">
-//       Target{' '}
-//       <span className="ml-1 text-primary-400">
-//         {record.totalProduction}
-//       </span>
-//       <span>/{record.goal}</span>
-//     </div>
-//   )
-// }
 
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);

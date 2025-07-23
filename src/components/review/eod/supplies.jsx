@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function Supplies({ onNext }) {
-  const { getCurrentStepData } = useGlobalContext();
+  const { reportData, getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const [totalSupplies, setTotalSupplies] = useState([]);
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -15,6 +18,10 @@ export default function Supplies({ onNext }) {
       difference: '-'
     }
   ]);
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+  const submission_month = dayjs(
+    reportData?.eod?.basic?.clinicDetails?.submission_date
+  ).format('YYYY-MM');
 
   const columns = [
     {
@@ -59,6 +66,49 @@ export default function Supplies({ onNext }) {
     }
   ];
 
+  const totalSuppliesColumns = [
+    {
+      width: 100,
+      key: 'submission_date',
+      title: 'Submission Date',
+      dataIndex: 'submission_date'
+    },
+    {
+      width: 135,
+      title: 'Actual',
+      key: 'supplies_actual',
+      dataIndex: 'supplies_actual'
+    },
+    {
+      width: 260,
+      title: 'Budget (Goal)',
+      key: 'budget_daily_supplies',
+      dataIndex: 'budget_daily_supplies'
+    },
+    {
+      width: 135,
+      key: 'overage_reason',
+      title: 'Reason for Overage',
+      dataIndex: 'overage_reason'
+    }
+  ];
+
+  const footer = () => (
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-1.5">
+      <div></div>
+      <div>
+        {totalSupplies.reduce(
+          (sum, item) => sum + (Number(item.supplies_actual) || 0),
+          0
+        )}
+      </div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  );
+
   useEffect(() => {
     if (Object.entries(currentStepData).length > 0) {
       const transformedData = [
@@ -76,10 +126,33 @@ export default function Supplies({ onNext }) {
     }
   }, [currentStepData]);
 
+  useEffect(() => {
+    const getAllSupplies = async () => {
+      try {
+        const { data } = await EODReportService.getAllSupplies(
+          clinicId,
+          submission_month
+        );
+        setTotalSupplies(
+          data.map((item) => ({
+            ...item,
+            key: item.id
+          }))
+        );
+      } catch (error) {}
+    };
+    clinicId && getAllSupplies();
+  }, [clinicId]);
+
   return (
     <React.Fragment>
-      <div className="px-6">
+      <div className="px-6 flex flex-col gap-8">
         <GenericTable columns={columns} dataSource={tableData} />
+        <GenericTable
+          footer={footer}
+          dataSource={totalSupplies}
+          columns={totalSuppliesColumns}
+        />
       </div>
       <StepNavigation onNext={onNext} />
     </React.Fragment>
