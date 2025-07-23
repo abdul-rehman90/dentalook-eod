@@ -76,19 +76,25 @@ export default function Supplies({ onNext }) {
 
   const totalSuppliesColumns = [
     {
-      width: 200,
+      width: 100,
+      key: 'submission_date',
+      title: 'Submission Date',
+      dataIndex: 'submission_date'
+    },
+    {
+      width: 135,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
     {
-      width: 220,
+      width: 260,
       title: 'Budget (Goal)',
       key: 'budget_daily_supplies',
       dataIndex: 'budget_daily_supplies'
     },
     {
-      width: 110,
+      width: 135,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'
@@ -96,13 +102,16 @@ export default function Supplies({ onNext }) {
   ];
 
   const footer = () => (
-    <div className="grid grid-cols-[1fr_1fr_1fr] p-1.5">
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-1.5">
+      <div></div>
       <div>
         {totalSupplies.reduce(
           (sum, item) => sum + (Number(item.supplies_actual) || 0),
           0
         )}
       </div>
+      <div></div>
+      <div></div>
       <div></div>
       <div></div>
     </div>
