@@ -32,6 +32,7 @@ const paymentOptions = [
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
   const [tableData, setTableData] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
   const {
     id,
     steps,
@@ -226,6 +227,7 @@ export default function Payment({ onNext }) {
 
   const fetchAllPayments = async () => {
     try {
+      setDataLoading(true);
       const response = await EODReportService.getAllPaymentsOrderByClinic(
         clinicId
       );
@@ -259,7 +261,10 @@ export default function Payment({ onNext }) {
           setTableData(basePayments);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setDataLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -300,6 +305,7 @@ export default function Payment({ onNext }) {
                 <GenericTable
                   footer={footer}
                   columns={columns}
+                  loading={dataLoading}
                   dataSource={tableData}
                   onCellChange={handleCellChange}
                 />
