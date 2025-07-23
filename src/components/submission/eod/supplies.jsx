@@ -85,20 +85,20 @@ export default function Supplies({ onNext }) {
       dataIndex: 'submission_date'
     },
     {
-      width: 100,
+      width: 110,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
-    // {
-    //   width: 220,
-    //   title: 'Budget (Goal)',
-    //   key: 'budget_daily_supplies',
-    //   dataIndex: 'budget_daily_supplies'
-    // },
     {
-      // width: 220,
-      width: 450,
+      width: 220,
+      title: 'Budget (Goal)',
+      key: 'budget_daily_supplies',
+      dataIndex: 'budget_daily_supplies'
+    },
+    {
+      width: 220,
+      // width: 215,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'
