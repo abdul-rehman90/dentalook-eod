@@ -128,7 +128,12 @@ export default function Supplies({ onNext }) {
           key: '1',
           overage_reason: currentStepData.overage_reason || '',
           supplies_actual: currentStepData.supplies_actual || '',
-          budget_daily_supplies: currentStepData.budget_daily_supplies || 0
+          budget_daily_supplies: currentStepData.budget_daily_supplies || 0,
+          difference:
+            currentStepData.difference ||
+            currentStepData.supplies_actual -
+              currentStepData.budget_daily_supplies ||
+            '-'
         }
       ];
       setTableData(transformedData);

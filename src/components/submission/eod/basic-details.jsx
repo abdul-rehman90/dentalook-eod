@@ -233,8 +233,6 @@ export default function BasicDetails() {
     }
   }, [clinicId, provinces]);
 
-  console.log(currentStepData);
-
   return (
     <React.Fragment>
       <Form
