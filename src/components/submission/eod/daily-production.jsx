@@ -8,6 +8,7 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
   const {
     id,
     steps,
@@ -169,6 +170,7 @@ export default function DailyProduction({ onNext }) {
 
   const fetchActiveProviders = async () => {
     try {
+      setDataLoading(true);
       const { data } = await EODReportService.getActiveProviders(id);
       const baseProviders = data.providers.map((provider) => ({
         id: provider.id,
@@ -196,7 +198,10 @@ export default function DailyProduction({ onNext }) {
       } else {
         setTableData(baseProviders);
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setDataLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -210,6 +215,7 @@ export default function DailyProduction({ onNext }) {
     <React.Fragment>
       <div className="flex flex-col gap-6 px-6">
         <GenericTable
+          loading={dataLoading}
           dataSource={tableData}
           columns={providersColumns}
           onCellChange={handleCellChange}

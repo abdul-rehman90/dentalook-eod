@@ -17,10 +17,10 @@ const stepConfig = {
     { id: 'basic', name: 'Clinic Details' },
     { id: 'daily', name: 'Daily Production' },
     { id: 'payment', name: 'Payments' },
+    { id: 'supplies', name: 'Supplies' },
     { id: 'team', name: 'Team Absences' },
     { id: 'patient', name: 'Patient Tracking' },
     { id: 'auto', name: 'Attrition Tracking' },
-    { id: 'supplies', name: 'Supplies' },
     { id: 'referrals', name: 'Referrals' }
   ],
   eom: [
