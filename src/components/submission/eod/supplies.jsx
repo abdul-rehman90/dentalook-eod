@@ -40,7 +40,9 @@ export default function Supplies({ onNext }) {
       key: 'summary',
       dataIndex: 'summary',
       render: () => (
-        <div className="px-2 text-[15px] text-gray-900 font-bold">Total</div>
+        <div className="px-2 text-[15px] text-gray-900 font-bold">
+          Total Supplies
+        </div>
       )
     },
     {
@@ -65,7 +67,7 @@ export default function Supplies({ onNext }) {
       render: (_, record) => record.difference
     },
     {
-      width: 100,
+      width: 200,
       editable: true,
       inputType: 'text',
       key: 'overage_reason',
@@ -82,19 +84,19 @@ export default function Supplies({ onNext }) {
       dataIndex: 'submission_date'
     },
     {
-      width: 135,
+      width: 110,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
     {
-      width: 260,
+      width: 220,
       title: 'Budget (Goal)',
       key: 'budget_daily_supplies',
       dataIndex: 'budget_daily_supplies'
     },
     {
-      width: 135,
+      width: 220,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'
@@ -103,8 +105,8 @@ export default function Supplies({ onNext }) {
 
   const footer = () => (
     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-1.5">
-      <div></div>
-      <div>
+      <div className="font-semibold">Total</div>
+      <div className="ml-[-8px]">
         {totalSupplies.reduce(
           (sum, item) => sum + (Number(item.supplies_actual) || 0),
           0

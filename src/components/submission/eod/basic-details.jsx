@@ -137,16 +137,29 @@ export default function BasicDetails() {
 
   const handleSubmit = async () => {
     try {
-      const invalidProviders = tableData.filter(
-        (provider) =>
-          provider.is_active &&
-          (!provider.end_time ||
-            !provider.start_time ||
-            !provider.number_of_patients_seen)
-      );
+      const incompleteProviders = tableData
+        .filter((provider) => provider.is_active)
+        .map((provider) => {
+          const errors = [];
+          if (!provider.start_time) errors.push('start time');
+          if (!provider.end_time) errors.push('end time');
+          if (!provider.number_of_patients_seen) errors.push('patients seen');
+          return {
+            provider,
+            errors
+          };
+        })
+        .filter(({ errors }) => errors.length > 0);
 
-      if (invalidProviders.length > 0) {
-        toast.error('Please set all the field values for all active providers');
+      if (incompleteProviders.length > 0) {
+        const errorMessages = incompleteProviders
+          .map(({ errors }) => `${errors.join(', ')}`)
+          .join('; ');
+
+        toast.error(
+          `Please complete the following fields for active providers: ${errorMessages}`,
+          { duration: 5000 }
+        );
         return;
       }
 
@@ -165,7 +178,6 @@ export default function BasicDetails() {
       };
       if (id) {
         await addActiveProviders(payload, id);
-        //  router.push(`/submission/eod/${currentStep + 1}/${id}`)
         return;
       }
 
