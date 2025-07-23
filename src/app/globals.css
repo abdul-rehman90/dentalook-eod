@@ -266,7 +266,7 @@
   border-color: #339d5c;
 }
 
-.add-provider-form > div {
+.add-provider-form > .ant-form-item {
   width: 100% !important;
 }
 

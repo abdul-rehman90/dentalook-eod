@@ -37,8 +37,8 @@ export default function SubmissionPage() {
       4: <TeamAbsencesEOD onNext={handle} />,
       5: <PatientTrackingEOD onNext={handle} />,
       6: <AttritionTrackingEOD onNext={handle} />,
-      // 7: <SuppliesEOD onNext={handle} />,
-      7: <ReferralsEOD />
+      7: <SuppliesEOD onNext={handle} />,
+      8: <ReferralsEOD />
     },
     eom: {
       1: <BasicDetailsEOM onNext={handle} />,
