@@ -8,6 +8,7 @@ import StepNavigation from '@/common/components/step-navigation/step-navigation'
 export default function Supplies({ onNext }) {
   const { reportData, getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const [dataLoading, setDataLoading] = useState(false);
   const [totalSupplies, setTotalSupplies] = useState([]);
   const [tableData, setTableData] = useState([
     {
@@ -76,19 +77,20 @@ export default function Supplies({ onNext }) {
       dataIndex: 'submission_date'
     },
     {
-      width: 110,
+      width: 100,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
+    // {
+    //   width: 220,
+    //   title: 'Budget (Goal)',
+    //   key: 'budget_daily_supplies',
+    //   dataIndex: 'budget_daily_supplies'
+    // },
     {
-      width: 220,
-      title: 'Budget (Goal)',
-      key: 'budget_daily_supplies',
-      dataIndex: 'budget_daily_supplies'
-    },
-    {
-      width: 220,
+      // width: 220,
+      width: 450,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'
@@ -131,6 +133,7 @@ export default function Supplies({ onNext }) {
   useEffect(() => {
     const getAllSupplies = async () => {
       try {
+        setDataLoading(true);
         const { data } = await EODReportService.getAllSupplies(
           clinicId,
           submission_month
@@ -141,17 +144,21 @@ export default function Supplies({ onNext }) {
             key: item.id
           }))
         );
-      } catch (error) {}
+      } catch (error) {
+      } finally {
+        setDataLoading(false);
+      }
     };
     clinicId && getAllSupplies();
   }, [clinicId]);
 
   return (
     <React.Fragment>
-      <div className="px-6 flex flex-col gap-8">
+      <div className="px-6 flex flex-col gap-14">
         <GenericTable columns={columns} dataSource={tableData} />
         <GenericTable
           footer={footer}
+          loading={dataLoading}
           dataSource={totalSupplies}
           columns={totalSuppliesColumns}
         />
