@@ -20,7 +20,7 @@ const stepConfig = {
     { id: 'team', name: 'Team Absences' },
     { id: 'patient', name: 'Patient Tracking' },
     { id: 'auto', name: 'Attrition Tracking' },
-    // { id: 'supplies', name: 'Supplies' },
+    { id: 'supplies', name: 'Supplies' },
     { id: 'referrals', name: 'Referrals' }
   ],
   eom: [
@@ -86,7 +86,7 @@ export const AppProvider = ({ children }) => {
         if (type === 'eod') {
           const stepDataMapping = {
             payment: response.data.payments || [],
-            // supplies: response.data.supplies || {},
+            supplies: response.data.supplies || {},
             team: response.data.team_absences || [],
             referrals: response.data.referrals || [],
             daily: response.data.daily_production || [],

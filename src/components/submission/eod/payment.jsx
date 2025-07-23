@@ -92,7 +92,7 @@ export default function Payment({ onNext }) {
       dataIndex: 'amount'
     },
     {
-      width: 200,
+      width: 250,
       key: 'remarks',
       editable: true,
       title: 'Remarks',
@@ -103,11 +103,11 @@ export default function Payment({ onNext }) {
 
   const footer = () => (
     <div className="grid grid-cols-[1fr_1fr_1fr] p-1.5">
-      <div className="">Total Amount</div>
-      <div className="ml-13">
+      <div className="font-semibold">Total Amount</div>
+      <div className="pl-10">
         {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
-      <div className=""></div>
+      <div></div>
     </div>
   );
 
