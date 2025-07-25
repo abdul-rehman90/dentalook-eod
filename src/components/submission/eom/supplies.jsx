@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { Input } from 'antd';
 import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
-import { EOMReportService } from '@/common/services/eom-report';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
@@ -51,20 +50,34 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 50,
-      editable: true,
+      // editable: true,
+      // disabled: true,
       title: 'Actual',
-      inputType: 'number',
+      // inputType: 'number',
       key: 'supplies_actual',
-      dataIndex: 'supplies_actual'
+      dataIndex: 'supplies_actual',
+      render: (text) => {
+        const total = totalSupplies.reduce(
+          (sum, item) => sum + (Number(item.supplies_actual) || 0),
+          0
+        );
+        return total || text;
+      }
     },
     {
+      key: '',
+      title: '',
       width: 370,
-      editable: true,
-      inputType: 'text',
-      key: 'overage_reason',
-      title: 'Reason for Overage',
-      dataIndex: 'overage_reason'
+      dataIndex: ''
     }
+    // {
+    //   width: 370,
+    //   editable: true,
+    //   inputType: 'text',
+    //   key: 'overage_reason',
+    //   title: 'Reason for Overage',
+    //   dataIndex: 'overage_reason'
+    // }
   ];
 
   const totalSuppliesColumns = [
@@ -191,14 +204,6 @@ export default function Supplies({ onNext }) {
     );
   };
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
   const handleSaveEdit = async (record) => {
     try {
       setLoading(true);
@@ -207,10 +212,7 @@ export default function Supplies({ onNext }) {
         clinic: clinicId,
         supplies_actual: parseFloat(editRowData.supplies_actual)
       };
-      const response = await EOMReportService.addSuppliesAndGoogleReviews(
-        record.id,
-        payload
-      );
+      const response = await EODReportService.addSupplies(record.id, payload);
       if (response.status === 200) {
         toast.success('Record updated successfully');
         const { data } = await EODReportService.getAllSupplies(
@@ -242,10 +244,7 @@ export default function Supplies({ onNext }) {
           clinic: clinicId,
           supplies_actual: parseFloat(rowData.supplies_actual)
         };
-        const response = await EOMReportService.addSuppliesAndGoogleReviews(
-          id,
-          payload
-        );
+        const response = await EODReportService.addSupplies(id, payload);
         if (response.status === 200) {
           updateStepData(currentStepId, rowData);
           toast.success('Record is successfully saved');
@@ -299,11 +298,7 @@ export default function Supplies({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6 flex flex-col gap-14">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable columns={columns} dataSource={tableData} />
         <GenericTable
           footer={footer}
           loading={dataLoading}
