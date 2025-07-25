@@ -27,11 +27,11 @@ export default function Supplies({ onNext }) {
   const columns = [
     {
       title: '',
-      width: 80,
+      width: 100,
       key: 'summary',
       dataIndex: 'summary',
       render: () => (
-        <div className="px-2 text-[15px] text-gray-900 font-bold">
+        <div className="text-[15px] text-gray-900 font-bold">
           Total Supplies
         </div>
       )
@@ -45,21 +45,21 @@ export default function Supplies({ onNext }) {
       inputType: 'number',
       dataIndex: 'actual'
     },
+    // {
+    //   width: 100,
+    //   key: 'budget',
+    //   dataIndex: 'budget',
+    //   title: 'Budget (Goal)',
+    //   render: (_, record) => record.budget
+    // },
+    // {
+    //   width: 100,
+    //   title: '+/-',
+    //   key: 'difference',
+    //   render: (_, record) => record.difference
+    // },
     {
-      width: 100,
-      key: 'budget',
-      dataIndex: 'budget',
-      title: 'Budget (Goal)',
-      render: (_, record) => record.budget
-    },
-    {
-      width: 100,
-      title: '+/-',
-      key: 'difference',
-      render: (_, record) => record.difference
-    },
-    {
-      width: 200,
+      width: 300,
       key: 'reason',
       disabled: true,
       editable: true,
@@ -77,20 +77,19 @@ export default function Supplies({ onNext }) {
       dataIndex: 'submission_date'
     },
     {
-      width: 110,
+      width: 105,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
+    // {
+    //   width: 220,
+    //   title: 'Budget (Goal)',
+    //   key: 'budget_daily_supplies',
+    //   dataIndex: 'budget_daily_supplies'
+    // },
     {
-      width: 220,
-      title: 'Budget (Goal)',
-      key: 'budget_daily_supplies',
-      dataIndex: 'budget_daily_supplies'
-    },
-    {
-      width: 220,
-      // width: 450,
+      width: 315,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'

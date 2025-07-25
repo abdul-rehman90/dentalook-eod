@@ -32,9 +32,7 @@ export default function GoogleReviews({ onNext }) {
       key: 'summary',
       dataIndex: 'summary',
       render: () => (
-        <div className="px-2 text-[15px] text-gray-900 font-bold">
-          This Month
-        </div>
+        <div className="text-[15px] text-gray-900 font-bold">This Month</div>
       )
     },
     {
