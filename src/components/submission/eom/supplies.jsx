@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
+import { Input } from 'antd';
 import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const defaultRow = {
   key: '1',
-  difference: '-',
   overage_reason: '',
-  supplies_actual: '',
-  budget_daily_supplies: 0
+  supplies_actual: ''
 };
 
 export default function Supplies({ onNext }) {
+  const [editingId, setEditingId] = useState(null);
+  const [editRowData, setEditRowData] = useState(null);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [totalSupplies, setTotalSupplies] = useState([]);
   const [tableData, setTableData] = useState([defaultRow]);
   const {
     id,
@@ -27,19 +33,24 @@ export default function Supplies({ onNext }) {
   const currentStepData = getCurrentStepData();
   const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
+  const submission_month = dayjs(
+    reportData?.eom?.basic?.submission_date
+  ).format('YYYY-MM');
 
   const columns = [
     {
       title: '',
-      width: 80,
+      width: 100,
       key: 'summary',
       dataIndex: 'summary',
       render: () => (
-        <div className="px-2 text-[15px] text-gray-900 font-bold">Total</div>
+        <div className="text-[15px] text-gray-900 font-bold">
+          Total Supplies
+        </div>
       )
     },
     {
-      width: 100,
+      width: 50,
       editable: true,
       title: 'Actual',
       inputType: 'number',
@@ -47,20 +58,7 @@ export default function Supplies({ onNext }) {
       dataIndex: 'supplies_actual'
     },
     {
-      width: 100,
-      title: 'Budget (Goal)',
-      key: 'budget_daily_supplies',
-      dataIndex: 'budget_daily_supplies',
-      render: (_, record) => record.budget_daily_supplies
-    },
-    {
-      width: 100,
-      title: '+/-',
-      key: 'difference',
-      render: (_, record) => record.difference
-    },
-    {
-      width: 100,
+      width: 370,
       editable: true,
       inputType: 'text',
       key: 'overage_reason',
@@ -69,37 +67,179 @@ export default function Supplies({ onNext }) {
     }
   ];
 
-  const handleCellChange = (record, dataIndex, value) => {
-    const updatedData = tableData.map((item) => {
-      if (item.key === record.key) {
-        if (dataIndex === 'supplies_actual') {
-          const actualValue = value === '' ? null : Number(value);
-          const budgetValue = record.budget_daily_supplies;
-          const difference =
-            actualValue !== null ? actualValue - budgetValue : '-';
-
-          return {
-            ...item,
-            [dataIndex]: value,
-            difference: difference
-          };
+  const totalSuppliesColumns = [
+    {
+      width: 50,
+      key: 'submission_date',
+      title: 'Submission Date',
+      dataIndex: 'submission_date'
+    },
+    {
+      width: 50,
+      title: 'Actual',
+      key: 'supplies_actual',
+      dataIndex: 'supplies_actual',
+      render: (text, record) => {
+        if (editingId === record.id) {
+          return (
+            <Input
+              type="number"
+              value={editRowData.supplies_actual}
+              onChange={(e) =>
+                setEditRowData({
+                  ...editRowData,
+                  supplies_actual: e.target.value
+                })
+              }
+            />
+          );
         }
-        return { ...item, [dataIndex]: value };
+        return text;
       }
-      return item;
-    });
+    },
+    {
+      width: 160,
+      key: 'overage_reason',
+      title: 'Reason for Overage',
+      dataIndex: 'overage_reason',
+      render: (text, record) => {
+        if (editingId === record.id) {
+          return (
+            <Input
+              type="text"
+              value={editRowData.overage_reason}
+              onChange={(e) =>
+                setEditRowData({
+                  ...editRowData,
+                  overage_reason: e.target.value
+                })
+              }
+            />
+          );
+        }
+        return text;
+      }
+    },
+    {
+      key: '',
+      width: 50,
+      dataIndex: '',
+      title: 'Monthly Budget'
+    },
+    {
+      key: '',
+      width: 50,
+      dataIndex: '',
+      title: 'Variance'
+    },
+    {
+      width: 50,
+      key: 'action',
+      title: 'Action',
+      render: (_, record) => {
+        if (editingId === record.id) {
+          return (
+            <div className="flex gap-2">
+              <SaveOutlined
+                onClick={() => handleSaveEdit(record)}
+                className="text-blue-500 cursor-pointer"
+              />
+              <CloseOutlined
+                onClick={() => {
+                  setEditingId(null);
+                  setEditRowData(null);
+                }}
+                className="text-red-500 cursor-pointer"
+              />
+            </div>
+          );
+        }
+        return (
+          <EditOutlined
+            onClick={() => {
+              setEditingId(record.id);
+              setEditRowData({ ...record });
+            }}
+            className="text-blue-500 cursor-pointer"
+          />
+        );
+      }
+    }
+  ];
 
-    setTableData(updatedData);
+  const footer = () => {
+    const totalActual = totalSupplies.reduce(
+      (sum, item) => sum + (Number(item.supplies_actual) || 0),
+      0
+    );
+    return (
+      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
+        <div className="font-semibold">Total</div>
+        <div className="ml-8">{totalActual}</div>
+        <div></div>
+        <div className="text-center ml-15">0</div>
+        <div
+          className="text-center "
+          style={{
+            color: totalActual - 0 >= 0 ? 'green' : 'red'
+          }}
+        >
+          {totalActual - 0}
+        </div>
+        <div></div>
+      </div>
+    );
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
+  const handleSaveEdit = async (record) => {
+    try {
+      setLoading(true);
+      const payload = {
+        ...editRowData,
+        clinic: clinicId,
+        supplies_actual: parseFloat(editRowData.supplies_actual)
+      };
+      const response = await EOMReportService.addSuppliesAndGoogleReviews(
+        record.id,
+        payload
+      );
+      if (response.status === 200) {
+        toast.success('Record updated successfully');
+        const { data } = await EODReportService.getAllSupplies(
+          clinicId,
+          submission_month
+        );
+        setTotalSupplies(
+          data.map((item) => ({
+            ...item,
+            key: item.id
+          }))
+        );
+        setEditingId(null);
+        setEditRowData(null);
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const rowData = tableData[0];
-
       if (rowData.supplies_actual) {
-        setLoading(true);
         const payload = {
           ...rowData,
+          clinic: clinicId,
           supplies_actual: parseFloat(rowData.supplies_actual)
         };
         const response = await EOMReportService.addSuppliesAndGoogleReviews(
@@ -127,26 +267,48 @@ export default function Supplies({ onNext }) {
         {
           key: '1',
           overage_reason: currentStepData.overage_reason || '',
-          supplies_actual: currentStepData.supplies_actual || '',
-          budget_daily_supplies: currentStepData.budget_daily_supplies || 0,
-          difference:
-            currentStepData.difference ||
-            currentStepData.supplies_actual -
-              currentStepData.budget_daily_supplies ||
-            '-'
+          supplies_actual: currentStepData.supplies_actual || ''
         }
       ];
       setTableData(transformedData);
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    const getAllSupplies = async () => {
+      try {
+        setDataLoading(true);
+        const { data } = await EODReportService.getAllSupplies(
+          clinicId,
+          submission_month
+        );
+        setTotalSupplies(
+          data.map((item) => ({
+            ...item,
+            key: item.id
+          }))
+        );
+      } catch (error) {
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    clinicId && getAllSupplies();
+  }, [clinicId]);
+
   return (
     <React.Fragment>
-      <div className="px-6">
+      <div className="px-6 flex flex-col gap-14">
         <GenericTable
           columns={columns}
           dataSource={tableData}
           onCellChange={handleCellChange}
+        />
+        <GenericTable
+          footer={footer}
+          loading={dataLoading}
+          dataSource={totalSupplies}
+          columns={totalSuppliesColumns}
         />
       </div>
       <StepNavigation onNext={handleSubmit} />
