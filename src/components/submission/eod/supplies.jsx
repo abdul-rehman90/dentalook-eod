@@ -138,7 +138,7 @@ export default function Supplies({ onNext }) {
       render: (_, record) => {
         if (editingId === record.id) {
           return (
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <SaveOutlined
                 onClick={() => handleSaveEdit(record)}
                 className="text-blue-500 cursor-pointer"

@@ -13,10 +13,8 @@ export default function Supplies({ onNext }) {
   const [tableData, setTableData] = useState([
     {
       key: '1',
-      budget: 0,
       actual: '',
-      reason: '',
-      difference: '-'
+      reason: ''
     }
   ]);
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
@@ -37,7 +35,7 @@ export default function Supplies({ onNext }) {
       )
     },
     {
-      width: 100,
+      width: 50,
       key: 'actual',
       disabled: true,
       editable: true,
@@ -45,19 +43,6 @@ export default function Supplies({ onNext }) {
       inputType: 'number',
       dataIndex: 'actual'
     },
-    // {
-    //   width: 100,
-    //   key: 'budget',
-    //   dataIndex: 'budget',
-    //   title: 'Budget (Goal)',
-    //   render: (_, record) => record.budget
-    // },
-    // {
-    //   width: 100,
-    //   title: '+/-',
-    //   key: 'difference',
-    //   render: (_, record) => record.difference
-    // },
     {
       width: 300,
       key: 'reason',
@@ -71,46 +56,59 @@ export default function Supplies({ onNext }) {
 
   const totalSuppliesColumns = [
     {
-      width: 100,
+      width: 50,
       key: 'submission_date',
       title: 'Submission Date',
       dataIndex: 'submission_date'
     },
     {
-      width: 105,
+      width: 50,
       title: 'Actual',
       key: 'supplies_actual',
       dataIndex: 'supplies_actual'
     },
-    // {
-    //   width: 220,
-    //   title: 'Budget (Goal)',
-    //   key: 'budget_daily_supplies',
-    //   dataIndex: 'budget_daily_supplies'
-    // },
     {
-      width: 315,
+      width: 150,
       key: 'overage_reason',
       title: 'Reason for Overage',
       dataIndex: 'overage_reason'
+    },
+    {
+      key: '',
+      width: 50,
+      dataIndex: '',
+      title: 'Monthly Budget'
+    },
+    {
+      key: '',
+      width: 50,
+      dataIndex: '',
+      title: 'Variance'
     }
   ];
 
-  const footer = () => (
-    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-1.5">
-      <div className="font-semibold">Total</div>
-      <div className="ml-[-8px]">
-        {totalSupplies.reduce(
-          (sum, item) => sum + (Number(item.supplies_actual) || 0),
-          0
-        )}
+  const footer = () => {
+    const totalActual = totalSupplies.reduce(
+      (sum, item) => sum + (Number(item.supplies_actual) || 0),
+      0
+    );
+    return (
+      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
+        <div className="font-semibold">Total</div>
+        <div className="ml-6">{totalActual}</div>
+        <div></div>
+        <div className="text-center">0</div>
+        <div
+          className="ml-15"
+          style={{
+            color: totalActual - 0 >= 0 ? 'green' : 'red'
+          }}
+        >
+          {totalActual - 0}
+        </div>
       </div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-  );
+    );
+  };
 
   useEffect(() => {
     if (Object.entries(currentStepData).length > 0) {
@@ -118,11 +116,7 @@ export default function Supplies({ onNext }) {
         {
           key: '1',
           reason: currentStepData.overage_reason || '',
-          actual: currentStepData.supplies_actual || '',
-          budget: currentStepData.budget_daily_supplies || 0,
-          difference:
-            currentStepData.supplies_actual -
-              currentStepData.budget_daily_supplies || '-'
+          actual: currentStepData.supplies_actual || ''
         }
       ];
       setTableData(transformedData);
