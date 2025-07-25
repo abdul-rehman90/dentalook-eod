@@ -45,6 +45,8 @@ export default function Payment({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+  const isSubmissionCompleted =
+    reportData?.eod?.basic?.clinicDetails?.submitted === 'Completed';
   const sensors = [
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   ];
@@ -63,6 +65,7 @@ export default function Payment({ onNext }) {
           <div className="flex flex-col gap-1">
             <Select
               value={type}
+              disabled={isSubmissionCompleted}
               onChange={(value) => handleTypeChange(record.key, value)}
             >
               {paymentOptions.map((option) => (
@@ -85,27 +88,29 @@ export default function Payment({ onNext }) {
       }
     },
     {
-      width: 50,
+      width: 150,
       key: 'amount',
       editable: true,
       inputType: 'number',
       title: 'Amount ($)',
-      dataIndex: 'amount'
+      dataIndex: 'amount',
+      disabled: isSubmissionCompleted
     },
     {
-      width: 250,
+      width: 200,
       key: 'remarks',
       editable: true,
       title: 'Remarks',
       inputType: 'text',
-      dataIndex: 'remarks'
+      dataIndex: 'remarks',
+      disabled: isSubmissionCompleted
     }
   ];
 
   const footer = () => (
-    <div className="grid grid-cols-[1fr_1fr_1fr] p-1.5">
+    <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
       <div className="font-semibold">Total Amount</div>
-      <div className="pl-10">
+      <div className="max-[1350px]:pl-[62px] min-[1350px]:max-[1400px]:pl-[52px] min-[1401px]:max-[1441px]:pl-[44px] min-[1441px]:pl-[36px]">
         {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
       </div>
       <div></div>
@@ -190,6 +195,12 @@ export default function Payment({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      if (isSubmissionCompleted) {
+        updateStepData(currentStepId, { notes, payments: tableData });
+        onNext();
+        return;
+      }
+
       const validPayments = tableData.filter(
         (item) => item.amount && !isNaN(item.amount) && Number(item.amount) > 0
       );
@@ -322,6 +333,7 @@ export default function Payment({ onNext }) {
               <TextArea
                 rows={4}
                 value={notes}
+                disabled={isSubmissionCompleted}
                 placeholder="Enter note here..."
                 onChange={(e) => setNotes(e.target.value)}
                 style={{

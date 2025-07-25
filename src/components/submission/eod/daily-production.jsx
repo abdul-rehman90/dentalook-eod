@@ -78,7 +78,12 @@ export default function DailyProduction({ onNext }) {
     {
       key: 'variance',
       title: 'Variance',
-      dataIndex: 'variance'
+      dataIndex: 'variance',
+      render: (value) => (
+        <span style={{ color: value >= 0 ? 'green' : 'red' }}>
+          {value.toLocaleString()}
+        </span>
+      )
     }
   ];
 
