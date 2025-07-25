@@ -34,7 +34,7 @@ export default function Supplies({ onNext }) {
   const clinicId = reportData?.eom?.basic?.clinic;
   const currentStepId = steps[currentStep - 1].id;
   const submission_month = dayjs(
-    reportData?.eom?.basic?.submission_date
+    reportData?.eom?.basic?.submission_month
   ).format('YYYY-MM');
 
   const columns = [
@@ -139,7 +139,7 @@ export default function Supplies({ onNext }) {
       render: (_, record) => {
         if (editingId === record.id) {
           return (
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <SaveOutlined
                 onClick={() => handleSaveEdit(record)}
                 className="text-blue-500 cursor-pointer"
