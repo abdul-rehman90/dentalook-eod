@@ -23,7 +23,7 @@ export default function Supplies({ onNext }) {
       key: 'summary',
       dataIndex: 'summary',
       render: () => (
-        <div className="px-2 text-[15px] text-gray-900 font-bold">Total</div>
+        <div className="text-[15px] text-gray-900 font-bold">Total</div>
       )
     },
     {
