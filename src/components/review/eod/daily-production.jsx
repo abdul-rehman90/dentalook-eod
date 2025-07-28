@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { GenericTable } from '@/common/components/table/table';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function DailyProduction({ onNext }) {
-  const [goal, setGoal] = useState(6367);
+  const [goal, setGoal] = useState(0);
   const [tableData, setTableData] = useState([]);
-  const { getCurrentStepData } = useGlobalContext();
+  const { reportData, getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -25,7 +27,8 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
-        goal: `${goal.toLocaleString()}`,
+        variance: difference,
+        target: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
         totalProduction: `${totalProduction.toLocaleString()}`
@@ -36,61 +39,73 @@ export default function DailyProduction({ onNext }) {
   const totalProductionColumns = [
     {
       title: '',
-      width: 150,
       key: 'summary',
       dataIndex: 'summary',
       render: () => 'Production ($):'
     },
     {
-      width: 150,
       key: 'DDS',
       dataIndex: 'DDS',
       title: 'Total (DDS)'
     },
     {
-      width: 150,
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
     },
     {
-      width: 150,
       key: 'totalProduction',
       title: 'Total Production',
       dataIndex: 'totalProduction'
     },
     {
-      width: 50,
-      title: '',
       key: 'target',
-      dataIndex: 'target',
-      render: (_, record) => (
-        <div className="text-xs text-[#333333] flex justify-end">
-          Target{' '}
-          <span className="ml-1 text-primary-400">
-            {record.totalProduction}
-          </span>
-          <span>/{record.goal}</span>
-        </div>
+      title: 'Target',
+      dataIndex: 'target'
+    },
+    {
+      key: 'variance',
+      title: 'Variance',
+      dataIndex: 'variance',
+      render: (value) => (
+        <span style={{ color: value >= 0 ? 'green' : 'red' }}>
+          {value.toLocaleString()}
+        </span>
       )
     }
+
+    // {
+    //   width: 50,
+    //   title: '',
+    //   key: 'target',
+    //   dataIndex: 'target',
+    //   render: (_, record) => (
+    //     <div className="text-xs text-[#333333] flex justify-end">
+    //       Target{' '}
+    //       <span className="ml-1 text-primary-400">
+    //         {record.totalProduction}
+    //       </span>
+    //       <span>/{record.goal}</span>
+    //     </div>
+    //   )
+    // }
   ];
 
   const dailyProductionColumns = [
     {
-      // width: 300,
+      width: 150,
       key: 'type',
       title: 'Title',
       dataIndex: 'type'
     },
     {
-      // width: 300,
+      width: 250,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 150,
+      width: 100,
       editable: true,
       disabled: true,
       inputType: 'number',
@@ -101,10 +116,25 @@ export default function DailyProduction({ onNext }) {
     {
       key: '',
       title: '',
-      width: 200,
+      width: 250,
       dataIndex: ''
     }
   ];
+
+  const fetchTargetGoal = async () => {
+    try {
+      const response = await EODReportService.getTargetGoalByClinicId(clinicId);
+      if (response.data.submission_month_target !== goal) {
+        setGoal(response.data.submission_month_target);
+      }
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    if (clinicId) {
+      fetchTargetGoal();
+    }
+  }, [clinicId]);
 
   useEffect(() => {
     if (currentStepData.length > 0) {
