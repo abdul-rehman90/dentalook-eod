@@ -284,10 +284,10 @@ export default function TeamAbsences({ onNext }) {
           position: item.position,
           name: item.user?.id || item.name,
           key: item.id?.toString() || item.key?.toString(),
-          end_time: item.end_time.includes('m')
+          end_time: item.end_time?.includes('m')
             ? item.end_time
             : formatTimeForUI(item.end_time),
-          start_time: item.start_time.includes('m')
+          start_time: item.start_time?.includes('m')
             ? item.start_time
             : formatTimeForUI(item.start_time)
         }));

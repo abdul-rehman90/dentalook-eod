@@ -70,7 +70,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            disabled={record.submitted === 'Completed'}
+            // disabled={record.submitted === 'Completed'}
             onClick={() =>
               router.push(`/submission/eod/1/${record.eodsubmission_id}`)
             }

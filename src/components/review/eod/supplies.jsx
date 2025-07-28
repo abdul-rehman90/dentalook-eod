@@ -17,9 +17,9 @@ export default function Supplies({ onNext }) {
       reason: ''
     }
   ]);
-  const clinicId = reportData?.eom?.basic?.clinic;
+  const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
   const submission_month = dayjs(
-    reportData?.eom?.basic?.submission_month
+    reportData?.eod?.basic?.clinicDetails?.submission_date
   ).format('YYYY-MM');
 
   const columns = [
@@ -37,31 +37,21 @@ export default function Supplies({ onNext }) {
     {
       width: 50,
       key: 'actual',
+      disabled: true,
+      editable: true,
       title: 'Actual',
-      dataIndex: 'actual',
-      render: (text) => {
-        const total = totalSupplies.reduce(
-          (sum, item) => sum + (Number(item.supplies_actual) || 0),
-          0
-        );
-        return total || text;
-      }
+      inputType: 'number',
+      dataIndex: 'actual'
     },
     {
-      key: '',
-      title: '',
       width: 300,
-      dataIndex: ''
+      key: 'reason',
+      disabled: true,
+      editable: true,
+      inputType: 'text',
+      dataIndex: 'reason',
+      title: 'Reason for Overage'
     }
-    // {
-    //   width: 300,
-    //   key: 'reason',
-    //   disabled: true,
-    //   editable: true,
-    //   inputType: 'text',
-    //   dataIndex: 'reason',
-    //   title: 'Reason for Overage'
-    // }
   ];
 
   const totalSuppliesColumns = [
@@ -105,7 +95,7 @@ export default function Supplies({ onNext }) {
     return (
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
-        <div className="ml-5">{totalActual}</div>
+        <div className="ml-6">{totalActual}</div>
         <div></div>
         <div className="text-center">0</div>
         <div

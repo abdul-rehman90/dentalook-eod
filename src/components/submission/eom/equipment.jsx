@@ -195,7 +195,9 @@ export default function EquipmentRepairs({ onNext }) {
         equipment_repairs: item.equipment_repairs,
         purchase_or_repair: item.purchase_or_repair,
         key: item.id?.toString() || item.key?.toString(),
-        last_maintenance_date: dayjs(item.last_maintenance_date)
+        last_maintenance_date: item.last_maintenance_date
+          ? dayjs(item.last_maintenance_date)
+          : null
       }));
       setTableData(transformedData);
     }

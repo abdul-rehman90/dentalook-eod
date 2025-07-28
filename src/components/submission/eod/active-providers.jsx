@@ -41,6 +41,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const status = form.getFieldValue('status');
+  const [loading, setLoading] = useState(false);
   const clinicId = form.getFieldValue('clinic');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicOpenTime = form.getFieldValue('clinic_open_time');
@@ -301,6 +302,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
 
   const fetchProviders = async () => {
     try {
+      setLoading(true);
       const { data } = await EODReportService.getProviders(clinicId);
       const baseProviders = data.providers
         .map((provider) => ({
@@ -344,7 +346,10 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       } else {
         setTableData(baseProviders);
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -372,7 +377,11 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
             Add New Provider
           </Button>
         </div>
-        <GenericTable columns={columns} dataSource={tableData} />
+        <GenericTable
+          loading={loading}
+          columns={columns}
+          dataSource={tableData}
+        />
       </div>
     </React.Fragment>
   );
