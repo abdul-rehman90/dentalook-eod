@@ -156,6 +156,17 @@ export default function Referrals() {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithMissingData = tableData.filter(
+        (item) => item.patient_name && (!item.provider_name || !item.specialty)
+      );
+
+      if (rowsWithMissingData.length > 0) {
+        toast.error(
+          'Please specify both Provider and Specialty for all patients with names'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter(
           (item) => item.patient_name && item.provider_name && item.specialty
