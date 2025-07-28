@@ -143,6 +143,19 @@ export default function EquipmentRepairs({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithMissingData = tableData.filter(
+        (item) =>
+          item.equipment_repairs && (!item.purchase_or_repair || !item.cost)
+      );
+
+      if (rowsWithMissingData.length > 0) {
+        toast.error(
+          'Please complete all required fields: ' +
+            'When Equipment is provided, both Purchase/Repair type and Cost must be specified'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter(
           (item) =>
@@ -151,9 +164,9 @@ export default function EquipmentRepairs({ onNext }) {
         .map((item) => ({
           ...item,
           submission: id,
-          last_maintenance_date: dayjs(item.last_maintenance_date).format(
-            'YYYY-MM-DD'
-          )
+          last_maintenance_date: item.last_maintenance_date
+            ? dayjs(item.last_maintenance_date).format('YYYY-MM-DD')
+            : null
         }));
 
       if (payload.length > 0) {
