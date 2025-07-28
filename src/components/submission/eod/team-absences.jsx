@@ -226,6 +226,18 @@ export default function TeamAbsences({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithMissingData = tableData.filter(
+        (item) => (item.position && !item.name) || (item.name && !item.position)
+      );
+
+      if (rowsWithMissingData.length > 0) {
+        toast.error(
+          'Please complete all required fields: ' +
+            'When Title is provided, Provider Name is required, and vice versa'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter((item) => item.position && item.name && item.absence)
         .map((item) => ({
