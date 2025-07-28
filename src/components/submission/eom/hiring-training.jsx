@@ -202,6 +202,31 @@ export default function HiringTraining({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const invalidHiringRows = hiringData.filter(
+        (item) => item.hiring_position && !item.category
+      );
+
+      const invalidTrainingRows = trainingData.filter(
+        (item) => item.training_position && !item.training_name
+      );
+
+      if (invalidHiringRows.length > 0 || invalidTrainingRows.length > 0) {
+        let errorMessage = 'Please complete all required fields:';
+
+        if (invalidHiringRows.length > 0) {
+          errorMessage +=
+            '\n- For hiring, when Position is provided, Category must be specified';
+        }
+
+        if (invalidTrainingRows.length > 0) {
+          errorMessage +=
+            '\n- For training, when Position is provided, Name must be specified';
+        }
+
+        toast.error(errorMessage);
+        return;
+      }
+
       const apiCalls = [];
       const hiringPayload = hiringData
         .filter((item) => item.hiring_position && item.category)

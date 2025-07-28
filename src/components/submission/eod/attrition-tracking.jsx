@@ -117,6 +117,15 @@ export default function AttritionTracking({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithPatientButNoReason = tableData.filter(
+        (item) => item.patient_name && !item.reason
+      );
+
+      if (rowsWithPatientButNoReason.length > 0) {
+        toast.error('Please specify the "Reason" for all patients with names');
+        return;
+      }
+
       const payload = tableData
         .filter((item) => item.patient_name && item.reason)
         .map((item) => ({

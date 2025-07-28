@@ -187,9 +187,18 @@ export default function PatientTracking({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithPatientButNoSource = tableData.filter(
+        (item) => item.patient_name && !item.source
+      );
+
       const rowsWithMissingOtherSource = tableData.filter(
         (item) => item.source === 'Other' && !item.other_source
       );
+
+      if (rowsWithPatientButNoSource.length > 0) {
+        toast.error('Please specify the "Source" for all patients with names');
+        return;
+      }
 
       if (rowsWithMissingOtherSource.length > 0) {
         toast.error(
