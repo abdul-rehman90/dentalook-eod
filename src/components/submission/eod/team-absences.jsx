@@ -239,6 +239,18 @@ export default function TeamAbsences({ onNext }) {
         return;
       }
 
+      const rowsWithInvalidTimes = tableData.filter(
+        (item) =>
+          item.absence === 'Partial Day' && (!item.start_time || !item.end_time)
+      );
+
+      if (rowsWithInvalidTimes.length > 0) {
+        toast.error(
+          'Please provide both start and end times for all Partial Day absences'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter((item) => item.position && item.name && item.absence)
         .map((item) => {
