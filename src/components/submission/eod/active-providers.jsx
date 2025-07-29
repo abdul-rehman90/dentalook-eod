@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
 import { Checkbox, Input, Select } from 'antd';
@@ -7,35 +6,17 @@ import { PlusOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
-import { formatTimeForUI } from '@/common/utils/time-handling';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import {
+  formatTimeForUI,
+  generateTimeOptions
+} from '@/common/utils/time-handling';
 
 const providerTypes = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' }
 ];
-
-const generateTimeOptions = (startTime, endTime) => {
-  if (!startTime || !endTime) return [];
-
-  const format = 'h:mm a';
-  const start = dayjs(startTime, format);
-  const end = dayjs(endTime, format);
-
-  let options = [];
-  let current = start;
-
-  while (current.isBefore(end) || current.isSame(end)) {
-    options.push({
-      label: current.format(format),
-      value: current.format(format)
-    });
-    current = current.add(30, 'minute');
-  }
-
-  return options;
-};
 
 export default function ActiveProviders({ form, tableData, setTableData }) {
   const { getCurrentStepData } = useGlobalContext();
@@ -46,6 +27,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicOpenTime = form.getFieldValue('clinic_open_time');
   const clinicCloseTime = form.getFieldValue('clinic_close_time');
+  console.log(clinicOpenTime);
+  console.log(clinicCloseTime);
 
   const columns = [
     {
