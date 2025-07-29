@@ -17,6 +17,7 @@ const categoryOptions = [
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' },
+  { value: 'RDT', label: 'RDT' },
   { value: 'PCC', label: 'PCC' },
   { value: 'CDA', label: 'CDA' },
   { value: 'PM', label: 'PM' },
@@ -343,5 +344,3 @@ export default function HiringTraining({ onNext }) {
     </React.Fragment>
   );
 }
-
-//  <h1 className="text-base font-medium text-black">Hiring</h1>
