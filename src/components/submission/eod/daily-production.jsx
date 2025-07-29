@@ -33,7 +33,11 @@ export default function DailyProduction({ onNext }) {
       .filter((item) => item.type === 'RDH')
       .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
 
-    const totalProduction = totalDDS + totalRDH;
+    const totalRDT = tableData
+      .filter((item) => item.type === 'RDT')
+      .reduce((sum, item) => sum + (Number(item.production_amount) || 0), 0);
+
+    const totalProduction = totalDDS + totalRDH + totalRDT;
     const difference = totalProduction - goal;
 
     return [
@@ -42,6 +46,7 @@ export default function DailyProduction({ onNext }) {
         variance: difference,
         target: `${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
+        RDT: `${totalRDT.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
         totalProduction: `${totalProduction.toLocaleString()}`
       }
@@ -64,6 +69,11 @@ export default function DailyProduction({ onNext }) {
       key: 'RDH',
       dataIndex: 'RDH',
       title: 'Total (RDH)'
+    },
+    {
+      key: 'RDT',
+      dataIndex: 'RDT',
+      title: 'Total (RDT)'
     },
     {
       key: 'totalProduction',
@@ -96,14 +106,14 @@ export default function DailyProduction({ onNext }) {
       render: (type) => type || 'N/A'
     },
     {
-      width: 250,
+      width: 350,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
       render: (name) => name || 'N/A'
     },
     {
-      width: 100,
+      width: 50,
       editable: true,
       inputType: 'number',
       title: 'Production',
@@ -115,7 +125,7 @@ export default function DailyProduction({ onNext }) {
     {
       key: '',
       title: '',
-      width: 250,
+      width: 240,
       dataIndex: ''
     }
   ];
