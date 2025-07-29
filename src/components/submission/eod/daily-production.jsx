@@ -23,6 +23,9 @@ export default function DailyProduction({ onNext }) {
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
   const isClinicClosed =
     reportData?.eod?.basic?.clinicDetails?.status === 'closed';
+  const hasRDT = reportData?.eod?.basic?.activeProviders?.some(
+    (item) => item.type === 'RDT'
+  );
 
   const summaryData = useMemo(() => {
     const totalDDS = tableData
@@ -53,49 +56,59 @@ export default function DailyProduction({ onNext }) {
     ];
   }, [tableData, goal]);
 
-  const totalProductionColumns = [
-    {
-      title: '',
-      key: 'summary',
-      dataIndex: 'summary',
-      render: () => 'Production ($):'
-    },
-    {
-      key: 'DDS',
-      dataIndex: 'DDS',
-      title: 'Total (DDS)'
-    },
-    {
-      key: 'RDH',
-      dataIndex: 'RDH',
-      title: 'Total (RDH)'
-    },
-    {
-      key: 'RDT',
-      dataIndex: 'RDT',
-      title: 'Total (RDT)'
-    },
-    {
-      key: 'totalProduction',
-      title: 'Total Production',
-      dataIndex: 'totalProduction'
-    },
-    {
-      key: 'target',
-      title: 'Target',
-      dataIndex: 'target'
-    },
-    {
-      key: 'variance',
-      title: 'Variance',
-      dataIndex: 'variance',
-      render: (value) => (
-        <span style={{ color: value >= 0 ? 'green' : 'red' }}>
-          {value.toLocaleString()}
-        </span>
-      )
+  const totalProductionColumns = useMemo(() => {
+    const baseColumns = [
+      {
+        title: '',
+        key: 'summary',
+        dataIndex: 'summary',
+        render: () => 'Production ($):'
+      },
+      {
+        key: 'DDS',
+        dataIndex: 'DDS',
+        title: 'Total (DDS)'
+      },
+      {
+        key: 'RDH',
+        dataIndex: 'RDH',
+        title: 'Total (RDH)'
+      }
+    ];
+
+    if (hasRDT) {
+      baseColumns.push({
+        key: 'RDT',
+        dataIndex: 'RDT',
+        title: 'Total (RDT)'
+      });
     }
-  ];
+
+    baseColumns.push(
+      {
+        key: 'totalProduction',
+        title: 'Total Production',
+        dataIndex: 'totalProduction'
+      },
+      {
+        key: 'target',
+        title: 'Target',
+        dataIndex: 'target'
+      },
+      {
+        key: 'variance',
+        title: 'Variance',
+        dataIndex: 'variance',
+        render: (value) => (
+          <span style={{ color: value >= 0 ? 'green' : 'red' }}>
+            {value.toLocaleString()}
+          </span>
+        )
+      }
+    );
+
+    return baseColumns;
+  }, [hasRDT]);
 
   const providersColumns = [
     {
@@ -106,10 +119,10 @@ export default function DailyProduction({ onNext }) {
       render: (type) => type || 'N/A'
     },
     {
-      width: 350,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
+      width: hasRDT ? 350 : 250,
       render: (name) => name || 'N/A'
     },
     {
@@ -125,8 +138,8 @@ export default function DailyProduction({ onNext }) {
     {
       key: '',
       title: '',
-      width: 240,
-      dataIndex: ''
+      dataIndex: '',
+      width: hasRDT ? 240 : 250
     }
   ];
 
