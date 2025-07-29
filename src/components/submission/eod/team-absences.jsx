@@ -18,6 +18,7 @@ import {
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' },
+  { value: 'RDT', label: 'RDT' },
   { value: 'PCC', label: 'PCC' },
   { value: 'CDA', label: 'CDA' },
   { value: 'PM', label: 'PM' },
@@ -66,7 +67,7 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'name',
       title: 'Provider Name',
       render: (text, record) => {
-        if (['DDS', 'RDH'].includes(record.position)) {
+        if (['DDS', 'RDH', 'RDT'].includes(record.position)) {
           return (
             <div className="h-full">
               <Select
@@ -240,19 +241,25 @@ export default function TeamAbsences({ onNext }) {
 
       const payload = tableData
         .filter((item) => item.position && item.name && item.absence)
-        .map((item) => ({
-          ...item,
-          user: item.name,
-          eodsubmission: Number(id),
-          start_time:
-            item.absence === 'Partial Day' && item.start_time
-              ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
-              : null,
-          end_time:
-            item.absence === 'Partial Day' && item.end_time
-              ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
-              : null
-        }));
+        .map((item) => {
+          const isStandardPosition = ['DDS', 'RDH', 'RDT'].includes(
+            item.position
+          );
+          return {
+            ...item,
+            user: isStandardPosition ? item.name : null,
+            other_provider: isStandardPosition ? null : item.name,
+            eodsubmission: Number(id),
+            start_time:
+              item.absence === 'Partial Day' && item.start_time
+                ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
+                : null,
+            end_time:
+              item.absence === 'Partial Day' && item.end_time
+                ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
+                : null
+          };
+        });
       if (payload.length > 0) {
         setLoading(true);
         const response = await EODReportService.addTeamAbsence(payload);
@@ -282,7 +289,7 @@ export default function TeamAbsences({ onNext }) {
           reason: item.reason,
           absence: item.absence,
           position: item.position,
-          name: item.user?.id || item.name,
+          name: item.user?.id || item.name || item.other_provider,
           key: item.id?.toString() || item.key?.toString(),
           end_time: item.end_time?.includes('m')
             ? item.end_time
