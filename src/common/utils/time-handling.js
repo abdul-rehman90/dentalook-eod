@@ -28,3 +28,24 @@ export const generateTimeSlots = (startHour, endHour, intervalMinutes) => {
   }
   return slots;
 };
+
+export const generateTimeOptions = (startTime, endTime) => {
+  if (!startTime || !endTime) return [];
+
+  const format = 'h:mm a';
+  const start = dayjs(startTime, format);
+  const end = dayjs(endTime, format);
+
+  let options = [];
+  let current = start;
+
+  while (current.isBefore(end) || current.isSame(end)) {
+    options.push({
+      label: current.format(format),
+      value: current.format(format)
+    });
+    current = current.add(30, 'minute');
+  }
+
+  return options;
+};

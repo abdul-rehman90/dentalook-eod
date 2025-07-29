@@ -94,7 +94,18 @@ export default function Payment({ onNext }) {
       inputType: 'number',
       title: 'Amount ($)',
       dataIndex: 'amount',
-      disabled: isSubmissionCompleted
+      render: (amount, record) => {
+        const displayAmount =
+          record.type === 'CC/DEBIT REFUND' ? -Math.abs(amount || 0) : amount;
+        return (
+          <Input
+            type="number"
+            value={displayAmount}
+            disabled={isSubmissionCompleted}
+            onChange={(e) => handleCellChange(record, 'amount', e.target.value)}
+          />
+        );
+      }
     },
     {
       width: 200,
@@ -202,7 +213,7 @@ export default function Payment({ onNext }) {
       }
 
       const validPayments = tableData.filter(
-        (item) => item.amount && !isNaN(item.amount) && Number(item.amount) > 0
+        (item) => item.amount && !isNaN(item.amount)
       );
 
       const payload = {
