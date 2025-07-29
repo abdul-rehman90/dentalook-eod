@@ -27,8 +27,6 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const clinicOpenTime = form.getFieldValue('clinic_open_time');
   const clinicCloseTime = form.getFieldValue('clinic_close_time');
-  console.log(clinicOpenTime);
-  console.log(clinicCloseTime);
 
   const columns = [
     {
