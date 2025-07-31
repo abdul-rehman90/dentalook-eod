@@ -21,6 +21,7 @@ export default function ReviewLayout({ children }) {
   const submission_date =
     reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
+  const stepName = steps[currentStep - 1]?.name;
 
   return (
     <div className="px-13 py-6 bg-[#FAFAFB] min-h-screen">
@@ -33,13 +34,11 @@ export default function ReviewLayout({ children }) {
         >
           <LeftOutlined />
         </Button>
-        End of {type === 'eod' ? 'Day' : 'Month'} Reporting: View
-        <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
-          Submitted
-        </div>
+        {stepName}
+
         {type === 'eod'
-          ? `/ ${dayjs(submission_date).format('D MMMM YYYY')}`
-          : `/ ${dayjs(submission_month).format('MMM YYYY')}`}
+          ? ` - ${dayjs(submission_date).format('MMMM D, YYYY')}`
+          : ` - ${dayjs(submission_month).format('MMM YYYY')}`}
       </h1>
       <div className="flex gap-2">
         <div className="w-full max-w-[250px]">
@@ -62,3 +61,11 @@ export default function ReviewLayout({ children }) {
     </div>
   );
 }
+
+// End of {type === 'eod' ? 'Day' : 'Month'} Reporting: View
+//     <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
+//       Submitted
+//     </div>
+//     {type === 'eod'
+//       ? `/ ${dayjs(submission_date).format('MMMM D, YYYY')}`
+//       : `/ ${dayjs(submission_month).format('MMM YYYY')}`}
