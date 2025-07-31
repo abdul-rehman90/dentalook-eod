@@ -19,7 +19,7 @@ const stepConfig = {
     { id: 'payment', name: 'Payments' },
     { id: 'supplies', name: 'Supplies' },
     { id: 'team', name: 'Team Absences' },
-    { id: 'patient', name: 'Patient Tracking' },
+    { id: 'patient', name: 'New Patients' },
     { id: 'auto', name: 'Attrition Tracking' },
     { id: 'referrals', name: 'Referrals' }
   ],
