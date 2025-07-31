@@ -21,6 +21,7 @@ export default function SubmissionLayout({ children }) {
   const submission_date =
     reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
+  const stepName = steps[currentStep - 1]?.name;
 
   if (currentStep > 1 && !id) {
     redirect(`/submission/${type}/1`);
@@ -37,11 +38,11 @@ export default function SubmissionLayout({ children }) {
         >
           <LeftOutlined />
         </Button>
-        Submit End Of {type === 'eod' ? 'Day' : 'Month'}{' '}
+        {stepName}
         {id &&
           (type === 'eod'
-            ? ` / ${dayjs(submission_date).format('D MMMM YYYY')}`
-            : ` / ${dayjs(submission_month).format('MMM YYYY')}`)}
+            ? ` - ${dayjs(submission_date).format('MMMM D, YYYY')}`
+            : ` - ${dayjs(submission_month).format('MMM YYYY')}`)}
       </h1>
       <div className="flex gap-2">
         <div className="w-full max-w-[250px]">
