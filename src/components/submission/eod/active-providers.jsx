@@ -15,7 +15,8 @@ import {
 
 const providerTypes = [
   { value: 'DDS', label: 'DDS' },
-  { value: 'RDH', label: 'RDH' }
+  { value: 'RDH', label: 'RDH' },
+  { value: 'RDT', label: 'RDT' }
 ];
 
 export default function ActiveProviders({ form, tableData, setTableData }) {
