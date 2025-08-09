@@ -121,8 +121,10 @@ export default function Payment({ onNext }) {
   const footer = () => (
     <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
       <div className="font-semibold">Total Amount</div>
-      <div className="max-[1350px]:pl-[62px] min-[1350px]:max-[1400px]:pl-[52px] min-[1401px]:max-[1441px]:pl-[44px] min-[1441px]:pl-[36px]">
-        {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
+      <div className="max-[1350px]:pl-[54px] min-[1350px]:max-[1400px]:pl-[46px] min-[1401px]:max-[1441px]:pl-[40px] min-[1441px]:pl-[36px]">
+        {tableData
+          .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+          .toFixed(2)}
       </div>
       <div></div>
     </div>
