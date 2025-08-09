@@ -95,11 +95,11 @@ export default function Supplies({ onNext }) {
     return (
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
-        <div className="ml-6">{totalActual}</div>
+        <div className="ml-5">{totalActual}</div>
         <div></div>
         <div className="text-center">0</div>
         <div
-          className="ml-15"
+          className="ml-12"
           style={{
             color: totalActual - 0 >= 0 ? 'green' : 'red'
           }}

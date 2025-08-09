@@ -103,29 +103,33 @@ export default function PatientTracking({ onNext }) {
       inputType: 'select',
       selectOptions: sourceOptions
     },
-    {
-      width: 250,
-      key: 'other_source',
-      title: 'Other Source',
-      dataIndex: 'other_source',
-      render: (_, record) => (
-        <Input
-          value={record.other_source}
-          disabled={record.source !== 'Other'}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    other_source: e.target.value
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
-        />
-      )
-    },
+    ...(tableData.some((item) => item.source === 'Other')
+      ? [
+          {
+            width: 250,
+            key: 'other_source',
+            title: 'Other Source',
+            dataIndex: 'other_source',
+            render: (_, record) => (
+              <Input
+                value={record.other_source}
+                disabled={record.source !== 'Other'}
+                onChange={(e) => {
+                  const updatedProviders = tableData.map((p) =>
+                    p.key === record.key
+                      ? {
+                          ...p,
+                          other_source: e.target.value
+                        }
+                      : p
+                  );
+                  setTableData(updatedProviders);
+                }}
+              />
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       editable: true,
