@@ -82,29 +82,33 @@ export default function Referrals() {
       dataIndex: 'specialty',
       selectOptions: specialityOptions
     },
-    {
-      width: 250,
-      key: 'other_specialty',
-      title: 'Other Speciality',
-      dataIndex: 'other_specialty',
-      render: (_, record) => (
-        <Input
-          value={record.other_specialty}
-          disabled={record.specialty !== 'Other'}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    other_specialty: e.target.value
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
-        />
-      )
-    },
+    ...(tableData.some((item) => item.specialty === 'Other')
+      ? [
+          {
+            width: 250,
+            key: 'other_specialty',
+            title: 'Other Speciality',
+            dataIndex: 'other_specialty',
+            render: (_, record) => (
+              <Input
+                value={record.other_specialty}
+                disabled={record.specialty !== 'Other'}
+                onChange={(e) => {
+                  const updatedProviders = tableData.map((p) =>
+                    p.key === record.key
+                      ? {
+                          ...p,
+                          other_specialty: e.target.value
+                        }
+                      : p
+                  );
+                  setTableData(updatedProviders);
+                }}
+              />
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       key: 'reason',
