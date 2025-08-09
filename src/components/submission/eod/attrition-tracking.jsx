@@ -60,29 +60,33 @@ export default function AttritionTracking({ onNext }) {
       inputType: 'select',
       selectOptions: reasonOptions
     },
-    {
-      width: 250,
-      key: 'other_reason',
-      title: 'Other Reason',
-      dataIndex: 'other_reason',
-      render: (_, record) => (
-        <Input
-          value={record.other_reason}
-          disabled={record.reason !== 'Other'}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    other_reason: e.target.value
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
-        />
-      )
-    },
+    ...(tableData.some((item) => item.reason === 'Other')
+      ? [
+          {
+            width: 250,
+            key: 'other_reason',
+            title: 'Other Reason',
+            dataIndex: 'other_reason',
+            render: (_, record) => (
+              <Input
+                value={record.other_reason}
+                disabled={record.reason !== 'Other'}
+                onChange={(e) => {
+                  const updatedProviders = tableData.map((p) =>
+                    p.key === record.key
+                      ? {
+                          ...p,
+                          other_reason: e.target.value
+                        }
+                      : p
+                  );
+                  setTableData(updatedProviders);
+                }}
+              />
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       editable: true,
