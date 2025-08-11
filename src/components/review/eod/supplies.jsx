@@ -99,7 +99,7 @@ export default function Supplies({ onNext }) {
         <div></div>
         <div className="text-center">0</div>
         <div
-          className="ml-12"
+          className="ml-11"
           style={{
             color: totalActual - 0 >= 0 ? 'green' : 'red'
           }}
