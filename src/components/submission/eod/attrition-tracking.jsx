@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -22,7 +23,8 @@ const defaultRow = {
   key: 1,
   reason: '',
   comments: '',
-  patient_name: ''
+  patient_name: '',
+  other_reason: ''
 };
 
 export default function AttritionTracking({ onNext }) {
@@ -58,6 +60,33 @@ export default function AttritionTracking({ onNext }) {
       inputType: 'select',
       selectOptions: reasonOptions
     },
+    ...(tableData.some((item) => item.reason === 'Other')
+      ? [
+          {
+            width: 250,
+            key: 'other_reason',
+            title: 'Other Reason',
+            dataIndex: 'other_reason',
+            render: (_, record) => (
+              <Input
+                value={record.other_reason}
+                disabled={record.reason !== 'Other'}
+                onChange={(e) => {
+                  const updatedProviders = tableData.map((p) =>
+                    p.key === record.key
+                      ? {
+                          ...p,
+                          other_reason: e.target.value
+                        }
+                      : p
+                  );
+                  setTableData(updatedProviders);
+                }}
+              />
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       editable: true,
@@ -110,6 +139,7 @@ export default function AttritionTracking({ onNext }) {
         key: newKey,
         reason: '',
         comments: '',
+        other_reason: '',
         patient_name: ''
       }
     ]);
@@ -117,6 +147,26 @@ export default function AttritionTracking({ onNext }) {
 
   const handleSubmit = async () => {
     try {
+      const rowsWithPatientButNoReason = tableData.filter(
+        (item) => item.patient_name && !item.reason
+      );
+
+      const rowsWithMissingOtherReason = tableData.filter(
+        (item) => item.reason === 'Other' && !item.other_reason
+      );
+
+      if (rowsWithPatientButNoReason.length > 0) {
+        toast.error('Please specify the "Reason" for all patients with names');
+        return;
+      }
+
+      if (rowsWithMissingOtherReason.length > 0) {
+        toast.error(
+          'Please specify the "Other Reason" for all rows where reason is "Other"'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter((item) => item.patient_name && item.reason)
         .map((item) => ({
@@ -147,6 +197,7 @@ export default function AttritionTracking({ onNext }) {
         reason: item.reason,
         comments: item.comments,
         patient_name: item.patient_name,
+        other_reason: item.other_reason,
         key: item.id?.toString() || item.key?.toString()
       }));
       setTableData(transformedData);

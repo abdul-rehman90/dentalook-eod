@@ -31,6 +31,7 @@ const paymentOptions = [
 
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
+  const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [tableData, setTableData] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const {
@@ -65,7 +66,7 @@ export default function Payment({ onNext }) {
           <div className="flex flex-col gap-1">
             <Select
               value={type}
-              disabled={isSubmissionCompleted}
+              // disabled={isSubmissionCompleted}
               onChange={(value) => handleTypeChange(record.key, value)}
             >
               {paymentOptions.map((option) => (
@@ -91,10 +92,23 @@ export default function Payment({ onNext }) {
       width: 150,
       key: 'amount',
       editable: true,
-      inputType: 'number',
-      title: 'Amount ($)',
+      title: 'Amount',
       dataIndex: 'amount',
-      disabled: isSubmissionCompleted
+      render: (_, record) => (
+        <Input
+          type="text"
+          value={record.amount || ''}
+          onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
+          onBlur={(e) => {
+            const val = String(e.target.value || '').trim();
+            if (val && !val.includes('.')) {
+              handleCellChange(record, 'amount', `${val}.00`);
+            } else {
+              handleCellChange(record, 'amount', val);
+            }
+          }}
+        />
+      )
     },
     {
       width: 200,
@@ -102,16 +116,29 @@ export default function Payment({ onNext }) {
       editable: true,
       title: 'Remarks',
       inputType: 'text',
-      dataIndex: 'remarks',
-      disabled: isSubmissionCompleted
+      dataIndex: 'remarks'
+      // disabled: isSubmissionCompleted
     }
   ];
+
+  const isValidAmountInput = (value) => {
+    if (value === '' || value == null) return true;
+    return AMOUNT_REGEX.test(value);
+  };
+
+  const handleAmountChange = (record, dataIndex, rawValue) => {
+    const v = String(rawValue).trim();
+    if (!isValidAmountInput(v)) return; // ignore invalid keystrokes
+    handleCellChange(record, dataIndex, v);
+  };
 
   const footer = () => (
     <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
       <div className="font-semibold">Total Amount</div>
-      <div className="max-[1350px]:pl-[62px] min-[1350px]:max-[1400px]:pl-[52px] min-[1401px]:max-[1441px]:pl-[44px] min-[1441px]:pl-[36px]">
-        {tableData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)}
+      <div className="min-[1280px]:max-[1300px]:pl-[64px] min-[1300px]:max-[1350px]:pl-[54px] min-[1350px]:max-[1400px]:pl-[50px] min-[1401px]:max-[1441px]:pl-[40px] min-[1441px]:pl-[36px]">
+        {tableData
+          .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+          .toFixed(2)}
       </div>
       <div></div>
     </div>
@@ -157,15 +184,16 @@ export default function Payment({ onNext }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
-    const newPayments = tableData.map((item) => {
-      if (item.key === record.key) {
-        return {
-          ...item,
-          [dataIndex]: dataIndex === 'amount' ? Number(value) || 0 : value
-        };
-      }
-      return item;
-    });
+    let newValue = value;
+
+    if (dataIndex === 'amount') {
+      newValue = value === null || value === undefined ? '' : String(value);
+    }
+
+    const newPayments = tableData.map((item) =>
+      item.key === record.key ? { ...item, [dataIndex]: newValue } : item
+    );
+
     setTableData(newPayments);
   };
 
@@ -195,14 +223,14 @@ export default function Payment({ onNext }) {
 
   const handleSubmit = async () => {
     try {
-      if (isSubmissionCompleted) {
-        updateStepData(currentStepId, { notes, payments: tableData });
-        onNext();
-        return;
-      }
+      // if (isSubmissionCompleted) {
+      //   updateStepData(currentStepId, { notes, payments: tableData });
+      //   onNext();
+      //   return;
+      // }
 
       const validPayments = tableData.filter(
-        (item) => item.amount && !isNaN(item.amount) && Number(item.amount) > 0
+        (item) => item.amount && !isNaN(item.amount)
       );
 
       const payload = {
@@ -333,7 +361,7 @@ export default function Payment({ onNext }) {
               <TextArea
                 rows={4}
                 value={notes}
-                disabled={isSubmissionCompleted}
+                // disabled={isSubmissionCompleted}
                 placeholder="Enter note here..."
                 onChange={(e) => setNotes(e.target.value)}
                 style={{

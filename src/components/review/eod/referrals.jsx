@@ -68,6 +68,15 @@ export default function Referrals() {
     },
     {
       width: 250,
+      disabled: true,
+      editable: true,
+      inputType: 'text',
+      key: 'other_specialty',
+      title: 'Other Speciality',
+      dataIndex: 'other_specialty'
+    },
+    {
+      width: 250,
       key: 'reason',
       disabled: true,
       editable: true,
@@ -84,7 +93,8 @@ export default function Referrals() {
         name: item.user?.name,
         key: item.id.toString(),
         patient_name: item.patient_name,
-        speciality: item.specialty || ''
+        speciality: item.specialty || '',
+        other_specialty: item.other_specialty
       }));
       setTableData(transformedData);
     }

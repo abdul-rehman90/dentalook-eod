@@ -39,6 +39,15 @@ export default function AttritionTracking({ onNext }) {
     },
     {
       width: 250,
+      disabled: true,
+      editable: true,
+      inputType: 'text',
+      key: 'other_reason',
+      title: 'Other Reason',
+      dataIndex: 'other_reason'
+    },
+    {
+      width: 250,
       editable: true,
       disabled: true,
       key: 'comments',
@@ -54,7 +63,8 @@ export default function AttritionTracking({ onNext }) {
         reason: item.reason,
         key: item.id.toString(),
         comments: item.comments,
-        patient_name: item.patient_name
+        patient_name: item.patient_name,
+        other_reason: item.other_reason
       }));
       setTableData(transformedData);
     }
