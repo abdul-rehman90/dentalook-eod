@@ -12,6 +12,7 @@ import {
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' },
+  { value: 'RDT', label: 'RDT' },
   { value: 'PCC', label: 'PCC' },
   { value: 'CDA', label: 'CDA' },
   { value: 'PM', label: 'PM' },

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -42,7 +43,8 @@ const defaultRow = {
   reason: '',
   specialty: '',
   patient_name: '',
-  provider_name: ''
+  provider_name: '',
+  other_specialty: ''
 };
 
 export default function Referrals() {
@@ -80,6 +82,33 @@ export default function Referrals() {
       dataIndex: 'specialty',
       selectOptions: specialityOptions
     },
+    ...(tableData.some((item) => item.specialty === 'Other')
+      ? [
+          {
+            width: 250,
+            key: 'other_specialty',
+            title: 'Other Speciality',
+            dataIndex: 'other_specialty',
+            render: (_, record) => (
+              <Input
+                value={record.other_specialty}
+                disabled={record.specialty !== 'Other'}
+                onChange={(e) => {
+                  const updatedProviders = tableData.map((p) =>
+                    p.key === record.key
+                      ? {
+                          ...p,
+                          other_specialty: e.target.value
+                        }
+                      : p
+                  );
+                  setTableData(updatedProviders);
+                }}
+              />
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       key: 'reason',
@@ -149,13 +178,36 @@ export default function Referrals() {
         reason: '',
         specialty: '',
         patient_name: '',
-        provider_name: ''
+        provider_name: '',
+        other_specialty: ''
       }
     ]);
   };
 
   const handleSubmit = async () => {
     try {
+      const rowsWithMissingData = tableData.filter(
+        (item) => item.patient_name && (!item.provider_name || !item.specialty)
+      );
+
+      const rowsWithMissingOtherSpeciality = tableData.filter(
+        (item) => item.specialty === 'Other' && !item.other_specialty
+      );
+
+      if (rowsWithMissingData.length > 0) {
+        toast.error(
+          'Please specify both Provider and Specialty for all patients with names'
+        );
+        return;
+      }
+
+      if (rowsWithMissingOtherSpeciality.length > 0) {
+        toast.error(
+          'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+        );
+        return;
+      }
+
       const payload = tableData
         .filter(
           (item) => item.patient_name && item.provider_name && item.specialty
@@ -197,6 +249,7 @@ export default function Referrals() {
         specialty: item.specialty,
         provider_name: item.user?.id,
         patient_name: item.patient_name,
+        other_specialty: item.other_specialty,
         key: item.id?.toString() || item.key?.toString()
       }));
       setTableData(transformedData);

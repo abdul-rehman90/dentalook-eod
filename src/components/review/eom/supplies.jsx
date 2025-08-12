@@ -53,15 +53,6 @@ export default function Supplies({ onNext }) {
       width: 300,
       dataIndex: ''
     }
-    // {
-    //   width: 300,
-    //   key: 'reason',
-    //   disabled: true,
-    //   editable: true,
-    //   inputType: 'text',
-    //   dataIndex: 'reason',
-    //   title: 'Reason for Overage'
-    // }
   ];
 
   const totalSuppliesColumns = [

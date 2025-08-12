@@ -12,12 +12,13 @@ import { ClockCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
-  generateTimeSlots
+  generateTimeOptions
 } from '@/common/utils/time-handling';
 
 const positionOptions = [
   { value: 'DDS', label: 'DDS' },
   { value: 'RDH', label: 'RDH' },
+  { value: 'RDT', label: 'RDT' },
   { value: 'PCC', label: 'PCC' },
   { value: 'CDA', label: 'CDA' },
   { value: 'PM', label: 'PM' },
@@ -49,6 +50,13 @@ export default function TeamAbsences({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+  const clinicOpenTime =
+    reportData?.eod?.basic?.clinicDetails?.clinic_open_time;
+  const clinicCloseTime =
+    reportData?.eod?.basic?.clinicDetails?.clinic_close_time;
+  const clinic_open_time = formatTimeForUI(clinicOpenTime);
+  const clinic_close_time = formatTimeForUI(clinicCloseTime);
+  const timeOptions = generateTimeOptions(clinic_open_time, clinic_close_time);
 
   const columns = [
     {
@@ -66,7 +74,7 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'name',
       title: 'Provider Name',
       render: (text, record) => {
-        if (['DDS', 'RDH'].includes(record.position)) {
+        if (['DDS', 'RDH', 'RDT'].includes(record.position)) {
           return (
             <div className="h-full">
               <Select
@@ -120,10 +128,10 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'start_time',
       render: (_, record) => (
         <Select
+          options={timeOptions}
           placeholder="Select one"
           value={record.start_time}
           suffixIcon={<ClockCircleOutlined />}
-          options={generateTimeSlots(7, 23, 30)}
           disabled={record.absence !== 'Partial Day'}
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
@@ -141,10 +149,10 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'end_time',
       render: (_, record) => (
         <Select
+          options={timeOptions}
           value={record.end_time}
           placeholder="Select one"
           suffixIcon={<ClockCircleOutlined />}
-          options={generateTimeSlots(7, 23, 30)}
           disabled={record.absence !== 'Partial Day'}
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
@@ -226,12 +234,50 @@ export default function TeamAbsences({ onNext }) {
 
   const handleSubmit = async () => {
     try {
-      const payload = tableData
-        .filter((item) => item.position && item.name && item.absence)
-        .map((item) => ({
+      const nonEmptyRows = tableData.filter(
+        (item) => item.position || item.name
+      );
+
+      // If no rows have any data, allow proceeding without any absences
+      if (nonEmptyRows.length === 0) {
+        updateStepData(currentStepId, []);
+        onNext();
+        return;
+      }
+
+      const rowsWithMissingData = nonEmptyRows.filter(
+        (item) => !item.position || !item.name || !item.absence
+      );
+
+      if (rowsWithMissingData.length > 0) {
+        toast.error(
+          'Please complete all required fields for each absence: ' +
+            'Title, Provider Name, and Absence Type are required'
+        );
+        return;
+      }
+
+      const rowsWithInvalidTimes = tableData.filter(
+        (item) =>
+          item.absence === 'Partial Day' && (!item.start_time || !item.end_time)
+      );
+
+      if (rowsWithInvalidTimes.length > 0) {
+        toast.error(
+          'Please provide both start and end times for all Partial Day absences'
+        );
+        return;
+      }
+
+      const payload = nonEmptyRows.map((item) => {
+        const isStandardPosition = ['DDS', 'RDH', 'RDT'].includes(
+          item.position
+        );
+        return {
           ...item,
-          user: item.name,
           eodsubmission: Number(id),
+          user: isStandardPosition ? item.name : null,
+          other_provider: isStandardPosition ? null : item.name,
           start_time:
             item.absence === 'Partial Day' && item.start_time
               ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
@@ -240,19 +286,16 @@ export default function TeamAbsences({ onNext }) {
             item.absence === 'Partial Day' && item.end_time
               ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
               : null
-        }));
-      if (payload.length > 0) {
-        setLoading(true);
-        const response = await EODReportService.addTeamAbsence(payload);
-        if (response.status === 201) {
-          updateStepData(currentStepId, tableData);
-          toast.success('Record is successfully saved');
-          onNext();
-        }
-        return;
+        };
+      });
+
+      setLoading(true);
+      const response = await EODReportService.addTeamAbsence(payload);
+      if (response.status === 201) {
+        updateStepData(currentStepId, tableData);
+        toast.success('Record is successfully saved');
+        onNext();
       }
-      updateStepData(currentStepId, tableData);
-      onNext();
     } catch (error) {
     } finally {
       setLoading(false);
@@ -270,7 +313,7 @@ export default function TeamAbsences({ onNext }) {
           reason: item.reason,
           absence: item.absence,
           position: item.position,
-          name: item.user?.id || item.name,
+          name: item.user?.id || item.name || item.other_provider,
           key: item.id?.toString() || item.key?.toString(),
           end_time: item.end_time?.includes('m')
             ? item.end_time
