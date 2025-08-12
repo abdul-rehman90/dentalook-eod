@@ -267,7 +267,7 @@ export default function Referrals() {
             className="!px-0 text-[15px] font-semibold text-[#339D5C]"
           >
             <PlusOutlined />
-            Add New Refferals
+            Add New Referrals
           </Button>
         </div>
         <GenericTable
