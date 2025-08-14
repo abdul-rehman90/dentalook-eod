@@ -56,13 +56,13 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       dataIndex: 'type'
     },
     {
-      width: 150,
+      width: 50,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 100,
+      width: 50,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -94,7 +94,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       }
     },
     {
-      width: 100,
+      width: 50,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -154,8 +154,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     {
       width: 50,
       key: 'unfilled_spots',
-      title: 'Unfilled Spots',
       dataIndex: 'unfilled_spots',
+      title: 'Unfilled Spots (Units)',
       render: (_, record) => (
         <Input
           type="number"
@@ -180,8 +180,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     {
       width: 50,
       key: 'no_shows',
-      title: 'No Shows',
       dataIndex: 'no_shows',
+      title: 'No Shows (Units)',
       render: (_, record) => (
         <Input
           type="number"
@@ -203,7 +203,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       width: 50,
-      title: 'Short Notice',
+      title: 'Short Notice (Units)',
       key: 'short_notice_cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
@@ -217,6 +217,32 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
                 ? {
                     ...p,
                     short_notice_cancellations: e.target.value
+                      ? parseInt(e.target.value)
+                      : null
+                  }
+                : p
+            );
+            setTableData(updatedProviders);
+          }}
+        />
+      )
+    },
+    {
+      width: 50,
+      key: 'failed_appointments',
+      title: 'Failed Appts (Units)',
+      dataIndex: 'failed_appointments',
+      render: (_, record) => (
+        <Input
+          type="number"
+          disabled={!record.is_active}
+          value={record.failed_appointments}
+          onChange={(e) => {
+            const updatedProviders = tableData.map((p) =>
+              p.key === record.key
+                ? {
+                    ...p,
+                    failed_appointments: e.target.value
                       ? parseInt(e.target.value)
                       : null
                   }
@@ -297,7 +323,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           name: provider.name,
           unfilled_spots: null,
           type: provider.user_type,
-          short_notice_cancellations: null
+          short_notice_cancellations: null,
+          failed_appointments: provider.failed_appointments
         }))
         .sort((a, b) => {
           if (a.type === 'DDS' && b.type !== 'DDS') return -1;
@@ -318,6 +345,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
                 unfilled_spots: existingData.unfilled_spots,
                 end_time: formatTimeForUI(existingData.end_time),
                 start_time: formatTimeForUI(existingData.start_time),
+                failed_appointments: existingData.failed_appointments,
                 number_of_patients_seen: existingData.number_of_patients_seen,
                 short_notice_cancellations:
                   existingData.short_notice_cancellations
