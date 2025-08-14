@@ -1,6 +1,11 @@
 import apiClient from '../api/axios-config';
 
 export const EOMReportService = {
+  async getDashboardData() {
+    const response = await apiClient.get('/admin/dashboard/');
+    return response;
+  },
+
   async addBasicDetails(payload) {
     const response = await apiClient.post('/eom-submission/', payload);
     return response;

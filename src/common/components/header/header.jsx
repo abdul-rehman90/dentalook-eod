@@ -25,6 +25,10 @@ const items = [
     key: '/review/list/eom',
     label: 'Review EOM Submissions'
   }
+  // {
+  //   key: '/dashboard',
+  //   label: 'Dashboard'
+  // }
 ];
 
 export default function Header() {
@@ -52,6 +56,9 @@ export default function Header() {
     ) {
       return '/review/list/eom';
     }
+    if (pathname.startsWith('/dashboard')) {
+      return '/dashboard';
+    }
     return '';
   };
 
@@ -61,6 +68,8 @@ export default function Header() {
     if (key.startsWith('/submission')) {
       router.push(`${key}/1`);
     } else if (key.startsWith('/review')) {
+      router.push(`${key}`);
+    } else if (key.startsWith('/dashboard')) {
       router.push(`${key}`);
     }
   };
