@@ -53,13 +53,13 @@ export default function ActiveProviders({ form }) {
       dataIndex: 'type'
     },
     {
-      width: 150,
+      width: 50,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 100,
+      width: 50,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -80,7 +80,7 @@ export default function ActiveProviders({ form }) {
       }
     },
     {
-      width: 100,
+      width: 50,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -145,6 +145,15 @@ export default function ActiveProviders({ form }) {
           value={record.short_notice_cancellations}
         />
       )
+    },
+    {
+      width: 50,
+      key: 'failed_appointments',
+      title: 'Failed Appts (Units)',
+      dataIndex: 'failed_appointments',
+      render: (_, record) => (
+        <Input disabled type="number" value={record.failed_appointments} />
+      )
     }
   ];
 
@@ -159,6 +168,7 @@ export default function ActiveProviders({ form }) {
         unfilled_spots: item.unfilled_spots,
         end_time: formatTimeForUI(item.end_time),
         start_time: formatTimeForUI(item.start_time),
+        failed_appointments: item.failed_appointments,
         number_of_patients_seen: item.number_of_patients_seen,
         short_notice_cancellations: item.short_notice_cancellations
       }));
