@@ -188,11 +188,16 @@ export default function Supplies({ onNext }) {
     return (
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
-        <div className="ml-8">{totalActual}</div>
+        <div
+          // className="ml-8"
+          className="min-[1280px]:max-[1350px]:ml-[22px] min-[1351px]:max-[1500px]:ml-[24px] min-[1501px]:max-[1650px]:ml-[28px] min-[1651px]:max-[1850px]:ml-[32px] min-[1851px]:max-[2000px]:ml-[36px] min-[2001px]:max-[2250px]:ml-[40px] min-[2251px]:ml-[48px]"
+        >
+          {totalActual}
+        </div>
         <div></div>
         <div className="text-center ml-15">0</div>
         <div
-          className="text-center "
+          className="text-center max-[1850px]:ml-[24px]"
           style={{
             color: totalActual - 0 >= 0 ? 'green' : 'red'
           }}

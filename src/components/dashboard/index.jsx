@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Skeleton } from 'antd';
+import { Skeleton, DatePicker } from 'antd';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
@@ -25,8 +25,13 @@ import {
   Tooltip,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Label
 } from 'recharts';
+const { RangePicker } = DatePicker;
 
 const monthOrder = [
   'January',
@@ -42,6 +47,8 @@ const monthOrder = [
   'November',
   'December'
 ];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const getYAxisDomain = (data, dataKey) => {
   // Filter out zero values to calculate min/max of actual data
@@ -63,6 +70,12 @@ const getYAxisDomain = (data, dataKey) => {
   ];
 };
 
+const formatValue = (value) => {
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  else if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value}`;
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const [metrics, setMetrics] = useState([]);
@@ -70,6 +83,7 @@ export default function Dashboard() {
   const [revenueData, setRevenueData] = useState([]);
   const [clinicSubmissions, setClinicSubmissions] = useState([]);
   const productionDomain = getYAxisDomain(revenueData, 'production');
+  const [productionByProviders, setProductionByProviders] = useState([]);
   const accountReceivableDomain = getYAxisDomain(
     revenueData,
     'accountReceivable'
@@ -151,7 +165,34 @@ export default function Dashboard() {
     return null;
   };
 
-  // Use the most expansive domain to cover both series
+  const CustomLabel = ({ viewBox = { cx: 0, cy: 0 }, value1, value2 }) => {
+    const { cx, cy } = viewBox;
+    return (
+      <g>
+        <text
+          x={cx}
+          y={cy}
+          textAnchor="middle"
+          dominantBaseline="central"
+          className="recharts-text recharts-label"
+        >
+          <tspan alignmentBaseline="middle" fontSize="26">
+            {value1}
+          </tspan>
+        </text>
+        <text
+          x={cx}
+          y={cy + 30}
+          textAnchor="middle"
+          dominantBaseline="central"
+          className="recharts-text recharts-label"
+        >
+          <tspan fontSize="14">{value2}</tspan>
+        </text>
+      </g>
+    );
+  };
+
   const yDomain = [
     Math.min(productionDomain[0], accountReceivableDomain[0]),
     Math.max(productionDomain[1], accountReceivableDomain[1])
@@ -197,29 +238,19 @@ export default function Dashboard() {
         percentage: apiData.total_production.percentage
       },
       {
-        title: 'Account Receivable',
-        value: `$${apiData.total_account_receivable.value.toLocaleString()}`,
-        percentage: apiData.total_account_receivable.percentage
-      },
-      {
-        title: 'Total Clinics',
-        value: apiData.total_clinics.value,
-        percentage: apiData.total_clinics.percentage
-      },
-      {
         title: 'Number of Patients',
         value: apiData.number_of_patients.value,
         percentage: apiData.number_of_patients.percentage
       },
       {
-        title: 'Hiring and Training Ratio',
-        value: apiData.hiring_and_training_needs.value,
-        percentage: apiData.hiring_and_training_needs.percentage
+        title: 'Missed Schedule',
+        percentage: apiData.missed_schedule.percentage,
+        value: apiData.missed_schedule.total_missed_appointments
       },
       {
-        title: 'Total Google Reviews',
-        value: apiData.total_google_reviews.value,
-        percentage: apiData.total_google_reviews.percentage
+        percentage: 0,
+        title: 'Monthly Metrics',
+        value: apiData.monthly_metrics.total_submissions
       }
     ];
   };
@@ -235,6 +266,12 @@ export default function Dashboard() {
 
           const formattedMetrics = formatMetricsData(data);
           const processedRevenueData = processRevenueData(data);
+          const processedProduction = data.production_by_provider.map(
+            (item) => ({
+              name: item.user_type,
+              value: item.total_production
+            })
+          );
           const processedSubmissions = data.clinic_submissions.map(
             (item, index) => ({
               date: item.date,
@@ -249,6 +286,7 @@ export default function Dashboard() {
           setMetrics(formattedMetrics);
           setRevenueData(processedRevenueData);
           setClinicSubmissions(processedSubmissions);
+          setProductionByProviders(processedProduction);
         }
       } catch (error) {
       } finally {
@@ -263,8 +301,8 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col gap-6 mx-13 my-4">
         {/* Skeleton for Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {[...Array(6)].map((_, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+          {[...Array(4)].map((_, index) => (
             <Card key={index} className="bg-white !gap-4 h-fit">
               <CardHeader>
                 <Skeleton.Input active style={{ width: 150, height: 20 }} />
@@ -277,18 +315,33 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Skeleton for Pie Chart */}
+        <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
+          <div className="mb-4">
+            <Skeleton.Input active style={{ width: 200, height: 24 }} />
+          </div>
+          <div className="w-full h-full p-4 flex justify-center items-center">
+            <Skeleton.Avatar
+              active
+              size={200}
+              shape="circle"
+              style={{ width: 200, height: 200 }}
+            />
+          </div>
+        </div>
+
         {/* Skeleton for Revenue Chart */}
         <div className="p-6 rounded-xl border border-[#D9DADF]">
           <div className="mb-4">
             <Skeleton.Input active style={{ width: 100, height: 24 }} />
           </div>
-          <Skeleton.Node active style={{ width: '100%', height: 200 }} />
+          <Skeleton.Node active style={{ width: '100%', height: 300 }} />
         </div>
 
         {/* Skeleton for Clinic Submissions Table */}
         <div className="p-6 rounded-xl border border-[#D9DADF]">
           <div className="mb-4">
-            <Skeleton.Input active style={{ width: 100, height: 24 }} />
+            <Skeleton.Input active style={{ width: 150, height: 24 }} />
           </div>
           <Skeleton.Node active style={{ width: '100%', height: 200 }} />
         </div>
@@ -298,7 +351,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6 mx-13 my-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="w-fit ml-auto flex flex-col gap-2 flex-1">
+        <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+          Date Range
+        </p>
+        <RangePicker />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
         {metrics.map((metric, index) => (
           <Card key={index} className="bg-white !gap-4 h-fit">
             <CardHeader>
@@ -334,10 +393,45 @@ export default function Dashboard() {
       </div>
       <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
+          <h2 className="text-base font-semibold text-black">
+            Total Production by Providers
+          </h2>
         </div>
         <div className="w-full h-full p-4">
           <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                cx="50%"
+                cy="50%"
+                dataKey="value"
+                fill="#8884d8"
+                outerRadius={120}
+                labelLine={false}
+                data={productionByProviders}
+                label={({ name, value, percent }) =>
+                  `${name}: ${formatValue(value)} (${(percent * 100).toFixed(
+                    0
+                  )}%)`
+                }
+              >
+                {productionByProviders.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatValue(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="p-6 rounded-xl border border-[#D9DADF]">
+        <div className="mb-4">
+          <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
+        </div>
+        <div className="w-full h-full p-4">
+          <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={revenueData}>
               <CartesianGrid stroke="#E5E7EB" vertical={false} />
               <XAxis
