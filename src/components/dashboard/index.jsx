@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Skeleton, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
+import { Skeleton, DatePicker, Select } from 'antd';
+import CardDetailsModal from './card-details-modal';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
+import { EODReportService } from '@/common/services/eod-report';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -31,6 +34,7 @@ import {
   Cell,
   Label
 } from 'recharts';
+
 const { RangePicker } = DatePicker;
 
 const monthOrder = [
@@ -51,43 +55,118 @@ const monthOrder = [
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const getYAxisDomain = (data, dataKey) => {
-  // Filter out zero values to calculate min/max of actual data
   const nonZeroValues = data
     .map((item) => item[dataKey])
     .filter((value) => value > 0);
 
-  if (nonZeroValues.length === 0) return [0, 100]; // Default range if all zeros
+  if (nonZeroValues.length === 0) return [0, 100];
 
   const minValue = Math.min(...nonZeroValues);
   const maxValue = Math.max(...nonZeroValues);
-
-  // Calculate padding (10% of range)
   const rangePadding = (maxValue - minValue) * 0.1;
 
-  return [
-    Math.max(0, minValue - rangePadding), // Don't go below 0
-    maxValue + rangePadding
-  ];
+  return [Math.max(0, minValue - rangePadding), maxValue + rangePadding];
 };
 
 const formatValue = (value) => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-  else if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
   return `$${value}`;
 };
 
 export default function Dashboard() {
   const router = useRouter();
   const [metrics, setMetrics] = useState([]);
+  const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);
   const [clinicSubmissions, setClinicSubmissions] = useState([]);
-  const productionDomain = getYAxisDomain(revenueData, 'production');
   const [productionByProviders, setProductionByProviders] = useState([]);
-  const accountReceivableDomain = getYAxisDomain(
-    revenueData,
-    'accountReceivable'
-  );
+  const [filters, setFilters] = useState({
+    end_date: null,
+    clinic_id: null,
+    start_date: null
+  });
+  const [modalState, setModalState] = useState({
+    data: [],
+    title: '',
+    columns: [],
+    visible: false
+  });
+
+  const metricModalColumns = {
+    'Total Production': [
+      {
+        title: 'Provider Name',
+        dataIndex: 'provider_name',
+        key: 'provider_name'
+      },
+      {
+        title: 'Provider Type',
+        dataIndex: 'provider_type',
+        key: 'provider_type'
+      },
+      {
+        title: 'Provider Email',
+        dataIndex: 'provider_email',
+        key: 'provider_email'
+      },
+      { title: 'Hours Open', dataIndex: 'hours_open', key: 'hours_open' },
+      {
+        title: 'Production / Hour',
+        key: 'production_per_hour',
+        dataIndex: 'production_per_hour'
+      },
+      {
+        key: 'total_production',
+        title: 'Total Production',
+        dataIndex: 'total_production'
+      }
+    ],
+    'Number of Patients': [
+      { title: 'Date', dataIndex: 'date', key: 'date' },
+      { title: 'Name', dataIndex: 'name', key: 'name' },
+      { title: 'Source', dataIndex: 'source', key: 'source' },
+      { title: 'Comments', dataIndex: 'comments', key: 'comments' }
+    ],
+    'Missed Schedule': [
+      { title: 'Clinic Name', dataIndex: 'clinic_name', key: 'clinic_name' },
+      {
+        key: 'unfilled_spots',
+        title: 'Unfilled Spots',
+        dataIndex: 'unfilled_spots'
+      },
+      { title: 'No Shows', dataIndex: 'no_shows', key: 'no_shows' },
+      {
+        title: 'Short Notice',
+        key: 'short_notice_cancellations',
+        dataIndex: 'short_notice_cancellations'
+      },
+      { title: 'Total Missed', dataIndex: 'total_missed', key: 'total_missed' }
+    ],
+    'Monthly Metrics': [
+      {
+        title: 'Actual',
+        key: 'avg_supplies_actual',
+        dataIndex: 'avg_supplies_actual'
+      },
+      {
+        title: 'Monthly Budget',
+        key: 'avg_budget_supplies',
+        dataIndex: 'avg_budget_supplies'
+      },
+      // {
+      //   key: 'total_submissions',
+      //   title: 'Total Submission',
+      //   dataIndex: 'total_submissions'
+      // },
+      // {
+      //   key: 'completed_submissions',
+      //   title: 'Completed Submissions',
+      //   dataIndex: 'completed_submissions'
+      // }
+    ]
+  };
 
   const columns = [
     {
@@ -147,6 +226,30 @@ export default function Dashboard() {
     }
   ];
 
+  const handleCardClick = (metric) => {
+    setModalState({
+      visible: true,
+      title: metric.title,
+      data: metric.details || [],
+      columns: metricModalColumns[metric.title]
+    });
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleDateRangeChange = (dates) => {
+    setFilters((prev) => ({
+      ...prev,
+      start_date: dates?.[0] ? dayjs(dates[0]).format('YYYY-MM-DD') : null,
+      end_date: dates?.[1] ? dayjs(dates[1]).format('YYYY-MM-DD') : null
+    }));
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
@@ -165,34 +268,11 @@ export default function Dashboard() {
     return null;
   };
 
-  const CustomLabel = ({ viewBox = { cx: 0, cy: 0 }, value1, value2 }) => {
-    const { cx, cy } = viewBox;
-    return (
-      <g>
-        <text
-          x={cx}
-          y={cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          className="recharts-text recharts-label"
-        >
-          <tspan alignmentBaseline="middle" fontSize="26">
-            {value1}
-          </tspan>
-        </text>
-        <text
-          x={cx}
-          y={cy + 30}
-          textAnchor="middle"
-          dominantBaseline="central"
-          className="recharts-text recharts-label"
-        >
-          <tspan fontSize="14">{value2}</tspan>
-        </text>
-      </g>
-    );
-  };
-
+  const productionDomain = getYAxisDomain(revenueData, 'production');
+  const accountReceivableDomain = getYAxisDomain(
+    revenueData,
+    'accountReceivable'
+  );
   const yDomain = [
     Math.min(productionDomain[0], accountReceivableDomain[0]),
     Math.max(productionDomain[1], accountReceivableDomain[1])
@@ -200,12 +280,11 @@ export default function Dashboard() {
 
   const formatYAxisTick = (value) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    else if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
     return `$${value}`;
   };
 
   const processRevenueData = (apiData) => {
-    // Create a map for easy lookup
     const productionMap = new Map();
     const accountReceivableMap = new Map();
 
@@ -217,8 +296,7 @@ export default function Dashboard() {
       accountReceivableMap.set(item.month, item.total);
     });
 
-    // Create complete year data with all months
-    const completeYearData = monthOrder.map((month) => {
+    return monthOrder.map((month) => {
       const shortMonth = month.substring(0, 3);
       return {
         month: shortMonth,
@@ -226,67 +304,80 @@ export default function Dashboard() {
         accountReceivable: accountReceivableMap.get(month) || 0
       };
     });
-
-    return completeYearData;
   };
 
   const formatMetricsData = (apiData) => {
     return [
       {
         title: 'Total Production',
-        value: `$${apiData.total_production.value.toLocaleString()}`,
-        percentage: apiData.total_production.percentage
+        percentage: apiData.total_production.percentage,
+        details: apiData.total_production.provider_details,
+        value: `$${apiData.total_production.value.toLocaleString()}`
       },
       {
         title: 'Number of Patients',
         value: apiData.number_of_patients.value,
-        percentage: apiData.number_of_patients.percentage
+        percentage: apiData.number_of_patients.percentage,
+        details: apiData.number_of_patients.patient_details[0].patients
       },
       {
         title: 'Missed Schedule',
         percentage: apiData.missed_schedule.percentage,
+        details: apiData.missed_schedule.provider_details,
         value: apiData.missed_schedule.total_missed_appointments
       },
       {
         percentage: 0,
         title: 'Monthly Metrics',
+        details: [apiData.monthly_metrics],
         value: apiData.monthly_metrics.total_submissions
       }
     ];
   };
 
   useEffect(() => {
+    const fetchAllRegionalManagers = async () => {
+      try {
+        const { data } = await EODReportService.getAllRegionalManagers();
+        setClinics(
+          data.clinics.map((item) => ({
+            value: item.id,
+            label: item.name
+          }))
+        );
+      } catch (error) {}
+    };
+
+    fetchAllRegionalManagers();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await EOMReportService.getDashboardData();
+        const response = await EOMReportService.getDashboardData(filters);
 
         if (response.status === 200) {
           const data = response.data;
-
-          const formattedMetrics = formatMetricsData(data);
-          const processedRevenueData = processRevenueData(data);
-          const processedProduction = data.production_by_provider.map(
-            (item) => ({
-              name: item.user_type,
+          setMetrics(formatMetricsData(data));
+          setRevenueData(processRevenueData(data));
+          setProductionByProviders(
+            data.production_by_provider.map((item) => ({
+              ...item,
+              name: item.provider_type,
               value: item.total_production
-            })
+            }))
           );
-          const processedSubmissions = data.clinic_submissions.map(
-            (item, index) => ({
+          setClinicSubmissions(
+            data.clinic_submissions.map((item, index) => ({
               date: item.date,
               key: `${index + 1}`,
               status: item.status,
               practice: item.practice,
               province: item.province,
               user: item.regional_manager
-            })
+            }))
           );
-
-          setMetrics(formattedMetrics);
-          setRevenueData(processedRevenueData);
-          setClinicSubmissions(processedSubmissions);
-          setProductionByProviders(processedProduction);
         }
       } catch (error) {
       } finally {
@@ -295,12 +386,11 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [filters]);
 
   if (loading) {
     return (
       <div className="flex flex-col gap-6 mx-13 my-4">
-        {/* Skeleton for Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
           {[...Array(4)].map((_, index) => (
             <Card key={index} className="bg-white !gap-4 h-fit">
@@ -315,7 +405,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Skeleton for Pie Chart */}
         <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
           <div className="mb-4">
             <Skeleton.Input active style={{ width: 200, height: 24 }} />
@@ -330,7 +419,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Skeleton for Revenue Chart */}
         <div className="p-6 rounded-xl border border-[#D9DADF]">
           <div className="mb-4">
             <Skeleton.Input active style={{ width: 100, height: 24 }} />
@@ -338,7 +426,6 @@ export default function Dashboard() {
           <Skeleton.Node active style={{ width: '100%', height: 300 }} />
         </div>
 
-        {/* Skeleton for Clinic Submissions Table */}
         <div className="p-6 rounded-xl border border-[#D9DADF]">
           <div className="mb-4">
             <Skeleton.Input active style={{ width: 150, height: 24 }} />
@@ -351,15 +438,50 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6 mx-13 my-4">
-      <div className="w-fit ml-auto flex flex-col gap-2 flex-1">
-        <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
-          Date Range
-        </p>
-        <RangePicker />
+      <CardDetailsModal
+        data={modalState.data}
+        title={modalState.title}
+        visible={modalState.visible}
+        columns={modalState.columns}
+        onCancel={() => setModalState((prev) => ({ ...prev, visible: false }))}
+      />
+
+      <div className="w-fit ml-auto flex items-center gap-2">
+        <div className="flex flex-col gap-2 flex-1">
+          <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            Clinics
+          </p>
+          <Select
+            options={clinics}
+            allowClear={true}
+            value={filters.clinic_id}
+            style={{ width: '100%' }}
+            placeholder="Select Clinic"
+            onChange={(value) => handleFilterChange('clinic_id', value)}
+          />
+        </div>
+        <div className="flex flex-col gap-2 flex-1 min-w-[250px]">
+          <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            Date Range
+          </p>
+          <RangePicker
+            style={{ width: '100%' }}
+            onChange={handleDateRangeChange}
+            value={[
+              filters.start_date ? dayjs(filters.start_date) : null,
+              filters.end_date ? dayjs(filters.end_date) : null
+            ]}
+          />
+        </div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
         {metrics.map((metric, index) => (
-          <Card key={index} className="bg-white !gap-4 h-fit">
+          <Card
+            key={index}
+            onClick={() => handleCardClick(metric)}
+            className="bg-white !gap-4 h-fit cursor-pointer"
+          >
             <CardHeader>
               <CardTitle className="text-[#5D606D] font-semibold text-sm">
                 {metric.title}
@@ -384,13 +506,14 @@ export default function Dashboard() {
                   ) : metric.percentage < 0 ? (
                     <ArrowDownOutlined />
                   ) : null}
-                  {metric.percentage}%
+                  {metric.percentage}
                 </div>
               )}
             </CardContent>
           </Card>
         ))}
       </div>
+
       <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-black">
@@ -426,6 +549,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
       <div className="p-6 rounded-xl border border-[#D9DADF]">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
@@ -458,7 +582,6 @@ export default function Dashboard() {
               />
               <Tooltip content={<CustomTooltip />} />
 
-              {/* Area for production */}
               <Area
                 dot={false}
                 type="monotone"
@@ -468,7 +591,6 @@ export default function Dashboard() {
                 fill="rgba(15, 23, 42, 0.1)"
               />
 
-              {/* Area for account receivable */}
               <Area
                 dot={false}
                 type="monotone"
@@ -481,6 +603,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
       <div className="p-6 rounded-xl border border-[#D9DADF]">
         <h2 className="text-black text-base font-medium mb-4">
           Clinic Submissions

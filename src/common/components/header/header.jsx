@@ -24,11 +24,11 @@ const items = [
   {
     key: '/review/list/eom',
     label: 'Review EOM Submissions'
+  },
+  {
+    key: '/dashboard',
+    label: 'Dashboard'
   }
-  // {
-  //   key: '/dashboard',
-  //   label: 'Dashboard'
-  // }
 ];
 
 export default function Header() {

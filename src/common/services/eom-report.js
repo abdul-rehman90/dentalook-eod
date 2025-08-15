@@ -1,8 +1,15 @@
 import apiClient from '../api/axios-config';
 
 export const EOMReportService = {
-  async getDashboardData() {
-    const response = await apiClient.get('/admin/dashboard/');
+  async getDashboardData(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.end_date) params.append('end_date', filters.end_date);
+    if (filters.clinic_id) params.append('clinic_id', filters.clinic_id);
+    if (filters.start_date) params.append('start_date', filters.start_date);
+    const response = await apiClient.get(
+      `/admin/dashboard-rm/?${params.toString()}`
+    );
     return response;
   },
 
