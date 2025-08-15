@@ -31,7 +31,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
 
   const columns = [
     {
-      width: 50,
+      // width: 20,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -50,19 +50,19 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'type',
       title: 'Title',
       dataIndex: 'type'
     },
     {
-      width: 50,
+      // width: 50,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 50,
+      // width: 20,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -94,7 +94,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       }
     },
     {
-      width: 50,
+      // width: 20,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -126,7 +126,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       }
     },
     {
-      width: 50,
+      // width: 50,
       title: 'Patients Seen',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
@@ -152,7 +152,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'unfilled_spots',
       dataIndex: 'unfilled_spots',
       title: 'Unfilled Spots (Units)',
@@ -178,7 +178,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'no_shows',
       dataIndex: 'no_shows',
       title: 'No Shows (Units)',
@@ -202,7 +202,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       title: 'Short Notice (Units)',
       key: 'short_notice_cancellations',
       dataIndex: 'short_notice_cancellations',
@@ -228,7 +228,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'failed_appointments',
       title: 'Failed Appts (Units)',
       dataIndex: 'failed_appointments',
