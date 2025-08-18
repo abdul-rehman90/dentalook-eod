@@ -54,6 +54,33 @@ const monthOrder = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+const defaultMetrics = [
+  {
+    value: '$0',
+    details: [],
+    percentage: 0,
+    title: 'Total Production'
+  },
+  {
+    value: 0,
+    details: [],
+    percentage: 0,
+    title: 'Number of Patients'
+  },
+  {
+    value: 0,
+    details: [],
+    percentage: 0,
+    title: 'Missed Schedule'
+  },
+  {
+    value: 0,
+    details: [],
+    percentage: 0,
+    title: 'Monthly Metrics'
+  }
+];
+
 const getYAxisDomain = (data, dataKey) => {
   const nonZeroValues = data
     .map((item) => item[dataKey])
@@ -76,10 +103,10 @@ const formatValue = (value) => {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [metrics, setMetrics] = useState([]);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);
+  const [metrics, setMetrics] = useState(defaultMetrics);
   const [clinicSubmissions, setClinicSubmissions] = useState([]);
   const [productionByProviders, setProductionByProviders] = useState([]);
   const [filters, setFilters] = useState({
@@ -93,6 +120,12 @@ export default function Dashboard() {
     columns: [],
     visible: false
   });
+
+  const getCurrentMonthRange = () => {
+    const startOfMonth = dayjs().startOf('month');
+    const endOfMonth = dayjs().endOf('month');
+    return [startOfMonth, endOfMonth];
+  };
 
   const metricModalColumns = {
     'Total Production': [
@@ -154,17 +187,7 @@ export default function Dashboard() {
         title: 'Monthly Budget',
         key: 'avg_budget_supplies',
         dataIndex: 'avg_budget_supplies'
-      },
-      // {
-      //   key: 'total_submissions',
-      //   title: 'Total Submission',
-      //   dataIndex: 'total_submissions'
-      // },
-      // {
-      //   key: 'completed_submissions',
-      //   title: 'Completed Submissions',
-      //   dataIndex: 'completed_submissions'
-      // }
+      }
     ]
   };
 
@@ -245,8 +268,8 @@ export default function Dashboard() {
   const handleDateRangeChange = (dates) => {
     setFilters((prev) => ({
       ...prev,
-      start_date: dates?.[0] ? dayjs(dates[0]).format('YYYY-MM-DD') : null,
-      end_date: dates?.[1] ? dayjs(dates[1]).format('YYYY-MM-DD') : null
+      end_date: dates?.[1] ? dayjs(dates[1]).format('YYYY-MM-DD') : null,
+      start_date: dates?.[0] ? dayjs(dates[0]).format('YYYY-MM-DD') : null
     }));
   };
 
@@ -273,6 +296,7 @@ export default function Dashboard() {
     revenueData,
     'accountReceivable'
   );
+
   const yDomain = [
     Math.min(productionDomain[0], accountReceivableDomain[0]),
     Math.max(productionDomain[1], accountReceivableDomain[1])
@@ -318,7 +342,7 @@ export default function Dashboard() {
         title: 'Number of Patients',
         value: apiData.number_of_patients.value,
         percentage: apiData.number_of_patients.percentage,
-        details: apiData.number_of_patients.patient_details[0].patients
+        details: apiData.number_of_patients.patient_details?.[0]?.patients || []
       },
       {
         title: 'Missed Schedule',
@@ -339,12 +363,26 @@ export default function Dashboard() {
     const fetchAllRegionalManagers = async () => {
       try {
         const { data } = await EODReportService.getAllRegionalManagers();
-        setClinics(
-          data.clinics.map((item) => ({
-            value: item.id,
-            label: item.name
-          }))
-        );
+        const clinicsData = data.clinics.map((item) => ({
+          value: item.id,
+          label: item.name
+        }));
+
+        setClinics(clinicsData);
+
+        if (clinicsData.length > 0) {
+          setFilters((prev) => ({
+            ...prev,
+            clinic_id: clinicsData[0].value
+          }));
+        }
+
+        const [startOfMonth, endOfMonth] = getCurrentMonthRange();
+        setFilters((prev) => ({
+          ...prev,
+          end_date: endOfMonth.format('YYYY-MM-DD'),
+          start_date: startOfMonth.format('YYYY-MM-DD')
+        }));
       } catch (error) {}
     };
 
@@ -353,6 +391,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!filters.clinic_id || !filters.start_date || !filters.end_date)
+        return;
+
       try {
         setLoading(true);
         const response = await EOMReportService.getDashboardData(filters);
@@ -453,7 +494,7 @@ export default function Dashboard() {
           </p>
           <Select
             options={clinics}
-            allowClear={true}
+            // allowClear={true}
             value={filters.clinic_id}
             style={{ width: '100%' }}
             placeholder="Select Clinic"
@@ -465,6 +506,7 @@ export default function Dashboard() {
             Date Range
           </p>
           <RangePicker
+            allowClear={false}
             style={{ width: '100%' }}
             onChange={handleDateRangeChange}
             value={[
@@ -550,12 +592,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="p-6 rounded-xl border border-[#D9DADF]">
+      <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
         </div>
         <div className="w-full h-full p-4">
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={revenueData}>
               <CartesianGrid stroke="#E5E7EB" vertical={false} />
               <XAxis
