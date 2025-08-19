@@ -6,14 +6,9 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
+
 const { TextArea } = Input;
 
 const paymentOptions = [
@@ -46,11 +41,6 @@ export default function Payment({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
-  const isSubmissionCompleted =
-    reportData?.eod?.basic?.clinicDetails?.submitted === 'Completed';
-  const sensors = [
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  ];
 
   const columns = [
     {
@@ -66,7 +56,6 @@ export default function Payment({ onNext }) {
           <div className="flex flex-col gap-1">
             <Select
               value={type}
-              // disabled={isSubmissionCompleted}
               onChange={(value) => handleTypeChange(record.key, value)}
             >
               {paymentOptions.map((option) => (
@@ -117,7 +106,6 @@ export default function Payment({ onNext }) {
       title: 'Remarks',
       inputType: 'text',
       dataIndex: 'remarks'
-      // disabled: isSubmissionCompleted
     }
   ];
 
@@ -143,17 +131,6 @@ export default function Payment({ onNext }) {
       <div></div>
     </div>
   );
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (active?.id !== over?.id) {
-      setTableData((items) => {
-        const oldIndex = items.findIndex((item) => item.key === active?.id);
-        const newIndex = items.findIndex((item) => item.key === over?.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
 
   const handleTypeChange = (key, value) => {
     const newPayments = tableData.map((item) => {
@@ -336,20 +313,15 @@ export default function Payment({ onNext }) {
         </div>
         <Row gutter={16}>
           <Col span={12}>
-            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-              <SortableContext
-                strategy={verticalListSortingStrategy}
-                items={tableData.map((item) => item.key)}
-              >
-                <GenericTable
-                  footer={footer}
-                  columns={columns}
-                  loading={dataLoading}
-                  dataSource={tableData}
-                  onCellChange={handleCellChange}
-                />
-              </SortableContext>
-            </DndContext>
+            <div className="payment-table">
+              <GenericTable
+                footer={footer}
+                columns={columns}
+                loading={dataLoading}
+                dataSource={tableData}
+                onCellChange={handleCellChange}
+              />
+            </div>
           </Col>
           <Col span={12}>
             <Card className="!p-0 !gap-0 border border-secondary-50">
@@ -361,16 +333,15 @@ export default function Payment({ onNext }) {
               <TextArea
                 rows={4}
                 value={notes}
-                // disabled={isSubmissionCompleted}
                 placeholder="Enter note here..."
                 onChange={(e) => setNotes(e.target.value)}
                 style={{
                   width: '100%',
                   border: 'none',
                   height: '170px',
-                  color: '#777B8B',
                   fontSize: '15px',
                   boxShadow: 'none',
+                  color: '#777B8B',
                   borderRadius: '12px',
                   padding: '10px 16px'
                 }}
