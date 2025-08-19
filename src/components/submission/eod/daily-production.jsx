@@ -200,7 +200,12 @@ export default function DailyProduction({ onNext }) {
     try {
       setDataLoading(true);
       const { data } = await EODReportService.getActiveProviders(id);
-      const baseProviders = data.providers.map((provider) => ({
+      const sortedProviders = data.providers.sort((a, b) => {
+        if (a.user_type === 'DDS') return -1;
+        if (b.user_type === 'DDS') return 1;
+        return 0;
+      });
+      const baseProviders = sortedProviders.map((provider) => ({
         id: provider.id,
         key: provider.id,
         name: provider.name,

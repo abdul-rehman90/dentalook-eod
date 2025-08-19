@@ -162,10 +162,6 @@
   border: 1px solid #d9d9d9 !important;
 }
 
-/* .ant-table .ant-table-tbody .ant-input {
-  width: 30%;
-} */
-
 .ant-table .ant-table-tbody .ant-select-selector {
   padding: 0 !important;
   border: none !important;
@@ -191,6 +187,17 @@
   padding: 0 !important;
   color: #373940 !important;
   background: #e6eaee !important;
+}
+
+.payment-table .ant-table .ant-table-tbody .ant-input,
+.payment-table .ant-table .ant-table-tbody .ant-select {
+  height: 25px;
+  border: none !important;
+}
+
+.payment-table .ant-table .ant-table-tbody .ant-input:hover,
+.payment-table .ant-table .ant-table-tbody .ant-select:hover {
+  box-shadow: none;
 }
 
 .ant-table .ant-table-tbody input[type='number']::-webkit-outer-spin-button,
