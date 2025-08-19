@@ -71,13 +71,13 @@ const defaultMetrics = [
     value: 0,
     details: [],
     percentage: 0,
-    title: 'Missed Schedule'
+    title: 'Missed Opportunities'
   },
   {
     value: 0,
     details: [],
     percentage: 0,
-    title: 'Monthly Metrics'
+    title: 'Monthly Supplies'
   }
 ];
 
@@ -345,14 +345,14 @@ export default function Dashboard() {
         details: apiData.number_of_patients.patient_details?.[0]?.patients || []
       },
       {
-        title: 'Missed Schedule',
+        title: 'Missed Opportunities',
         percentage: apiData.missed_schedule.percentage,
         details: apiData.missed_schedule.provider_details,
         value: apiData.missed_schedule.total_missed_appointments
       },
       {
         percentage: 0,
-        title: 'Monthly Metrics',
+        title: 'Monthly Supplies',
         details: [apiData.monthly_metrics],
         value: apiData.monthly_metrics.total_submissions
       }
@@ -533,24 +533,6 @@ export default function Dashboard() {
               <p className="text-3xl font-semibold text-black">
                 {metric.value}
               </p>
-              {metric.percentage !== undefined && (
-                <div
-                  className={`inline-flex items-center text-sm font-medium px-2 py-1 rounded-full ${
-                    metric.percentage > 0
-                      ? 'bg-[#E9F7EE] text-[#167F3D]'
-                      : metric.percentage < 0
-                      ? 'bg-[#FEF3F2] text-[#B42318]'
-                      : 'bg-[#F2F4F7] text-[#344054]'
-                  }`}
-                >
-                  {metric.percentage > 0 ? (
-                    <ArrowUpOutlined />
-                  ) : metric.percentage < 0 ? (
-                    <ArrowDownOutlined />
-                  ) : null}
-                  {metric.percentage}
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}
@@ -655,3 +637,22 @@ export default function Dashboard() {
     </div>
   );
 }
+
+// {metric.percentage !== undefined && (
+//                 <div
+//                   className={`inline-flex items-center text-sm font-medium px-2 py-1 rounded-full ${
+//                     metric.percentage > 0
+//                       ? 'bg-[#E9F7EE] text-[#167F3D]'
+//                       : metric.percentage < 0
+//                       ? 'bg-[#FEF3F2] text-[#B42318]'
+//                       : 'bg-[#F2F4F7] text-[#344054]'
+//                   }`}
+//                 >
+//                   {metric.percentage > 0 ? (
+//                     <ArrowUpOutlined />
+//                   ) : metric.percentage < 0 ? (
+//                     <ArrowDownOutlined />
+//                   ) : null}
+//                   {metric.percentage}
+//                 </div>
+//               )}
