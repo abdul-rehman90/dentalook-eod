@@ -45,14 +45,6 @@ export default function StepNavigation({ onNext }) {
       >
         {getNextButtonText()}
       </Button>
-      <Button
-        size="lg"
-        // isLoading={loading}
-        // onClick={() => onNext()}
-        className="h-9 !shadow-none text-black !rounded-lg"
-      >
-        Save
-      </Button>
     </div>
   );
 }
