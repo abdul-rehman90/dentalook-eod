@@ -88,7 +88,8 @@ export default function DailyProduction({ onNext }) {
       {
         key: 'totalProduction',
         title: 'Total Production',
-        dataIndex: 'totalProduction'
+        dataIndex: 'totalProduction',
+        render: (value) => (value ? `$${value}` : '$0')
       },
       {
         key: 'target',

@@ -48,9 +48,9 @@ export default function Supplies({ onNext }) {
       key: 'reason',
       disabled: true,
       editable: true,
+      title: 'Remarks',
       inputType: 'text',
-      dataIndex: 'reason',
-      title: 'Reason for Overage'
+      dataIndex: 'reason'
     }
   ];
 
@@ -69,8 +69,8 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 150,
+      title: 'Remarks',
       key: 'overage_reason',
-      title: 'Reason for Overage',
       dataIndex: 'overage_reason'
     },
     {
@@ -96,7 +96,7 @@ export default function Supplies({ onNext }) {
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
         <div className="max-[1500px]:ml-[20px] min-[1501px]:max-[1650px]:ml-[24px] min-[1651px]:max-[1900px]:ml-[28px] min-[1901px]:max-[2150px]:ml-[32px] min-[2151px]:ml-[40px]">
-          {totalActual}
+          ${totalActual}
         </div>
         <div></div>
         <div className="text-center">0</div>
