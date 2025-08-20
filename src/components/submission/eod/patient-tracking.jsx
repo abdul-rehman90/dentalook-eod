@@ -8,6 +8,7 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
@@ -277,26 +278,33 @@ export default function PatientTracking({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="flex flex-col gap-4 px-6">
-      <Col span={10}>
-        <GenericTable dataSource={summaryData} columns={newPatientColumns} />
-      </Col>
-      <div className="flex items-center justify-end">
-        <Button
-          size="lg"
-          variant="destructive"
-          onClick={handleAddNew}
-          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-        >
-          <PlusOutlined />
-          Add New Patient
-        </Button>
+    <React.Fragment>
+      <div className="flex flex-col gap-4 px-6">
+        <Col span={10}>
+          <GenericTable dataSource={summaryData} columns={newPatientColumns} />
+        </Col>
+        <div className="flex items-center justify-end">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNew}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Patient
+          </Button>
+        </div>
+        <GenericTable
+          dataSource={tableData}
+          columns={patientSourceColumns}
+          onCellChange={handleCellChange}
+        />
       </div>
-      <GenericTable
-        dataSource={tableData}
-        columns={patientSourceColumns}
-        onCellChange={handleCellChange}
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
-    </div>
+    </React.Fragment>
   );
 }
