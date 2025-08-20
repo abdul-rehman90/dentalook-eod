@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Input } from 'antd';
 import toast from 'react-hot-toast';
@@ -6,7 +6,6 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const defaultRow = {
   key: '1',
@@ -239,31 +238,46 @@ export default function Supplies({ onNext }) {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      const rowData = tableData[0];
-      if (rowData.supplies_actual) {
-        const payload = {
-          ...rowData,
-          clinic: clinicId,
-          supplies_actual: parseFloat(rowData.supplies_actual)
-        };
-        const response = await EODReportService.addSupplies(id, payload);
-        if (response.status === 200) {
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        setLoading(true);
+        const rowData = tableData[0];
+        if (rowData.supplies_actual) {
+          const payload = {
+            ...rowData,
+            clinic: clinicId,
+            supplies_actual: parseFloat(rowData.supplies_actual)
+          };
+          const response = await EODReportService.addSupplies(id, payload);
+          if (response.status === 200) {
+            updateStepData(currentStepId, rowData);
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
           updateStepData(currentStepId, rowData);
-          toast.success('Record is successfully saved');
-          onNext();
+          if (navigate) {
+            onNext();
+          }
         }
-        return;
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-      updateStepData(currentStepId, rowData);
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [tableData, clinicId, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && Object.entries(currentStepData).length > 0) {
@@ -300,18 +314,25 @@ export default function Supplies({ onNext }) {
     clinicId && getAllSupplies();
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6 flex flex-col gap-14">
-        <GenericTable columns={columns} dataSource={tableData} />
-        <GenericTable
-          footer={footer}
-          loading={dataLoading}
-          dataSource={totalSupplies}
-          columns={totalSuppliesColumns}
-        />
-      </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+    <div className="px-6 flex flex-col gap-14">
+      <GenericTable columns={columns} dataSource={tableData} />
+      <GenericTable
+        footer={footer}
+        loading={dataLoading}
+        dataSource={totalSupplies}
+        columns={totalSuppliesColumns}
+      />
+    </div>
   );
 }

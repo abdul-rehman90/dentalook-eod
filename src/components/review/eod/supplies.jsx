@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function Supplies({ onNext }) {
   const { reportData, getCurrentStepData } = useGlobalContext();
@@ -147,18 +146,22 @@ export default function Supplies({ onNext }) {
     clinicId && getAllSupplies();
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', onNext);
+    return () => {
+      window.removeEventListener('stepNavigationNext', onNext);
+    };
+  }, [onNext]);
+
   return (
-    <React.Fragment>
-      <div className="px-6 flex flex-col gap-14">
-        <GenericTable columns={columns} dataSource={tableData} />
-        <GenericTable
-          footer={footer}
-          loading={dataLoading}
-          dataSource={totalSupplies}
-          columns={totalSuppliesColumns}
-        />
-      </div>
-      <StepNavigation onNext={onNext} />
-    </React.Fragment>
+    <div className="px-6 flex flex-col gap-14">
+      <GenericTable columns={columns} dataSource={tableData} />
+      <GenericTable
+        footer={footer}
+        loading={dataLoading}
+        dataSource={totalSupplies}
+        columns={totalSuppliesColumns}
+      />
+    </div>
   );
 }
