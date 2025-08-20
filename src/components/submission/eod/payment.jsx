@@ -86,6 +86,7 @@ export default function Payment({ onNext }) {
       render: (_, record) => (
         <Input
           type="text"
+          prefix="$"
           value={record.amount || ''}
           onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
           onBlur={(e) => {
@@ -124,6 +125,7 @@ export default function Payment({ onNext }) {
     <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
       <div className="font-semibold">Total Amount</div>
       <div className="min-[1280px]:max-[1300px]:pl-[64px] min-[1300px]:max-[1350px]:pl-[54px] min-[1350px]:max-[1400px]:pl-[50px] min-[1401px]:max-[1441px]:pl-[40px] min-[1441px]:pl-[36px]">
+        $
         {tableData
           .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
           .toFixed(2)}

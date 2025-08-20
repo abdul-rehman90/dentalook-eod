@@ -128,21 +128,44 @@ export default function Dashboard() {
   };
 
   const metricModalColumns = {
-    'Total Production': [
+    'Total Productions': [
       {
+        key: 'submission_date',
+        title: 'Submission Date',
+        dataIndex: 'submission_date',
+        render: (text) => dayjs(text).format('MMM DD, YYYY')
+      },
+      {
+        key: 'clinic_name',
+        title: 'Clinic Name',
+        dataIndex: 'clinic_name'
+      },
+      {
+        key: 'clinic_open_time',
+        title: 'Clinic Open Time',
+        dataIndex: 'clinic_open_time'
+      },
+      {
+        key: 'clinic_close_time',
+        title: 'Clinic Close Time',
+        dataIndex: 'clinic_close_time'
+      }
+    ],
+    'Production by Providers': [
+      {
+        key: 'provider_name',
         title: 'Provider Name',
-        dataIndex: 'provider_name',
-        key: 'provider_name'
+        dataIndex: 'provider_name'
       },
       {
+        key: 'provider_type',
         title: 'Provider Type',
-        dataIndex: 'provider_type',
-        key: 'provider_type'
+        dataIndex: 'provider_type'
       },
       {
+        key: 'provider_email',
         title: 'Provider Email',
-        dataIndex: 'provider_email',
-        key: 'provider_email'
+        dataIndex: 'provider_email'
       },
       { title: 'Hours Open', dataIndex: 'hours_open', key: 'hours_open' },
       {
@@ -162,7 +185,7 @@ export default function Dashboard() {
       { title: 'Source', dataIndex: 'source', key: 'source' },
       { title: 'Comments', dataIndex: 'comments', key: 'comments' }
     ],
-    'Missed Schedule': [
+    'Missed Opportunities': [
       { title: 'Clinic Name', dataIndex: 'clinic_name', key: 'clinic_name' },
       {
         key: 'unfilled_spots',
@@ -177,7 +200,7 @@ export default function Dashboard() {
       },
       { title: 'Total Missed', dataIndex: 'total_missed', key: 'total_missed' }
     ],
-    'Monthly Metrics': [
+    'Monthly Supplies': [
       {
         title: 'Actual',
         key: 'avg_supplies_actual',
@@ -273,6 +296,15 @@ export default function Dashboard() {
     }));
   };
 
+  const handlePieChartClick = (data, index) => {
+    setModalState({
+      visible: true,
+      title: 'Production by Providers',
+      data: productionByProviders || [],
+      columns: metricModalColumns['Production by Providers']
+    });
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
@@ -333,9 +365,9 @@ export default function Dashboard() {
   const formatMetricsData = (apiData) => {
     return [
       {
-        title: 'Total Production',
+        title: 'Total Productions',
         percentage: apiData.total_production.percentage,
-        details: apiData.total_production.provider_details,
+        details: apiData.total_production.eod_submissions,
         value: `$${apiData.total_production.value.toLocaleString()}`
       },
       {
@@ -555,6 +587,7 @@ export default function Dashboard() {
                 outerRadius={120}
                 labelLine={false}
                 data={productionByProviders}
+                onClick={handlePieChartClick}
                 label={({ name, value, percent }) =>
                   `${name}: ${formatValue(value)} (${(percent * 100).toFixed(
                     0

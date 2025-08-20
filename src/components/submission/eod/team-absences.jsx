@@ -128,11 +128,15 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'start_time',
       render: (_, record) => (
         <Select
+          showSearch
           options={timeOptions}
           placeholder="Select one"
           value={record.start_time}
           suffixIcon={<ClockCircleOutlined />}
           disabled={record.absence !== 'Partial Day'}
+          filterOption={(input, option) =>
+            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, start_time: time } : p
@@ -149,11 +153,15 @@ export default function TeamAbsences({ onNext }) {
       dataIndex: 'end_time',
       render: (_, record) => (
         <Select
+          showSearch
           options={timeOptions}
           value={record.end_time}
           placeholder="Select one"
           suffixIcon={<ClockCircleOutlined />}
           disabled={record.absence !== 'Partial Day'}
+          filterOption={(input, option) =>
+            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
           onChange={(time) => {
             const updatedProviders = tableData.map((p) =>
               p.key === record.key ? { ...p, end_time: time } : p

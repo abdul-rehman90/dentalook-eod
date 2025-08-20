@@ -59,9 +59,9 @@ export default function Supplies({ onNext }) {
     {
       width: 370,
       editable: true,
+      title: 'Remarks',
       inputType: 'text',
       key: 'overage_reason',
-      title: 'Reason for Overage',
       dataIndex: 'overage_reason'
     }
   ];
@@ -98,8 +98,8 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 160,
+      title: 'Remarks',
       key: 'overage_reason',
-      title: 'Reason for Overage',
       dataIndex: 'overage_reason',
       render: (text, record) => {
         if (editingId === record.id) {
@@ -175,7 +175,7 @@ export default function Supplies({ onNext }) {
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
         <div className="min-[1280px]:max-[1350px]:ml-[22px] min-[1351px]:max-[1500px]:ml-[24px] min-[1501px]:max-[1650px]:ml-[28px] min-[1651px]:max-[1850px]:ml-[32px] min-[1851px]:max-[2000px]:ml-[36px] min-[2001px]:max-[2250px]:ml-[40px] min-[2251px]:ml-[48px]">
-          {totalActual}
+          ${totalActual}
         </div>
         <div></div>
         <div className="text-center ml-15">0</div>

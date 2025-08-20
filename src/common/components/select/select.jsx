@@ -10,6 +10,7 @@ export default function SelectField({
   onChange,
   message = '',
   disabled = false,
+  showSearch = false,
   placeholder = 'Select one',
   suffixIcon = <DownOutlined />
 }) {
@@ -30,8 +31,12 @@ export default function SelectField({
       <Select
         onChange={onChange}
         disabled={disabled}
+        showSearch={showSearch}
         suffixIcon={suffixIcon}
         placeholder={placeholder}
+        filterOption={(input, option) =>
+          (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+        }
       >
         {options.map((item) => (
           <Select.Option value={item.value}>{item.label}</Select.Option>

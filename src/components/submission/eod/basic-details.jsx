@@ -310,6 +310,7 @@ export default function BasicDetails() {
               <React.Fragment>
                 <Row justify="space-between">
                   <FormControl
+                    showSearch
                     control="select"
                     label="Open From"
                     required={isOpened}
@@ -319,6 +320,7 @@ export default function BasicDetails() {
                     options={generateTimeSlots(7, 22, 30)}
                   />
                   <FormControl
+                    showSearch
                     label="Open To"
                     control="select"
                     required={isOpened}
