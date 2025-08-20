@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -9,7 +9,6 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { ClockCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
   generateTimeOptions
@@ -240,75 +239,90 @@ export default function TeamAbsences({ onNext }) {
     setTableData([...tableData, newAbsence]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const nonEmptyRows = tableData.filter(
-        (item) => item.position || item.name
-      );
-
-      // If no rows have any data, allow proceeding without any absences
-      if (nonEmptyRows.length === 0) {
-        updateStepData(currentStepId, []);
-        onNext();
-        return;
-      }
-
-      const rowsWithMissingData = nonEmptyRows.filter(
-        (item) => !item.position || !item.name || !item.absence
-      );
-
-      if (rowsWithMissingData.length > 0) {
-        toast.error(
-          'Please complete all required fields for each absence: ' +
-            'Title, Provider Name, and Absence Type are required'
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const nonEmptyRows = tableData.filter(
+          (item) => item.position || item.name
         );
-        return;
-      }
 
-      const rowsWithInvalidTimes = tableData.filter(
-        (item) =>
-          item.absence === 'Partial Day' && (!item.start_time || !item.end_time)
-      );
+        if (nonEmptyRows.length === 0) {
+          updateStepData(currentStepId, []);
+          if (navigate) {
+            onNext();
+          }
+          return;
+        }
 
-      if (rowsWithInvalidTimes.length > 0) {
-        toast.error(
-          'Please provide both start and end times for all Partial Day absences'
+        const rowsWithMissingData = nonEmptyRows.filter(
+          (item) => !item.position || !item.name || !item.absence
         );
-        return;
-      }
 
-      const payload = nonEmptyRows.map((item) => {
-        const isStandardPosition = ['DDS', 'RDH', 'RDT'].includes(
-          item.position
+        if (rowsWithMissingData.length > 0) {
+          toast.error(
+            'Please complete all required fields for each absence: ' +
+              'Title, Provider Name, and Absence Type are required'
+          );
+          return;
+        }
+
+        const rowsWithInvalidTimes = tableData.filter(
+          (item) =>
+            item.absence === 'Partial Day' &&
+            (!item.start_time || !item.end_time)
         );
-        return {
-          ...item,
-          eodsubmission: Number(id),
-          user: isStandardPosition ? item.name : null,
-          other_provider: isStandardPosition ? null : item.name,
-          start_time:
-            item.absence === 'Partial Day' && item.start_time
-              ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
-              : null,
-          end_time:
-            item.absence === 'Partial Day' && item.end_time
-              ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
-              : null
-        };
-      });
 
-      setLoading(true);
-      const response = await EODReportService.addTeamAbsence(payload);
-      if (response.status === 201) {
-        updateStepData(currentStepId, tableData);
-        toast.success('Record is successfully saved');
-        onNext();
+        if (rowsWithInvalidTimes.length > 0) {
+          toast.error(
+            'Please provide both start and end times for all Partial Day absences'
+          );
+          return;
+        }
+
+        const payload = nonEmptyRows.map((item) => {
+          const isStandardPosition = ['DDS', 'RDH', 'RDT'].includes(
+            item.position
+          );
+          return {
+            ...item,
+            eodsubmission: Number(id),
+            user: isStandardPosition ? item.name : null,
+            other_provider: isStandardPosition ? null : item.name,
+            start_time:
+              item.absence === 'Partial Day' && item.start_time
+                ? dayjs(item.start_time, 'h:mm a').format('HH:mm:ss')
+                : null,
+            end_time:
+              item.absence === 'Partial Day' && item.end_time
+                ? dayjs(item.end_time, 'h:mm a').format('HH:mm:ss')
+                : null
+          };
+        });
+
+        setLoading(true);
+        const response = await EODReportService.addTeamAbsence(payload);
+        if (response.status === 201) {
+          updateStepData(currentStepId, tableData);
+          toast.success('Record is successfully saved');
+          if (navigate) {
+            onNext();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -336,27 +350,34 @@ export default function TeamAbsences({ onNext }) {
     loadData();
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Absence
-          </Button>
-        </div>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Absence
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

@@ -162,8 +162,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     {
       // width: 50,
       key: 'unfilled_spots',
-      dataIndex: 'unfilled_spots',
       title: 'Unfilled Spots',
+      dataIndex: 'unfilled_spots',
       render: (_, record) => (
         <Input
           type="number"
@@ -188,8 +188,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     {
       // width: 50,
       key: 'no_shows',
-      dataIndex: 'no_shows',
       title: 'No Shows',
+      dataIndex: 'no_shows',
       render: (_, record) => (
         <Input
           type="number"
@@ -237,8 +237,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       // width: 50,
-      key: 'failed_appointments',
       title: 'Failed Appts',
+      key: 'failed_appointments',
       dataIndex: 'failed_appointments',
       render: (_, record) => (
         <Input

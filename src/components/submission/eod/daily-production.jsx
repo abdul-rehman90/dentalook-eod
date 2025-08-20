@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
@@ -157,36 +156,52 @@ export default function DailyProduction({ onNext }) {
     );
   };
 
-  const handleSubmit = async () => {
-    try {
-      const payload = tableData
-        .filter(
-          (item) => item.production_amount && Number(item.production_amount > 0)
-        )
-        .map((item) => ({
-          ...item,
-          user: item.id,
-          eodsubmission: Number(id),
-          production_amount: Number(item.production_amount)
-        }));
-      if (payload.length > 0) {
-        setLoading(true);
-        const response = await EODReportService.addProduction(payload);
-        if (response.status === 201) {
-          updateStepData(currentStepId, tableData);
-          toast.success('Record is successfully saved');
-          onNext();
-        }
-        return;
-      }
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const payload = tableData
+          .filter(
+            (item) =>
+              item.production_amount && Number(item.production_amount > 0)
+          )
+          .map((item) => ({
+            ...item,
+            user: item.id,
+            eodsubmission: Number(id),
+            production_amount: Number(item.production_amount)
+          }));
 
-      updateStepData(currentStepId, tableData);
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (payload.length > 0) {
+          setLoading(true);
+          const response = await EODReportService.addProduction(payload);
+          if (response.status === 201) {
+            updateStepData(currentStepId, tableData);
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
+          updateStepData(currentStepId, tableData);
+          if (navigate) {
+            onNext();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   const fetchTargetGoal = async () => {
     try {
@@ -245,21 +260,25 @@ export default function DailyProduction({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="flex flex-col gap-6 px-6">
-        <GenericTable
-          loading={dataLoading}
-          dataSource={tableData}
-          columns={providersColumns}
-          onCellChange={handleCellChange}
-        />
-        <GenericTable
-          dataSource={summaryData}
-          columns={totalProductionColumns}
-        />
-      </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+    <div className="flex flex-col gap-6 px-6">
+      <GenericTable
+        loading={dataLoading}
+        dataSource={tableData}
+        columns={providersColumns}
+        onCellChange={handleCellChange}
+      />
+      <GenericTable dataSource={summaryData} columns={totalProductionColumns} />
+    </div>
   );
 }

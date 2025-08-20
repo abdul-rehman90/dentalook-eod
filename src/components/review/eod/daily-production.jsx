@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
@@ -164,16 +163,17 @@ export default function DailyProduction({ onNext }) {
     }
   }, [currentStepData]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', onNext);
+    return () => {
+      window.removeEventListener('stepNavigationNext', onNext);
+    };
+  }, [onNext]);
+
   return (
-    <React.Fragment>
-      <div className="flex flex-col gap-6 px-6">
-        <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
-        <GenericTable
-          dataSource={summaryData}
-          columns={totalProductionColumns}
-        />
-      </div>
-      <StepNavigation onNext={onNext} />
-    </React.Fragment>
+    <div className="flex flex-col gap-6 px-6">
+      <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
+      <GenericTable dataSource={summaryData} columns={totalProductionColumns} />
+    </div>
   );
 }

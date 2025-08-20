@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function AccountReceivable({ onNext }) {
   const {
@@ -96,56 +95,68 @@ export default function AccountReceivable({ onNext }) {
     );
   };
 
-  const handleSubmit = async () => {
-    const hasData = tableData.some(
-      (item) =>
-        item.age_0_30 > 0 ||
-        item.age_30_60 > 0 ||
-        item.age_60_90 > 0 ||
-        item.age_90_plus > 0 ||
-        item.payment_plan > 0
-    );
-
-    if (!hasData) {
-      updateStepData(currentStepId, tableData);
-      onNext();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const patientData = tableData.find(
-        (item) => item.patient_type === 'Patient'
-      );
-      const insuranceData = tableData.find(
-        (item) => item.patient_type === 'Insurance'
+  const saveData = useCallback(
+    async (navigate = false) => {
+      const hasData = tableData.some(
+        (item) =>
+          item.age_0_30 > 0 ||
+          item.age_30_60 > 0 ||
+          item.age_60_90 > 0 ||
+          item.age_90_plus > 0 ||
+          item.payment_plan > 0
       );
 
-      const payload = {
-        submission: Number(id),
-        patient0_30: parseFloat(patientData?.age_0_30) || 0,
-        patient30_60: parseFloat(patientData?.age_30_60) || 0,
-        patient60_90: parseFloat(patientData?.age_60_90) || 0,
-        patient90_plus: parseFloat(patientData?.age_90_plus) || 0,
-        patient_payment_plan: parseFloat(patientData?.payment_plan) || 0,
-        insurance0_30: parseFloat(insuranceData?.age_0_30) || 0,
-        insurance30_60: parseFloat(insuranceData?.age_30_60) || 0,
-        insurance60_90: parseFloat(insuranceData?.age_60_90) || 0,
-        insurance90_plus: parseFloat(insuranceData?.age_90_plus) || 0,
-        insurance_payment_plan: parseFloat(insuranceData?.payment_plan) || 0
-      };
-
-      const response = await EOMReportService.addAccountReceivable([payload]);
-      if (response.status === 201) {
-        updateStepData(currentStepId, [payload]);
-        toast.success('Record is successfully saved');
-        onNext();
+      if (!hasData) {
+        updateStepData(currentStepId, tableData);
+        return;
       }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      try {
+        setLoading(true);
+        const patientData = tableData.find(
+          (item) => item.patient_type === 'Patient'
+        );
+        const insuranceData = tableData.find(
+          (item) => item.patient_type === 'Insurance'
+        );
+
+        const payload = {
+          submission: Number(id),
+          patient0_30: parseFloat(patientData?.age_0_30) || 0,
+          patient30_60: parseFloat(patientData?.age_30_60) || 0,
+          patient60_90: parseFloat(patientData?.age_60_90) || 0,
+          patient90_plus: parseFloat(patientData?.age_90_plus) || 0,
+          patient_payment_plan: parseFloat(patientData?.payment_plan) || 0,
+          insurance0_30: parseFloat(insuranceData?.age_0_30) || 0,
+          insurance30_60: parseFloat(insuranceData?.age_30_60) || 0,
+          insurance60_90: parseFloat(insuranceData?.age_60_90) || 0,
+          insurance90_plus: parseFloat(insuranceData?.age_90_plus) || 0,
+          insurance_payment_plan: parseFloat(insuranceData?.payment_plan) || 0
+        };
+
+        const response = await EOMReportService.addAccountReceivable([payload]);
+        if (response.status === 201) {
+          updateStepData(currentStepId, [payload]);
+          toast.success('Record is successfully saved');
+          if (navigate) {
+            onNext();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -173,16 +184,23 @@ export default function AccountReceivable({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
-      </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+    <div className="px-6">
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

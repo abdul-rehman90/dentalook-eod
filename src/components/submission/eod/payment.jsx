@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Col, Row, Input, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -7,7 +7,6 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const { TextArea } = Input;
 
@@ -187,7 +186,7 @@ export default function Payment({ onNext }) {
     setTableData([...tableData, newPayment]);
   };
 
-  const handlePaymentTypeOrder = async () => {
+  const handlePaymentTypeOrder = useCallback(async () => {
     try {
       const paymentOrderPayload = {
         clinic_id: clinicId,
@@ -198,50 +197,67 @@ export default function Payment({ onNext }) {
       };
       await EODReportService.handlePaymentTypeOrder(paymentOrderPayload);
     } catch (error) {}
-  };
+  }, [clinicId, tableData]);
 
-  const handleSubmit = async () => {
-    try {
-      // if (isSubmissionCompleted) {
-      //   updateStepData(currentStepId, { notes, payments: tableData });
-      //   onNext();
-      //   return;
-      // }
+  // Create a memoized handleSubmit function
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const validPayments = tableData.filter(
+          (item) => item.amount && !isNaN(item.amount)
+        );
 
-      const validPayments = tableData.filter(
-        (item) => item.amount && !isNaN(item.amount)
-      );
+        const payload = {
+          notes: notes,
+          payments: validPayments.map((item) => ({
+            ...item,
+            payment_type: item.type,
+            eodsubmission: Number(id),
+            payment_amount: item.amount
+          }))
+        };
 
-      const payload = {
-        notes: notes,
-        payments: validPayments.map((item) => ({
-          ...item,
-          payment_type: item.type,
-          eodsubmission: Number(id),
-          payment_amount: item.amount
-        }))
-      };
-
-      if (validPayments.length > 0) {
-        setLoading(true);
-        const response = await EODReportService.addPayment(payload);
-        if (response.status === 201) {
-          handlePaymentTypeOrder();
-          toast.success('Record is successfully saved');
-          updateStepData(currentStepId, { notes, payments: tableData });
-          onNext();
+        if (validPayments.length > 0) {
+          setLoading(true);
+          const response = await EODReportService.addPayment(payload);
+          if (response.status === 201) {
+            // await handlePaymentTypeOrder();
+            toast.success('Record is successfully saved');
+            updateStepData(currentStepId, { notes, payments: tableData });
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
+          // await handlePaymentTypeOrder();
+          updateStepData(currentStepId, { notes: '', payments: tableData });
+          if (navigate) {
+            onNext();
+          }
         }
-        return;
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
+    },
+    [
+      id,
+      notes,
+      tableData,
+      setLoading,
+      currentStepId,
+      updateStepData,
+      handlePaymentTypeOrder
+    ]
+  );
 
-      updateStepData(currentStepId, { notes: '', payments: tableData });
-      onNext();
-      handlePaymentTypeOrder();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   const fetchAllPayments = async () => {
     try {
@@ -299,60 +315,67 @@ export default function Payment({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Payment
-          </Button>
-        </div>
-        <Row gutter={16}>
-          <Col span={12}>
-            <div className="payment-table">
-              <GenericTable
-                footer={footer}
-                columns={columns}
-                loading={dataLoading}
-                dataSource={tableData}
-                onCellChange={handleCellChange}
-              />
-            </div>
-          </Col>
-          <Col span={12}>
-            <Card className="!p-0 !gap-0 border border-secondary-50">
-              <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
-                <CardTitle className="text-[15px] font-medium text-black">
-                  Payment Notes
-                </CardTitle>
-              </CardHeader>
-              <TextArea
-                rows={4}
-                value={notes}
-                placeholder="Enter note here..."
-                onChange={(e) => setNotes(e.target.value)}
-                style={{
-                  width: '100%',
-                  border: 'none',
-                  height: '170px',
-                  fontSize: '15px',
-                  boxShadow: 'none',
-                  color: '#777B8B',
-                  borderRadius: '12px',
-                  padding: '10px 16px'
-                }}
-              />
-            </Card>
-          </Col>
-        </Row>
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Payment
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <Row gutter={16}>
+        <Col span={12}>
+          <div className="payment-table">
+            <GenericTable
+              footer={footer}
+              columns={columns}
+              loading={dataLoading}
+              dataSource={tableData}
+              onCellChange={handleCellChange}
+            />
+          </div>
+        </Col>
+        <Col span={12}>
+          <Card className="!p-0 !gap-0 border border-secondary-50">
+            <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
+              <CardTitle className="text-[15px] font-medium text-black">
+                Payment Notes
+              </CardTitle>
+            </CardHeader>
+            <TextArea
+              rows={4}
+              value={notes}
+              placeholder="Enter note here..."
+              onChange={(e) => setNotes(e.target.value)}
+              style={{
+                width: '100%',
+                border: 'none',
+                height: '170px',
+                fontSize: '15px',
+                boxShadow: 'none',
+                color: '#777B8B',
+                borderRadius: '12px',
+                padding: '10px 16px'
+              }}
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 }

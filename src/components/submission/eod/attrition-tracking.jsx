@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -8,7 +8,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const reasonOptions = [
   { value: 'Another Dentist', label: 'Another Dentist' },
@@ -145,51 +144,69 @@ export default function AttritionTracking({ onNext }) {
     ]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const rowsWithPatientButNoReason = tableData.filter(
-        (item) => item.patient_name && !item.reason
-      );
-
-      const rowsWithMissingOtherReason = tableData.filter(
-        (item) => item.reason === 'Other' && !item.other_reason
-      );
-
-      if (rowsWithPatientButNoReason.length > 0) {
-        toast.error('Please specify the "Reason" for all patients with names');
-        return;
-      }
-
-      if (rowsWithMissingOtherReason.length > 0) {
-        toast.error(
-          'Please specify the "Other Reason" for all rows where reason is "Other"'
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const rowsWithPatientButNoReason = tableData.filter(
+          (item) => item.patient_name && !item.reason
         );
-        return;
-      }
 
-      const payload = tableData
-        .filter((item) => item.patient_name && item.reason)
-        .map((item) => ({
-          ...item,
-          eodsubmission: Number(id)
-        }));
-      if (payload.length > 0) {
-        setLoading(true);
-        const response = await EODReportService.addAttritionTracking(payload);
-        if (response.status === 201) {
-          updateStepData(currentStepId, tableData);
-          toast.success('Record is successfully saved');
-          onNext();
+        const rowsWithMissingOtherReason = tableData.filter(
+          (item) => item.reason === 'Other' && !item.other_reason
+        );
+
+        if (rowsWithPatientButNoReason.length > 0) {
+          toast.error(
+            'Please specify the "Reason" for all patients with names'
+          );
+          return;
         }
-        return;
+
+        if (rowsWithMissingOtherReason.length > 0) {
+          toast.error(
+            'Please specify the "Other Reason" for all rows where reason is "Other"'
+          );
+          return;
+        }
+
+        const payload = tableData
+          .filter((item) => item.patient_name && item.reason)
+          .map((item) => ({
+            ...item,
+            eodsubmission: Number(id)
+          }));
+
+        if (payload.length > 0) {
+          setLoading(true);
+          const response = await EODReportService.addAttritionTracking(payload);
+          if (response.status === 201) {
+            updateStepData(currentStepId, tableData);
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
+          updateStepData(currentStepId, tableData);
+          if (navigate) {
+            onNext();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-      updateStepData(currentStepId, tableData);
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -204,27 +221,34 @@ export default function AttritionTracking({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Attrition
-          </Button>
-        </div>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Attrition
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

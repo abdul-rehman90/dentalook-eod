@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -9,7 +9,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const specialityOptions = [
   { value: 'Orthodontics-Braces', label: 'Orthodontics-Braces' },
@@ -184,7 +183,7 @@ export default function Referrals() {
     ]);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
       const rowsWithMissingData = tableData.filter(
         (item) => item.patient_name && (!item.provider_name || !item.specialty)
@@ -221,13 +220,13 @@ export default function Referrals() {
       if (payload.length > 0) {
         const response = await EODReportService.addRefferal(payload);
         if (response.status === 201) {
-          handleSubmitEODReport();
+          await handleSubmitEODReport();
         }
-        return;
+      } else {
+        await handleSubmitEODReport();
       }
-      handleSubmitEODReport();
     } catch (error) {}
-  };
+  }, [tableData, id, handleSubmitEODReport]);
 
   const fetchActiveProviders = async () => {
     try {
@@ -256,27 +255,31 @@ export default function Referrals() {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+    };
+  }, [handleSubmit]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Referrals
-          </Button>
-        </div>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Referrals
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }
