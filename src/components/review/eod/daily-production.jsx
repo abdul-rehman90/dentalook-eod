@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function DailyProduction({ onNext }) {
   const [goal, setGoal] = useState(0);
@@ -34,7 +35,7 @@ export default function DailyProduction({ onNext }) {
       {
         key: 'summary',
         variance: difference,
-        target: `${goal.toLocaleString()}`,
+        target: `$${goal.toLocaleString()}`,
         DDS: `${totalDDS.toLocaleString()}`,
         RDT: `${totalRDT.toLocaleString()}`,
         RDH: `${totalRDH.toLocaleString()}`,
@@ -54,12 +55,16 @@ export default function DailyProduction({ onNext }) {
       {
         key: 'DDS',
         dataIndex: 'DDS',
-        title: 'Total (DDS)'
+        title: 'Total (DDS)',
+        render: (value) =>
+          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
       },
       {
         key: 'RDH',
         dataIndex: 'RDH',
-        title: 'Total (RDH)'
+        title: 'Total (RDH)',
+        render: (value) =>
+          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
       }
     ];
 
@@ -67,7 +72,9 @@ export default function DailyProduction({ onNext }) {
       baseColumns.push({
         key: 'RDT',
         dataIndex: 'RDT',
-        title: 'Total (RDT)'
+        title: 'Total (RDT)',
+        render: (value) =>
+          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
       });
     }
 
@@ -76,7 +83,8 @@ export default function DailyProduction({ onNext }) {
         key: 'totalProduction',
         title: 'Total Production',
         dataIndex: 'totalProduction',
-        render: (value) => (value ? `$${value}` : '$0')
+        render: (value) =>
+          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
       },
       {
         key: 'target',
@@ -89,7 +97,7 @@ export default function DailyProduction({ onNext }) {
         dataIndex: 'variance',
         render: (value) => (
           <span style={{ color: value >= 0 ? 'green' : 'red' }}>
-            {value.toLocaleString()}
+            ${value.toLocaleString()}
           </span>
         )
       }
@@ -171,9 +179,18 @@ export default function DailyProduction({ onNext }) {
   }, [onNext]);
 
   return (
-    <div className="flex flex-col gap-6 px-6">
-      <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
-      <GenericTable dataSource={summaryData} columns={totalProductionColumns} />
-    </div>
+    <React.Fragment>
+      <div className="flex flex-col gap-6 px-6">
+        <GenericTable dataSource={tableData} columns={dailyProductionColumns} />
+        <GenericTable
+          dataSource={summaryData}
+          columns={totalProductionColumns}
+        />
+      </div>
+      <StepNavigation
+        onNext={onNext}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

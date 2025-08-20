@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const defaultRow = {
   key: '1',
@@ -146,12 +147,19 @@ export default function GoogleReviews({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="px-6">
-      <GenericTable
-        columns={columns}
-        dataSource={tableData}
-        onCellChange={handleCellChange}
+    <React.Fragment>
+      <div className="px-6">
+        <GenericTable
+          columns={columns}
+          dataSource={tableData}
+          onCellChange={handleCellChange}
+        />
+      </div>
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
-    </div>
+    </React.Fragment>
   );
 }

@@ -8,6 +8,7 @@ import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
   generateTimeSlots
@@ -99,7 +100,6 @@ export default function BasicDetails() {
 
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = []) => {
-      toast.success('Record is successfully saved');
       updateStepData(currentStepId, {
         clinicDetails: values,
         activeProviders: activeProviders
@@ -110,14 +110,16 @@ export default function BasicDetails() {
   );
 
   const addActiveProviders = useCallback(
-    async (values, submission_id) => {
+    async (values, submission_id, navigate) => {
       const activeProviders = tableData.filter(
         (provider) => provider.is_active
       );
 
       // If no active providers, just go to next step
       if (activeProviders.length === 0) {
-        moveRouter(submission_id, values);
+        if (navigate) {
+          moveRouter(submission_id, values);
+        }
         return;
       }
 
@@ -136,76 +138,89 @@ export default function BasicDetails() {
 
         const response = await EODReportService.addActiveProviders(payload);
         if (response.status === 201) {
-          moveRouter(submission_id, values, payload);
+          toast.success('Record is successfully saved');
+          if (navigate) {
+            moveRouter(submission_id, values, payload);
+          }
         }
       } catch (error) {}
     },
     [tableData, moveRouter]
   );
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      const incompleteProviders = tableData
-        .filter((provider) => provider.is_active)
-        .map((provider) => {
-          const errors = [];
-          if (!provider.start_time) errors.push('start time');
-          if (!provider.end_time) errors.push('end time');
-          if (!provider.number_of_patients_seen) errors.push('patients seen');
-          return {
-            provider,
-            errors
-          };
-        })
-        .filter(({ errors }) => errors.length > 0);
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const incompleteProviders = tableData
+          .filter((provider) => provider.is_active)
+          .map((provider) => {
+            const errors = [];
+            if (!provider.start_time) errors.push('start time');
+            if (!provider.end_time) errors.push('end time');
+            if (!provider.number_of_patients_seen) errors.push('patients seen');
+            return {
+              provider,
+              errors
+            };
+          })
+          .filter(({ errors }) => errors.length > 0);
 
-      if (incompleteProviders.length > 0) {
-        const errorMessages = incompleteProviders
-          .map(({ errors }) => `${errors.join(', ')}`)
-          .join('; ');
+        if (incompleteProviders.length > 0) {
+          const errorMessages = incompleteProviders
+            .map(({ errors }) => `${errors.join(', ')}`)
+            .join('; ');
 
+          toast.error(
+            `Please complete the following fields for active providers: ${errorMessages}`,
+            { duration: 5000 }
+          );
+          return;
+        }
+
+        const values = await form.validateFields();
+        const payload = {
+          ...values,
+          submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
+          clinic_open_time:
+            values.status === 'opened'
+              ? dayjs(values.clinic_open_time, 'h:mm a').format('HH:mm:ss')
+              : null,
+          clinic_close_time:
+            values.status === 'opened'
+              ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
+              : null
+        };
+
+        if (id) {
+          await addActiveProviders(payload, id, navigate);
+          return;
+        }
+
+        setLoading(true);
+        const response = await EODReportService.addBasicDetails(payload);
+        if (response.status === 201) {
+          const submission_id = response.data.data.id;
+          await addActiveProviders(payload, submission_id, navigate);
+          return;
+        }
+      } catch (error) {
         toast.error(
-          `Please complete the following fields for active providers: ${errorMessages}`,
-          { duration: 5000 }
+          error?.response?.data?.non_field_errors[0] || 'Failed to save record'
         );
-        return Promise.reject(new Error('Validation failed'));
+      } finally {
+        setLoading(false);
       }
+    },
+    [form, tableData, id, addActiveProviders, setLoading]
+  );
 
-      const values = await form.validateFields();
-      const payload = {
-        ...values,
-        submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
-        clinic_open_time:
-          values.status === 'opened'
-            ? dayjs(values.clinic_open_time, 'h:mm a').format('HH:mm:ss')
-            : null,
-        clinic_close_time:
-          values.status === 'opened'
-            ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
-            : null
-      };
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
 
-      if (id) {
-        await addActiveProviders(payload, id);
-        return Promise.resolve();
-      }
-
-      setLoading(true);
-      const response = await EODReportService.addBasicDetails(payload);
-      if (response.status === 201) {
-        const submission_id = response.data.data.id;
-        await addActiveProviders(payload, submission_id);
-        return Promise.resolve();
-      }
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.non_field_errors[0] || 'Failed to save record'
-      );
-      return Promise.reject(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [form, tableData, id, addActiveProviders, setLoading]);
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
@@ -258,106 +273,116 @@ export default function BasicDetails() {
 
   useEffect(() => {
     window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
     return () => {
       window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
     };
-  }, [handleSubmit]);
+  }, [handleSubmit, handleSave]);
 
   return (
-    <Form
-      form={form}
-      initialValues={initialValues}
-      style={{ padding: '0 24px' }}
-    >
-      <Row justify="space-between">
-        <FormControl
-          required={!id}
-          name="province"
-          control="select"
-          label="Province"
-          options={provinces}
-          onChange={handleProvinceChange}
-        />
-        <FormControl
-          name="user"
-          control="select"
-          label="Regional Manager"
-          options={regionalManagers}
-          disabled={!form.getFieldValue('clinic')}
-        />
-      </Row>
-      <Row justify="space-between">
-        <FormControl
-          name="clinic"
-          required={!id}
-          control="select"
-          options={practices}
-          label="Practice Name"
-          onChange={handleClinicChange}
-        />
-        <FormControl
-          required={!id}
-          control="date"
-          name="submission_date"
-          label="Submission Date"
-        />
-      </Row>
-      <Row justify="space-between">
-        <FormControl
-          name="status"
-          control="radio"
-          options={options}
-          label="Clinic Open/Closed?"
-        />
-      </Row>
-      <Form.Item
-        noStyle
-        shouldUpdate={(prevValues, currentValues) =>
-          prevValues.status !== currentValues.status ||
-          prevValues.clinic_open_time !== currentValues.clinic_open_time ||
-          prevValues.clinic_close_time !== currentValues.clinic_close_time
-        }
+    <React.Fragment>
+      <Form
+        form={form}
+        initialValues={initialValues}
+        style={{ padding: '0 24px' }}
       >
-        {({ getFieldValue }) => {
-          const openTime = getFieldValue('clinic_open_time');
-          const closeTime = getFieldValue('clinic_close_time');
-          const isOpened = getFieldValue('status') === 'opened';
-          const shouldShowProviders = isOpened && openTime && closeTime;
-          return (
-            <React.Fragment>
-              <Row justify="space-between">
-                <FormControl
-                  showSearch
-                  control="select"
-                  label="Open From"
-                  required={isOpened}
-                  disabled={!isOpened}
-                  name="clinic_open_time"
-                  suffixIcon={<ClockCircleOutlined />}
-                  options={generateTimeSlots(7, 22, 30)}
-                />
-                <FormControl
-                  showSearch
-                  label="Open To"
-                  control="select"
-                  required={isOpened}
-                  disabled={!isOpened}
-                  name="clinic_close_time"
-                  suffixIcon={<ClockCircleOutlined />}
-                  options={generateTimeSlots(7, 22, 30)}
-                />
-              </Row>
-              {shouldShowProviders && (
-                <ActiveProviders
-                  form={form}
-                  tableData={tableData}
-                  setTableData={setTableData}
-                />
-              )}
-            </React.Fragment>
-          );
-        }}
-      </Form.Item>
-    </Form>
+        <Row justify="space-between">
+          <FormControl
+            required={!id}
+            name="province"
+            control="select"
+            label="Province"
+            options={provinces}
+            onChange={handleProvinceChange}
+          />
+          <FormControl
+            name="user"
+            control="select"
+            label="Regional Manager"
+            options={regionalManagers}
+            disabled={!form.getFieldValue('clinic')}
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            name="clinic"
+            required={!id}
+            control="select"
+            options={practices}
+            label="Practice Name"
+            onChange={handleClinicChange}
+          />
+          <FormControl
+            required={!id}
+            control="date"
+            name="submission_date"
+            label="Submission Date"
+          />
+        </Row>
+        <Row justify="space-between">
+          <FormControl
+            name="status"
+            control="radio"
+            options={options}
+            label="Clinic Open/Closed?"
+          />
+        </Row>
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, currentValues) =>
+            prevValues.status !== currentValues.status ||
+            prevValues.clinic_open_time !== currentValues.clinic_open_time ||
+            prevValues.clinic_close_time !== currentValues.clinic_close_time
+          }
+        >
+          {({ getFieldValue }) => {
+            const openTime = getFieldValue('clinic_open_time');
+            const closeTime = getFieldValue('clinic_close_time');
+            const isOpened = getFieldValue('status') === 'opened';
+            const shouldShowProviders = isOpened && openTime && closeTime;
+            return (
+              <React.Fragment>
+                <Row justify="space-between">
+                  <FormControl
+                    showSearch
+                    control="select"
+                    label="Open From"
+                    required={isOpened}
+                    disabled={!isOpened}
+                    name="clinic_open_time"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                  <FormControl
+                    showSearch
+                    label="Open To"
+                    control="select"
+                    required={isOpened}
+                    disabled={!isOpened}
+                    name="clinic_close_time"
+                    suffixIcon={<ClockCircleOutlined />}
+                    options={generateTimeSlots(7, 22, 30)}
+                  />
+                </Row>
+                {shouldShowProviders && (
+                  <ActiveProviders
+                    form={form}
+                    tableData={tableData}
+                    setTableData={setTableData}
+                  />
+                )}
+              </React.Fragment>
+            );
+          }}
+        </Form.Item>
+      </Form>
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

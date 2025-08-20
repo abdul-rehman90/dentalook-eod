@@ -6,6 +6,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const defaultRow = {
   key: '1',
@@ -14,6 +15,7 @@ const defaultRow = {
 };
 
 export default function Supplies({ onNext }) {
+  const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [editingId, setEditingId] = useState(null);
   const [editRowData, setEditRowData] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
@@ -81,18 +83,41 @@ export default function Supplies({ onNext }) {
         if (editingId === record.id) {
           return (
             <Input
+              prefix={'$'}
               type="number"
               value={editRowData.supplies_actual}
-              onChange={(e) =>
+              onChange={(e) => {
+                const value = e.target.value;
+                const v = String(value).trim();
+                if (!isValidAmountInput(v)) return;
+
                 setEditRowData({
                   ...editRowData,
-                  supplies_actual: e.target.value
-                })
-              }
+                  supplies_actual: v
+                });
+              }}
+              onBlur={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setEditRowData({
+                    ...editRowData,
+                    supplies_actual: ''
+                  });
+                  return;
+                }
+                // Format to 2 decimal places on blur
+                const num = parseFloat(value);
+                if (!isNaN(num)) {
+                  setEditRowData({
+                    ...editRowData,
+                    supplies_actual: num.toFixed(2)
+                  });
+                }
+              }}
             />
           );
         }
-        return text;
+        return `$${Number(text).toFixed(2)}`;
       }
     },
     {
@@ -165,6 +190,11 @@ export default function Supplies({ onNext }) {
     }
   ];
 
+  const isValidAmountInput = (value) => {
+    if (value === '' || value == null) return true;
+    return AMOUNT_REGEX.test(value);
+  };
+
   const footer = () => {
     const totalActual = totalSupplies.reduce(
       (sum, item) => sum + (Number(item.supplies_actual) || 0),
@@ -174,7 +204,7 @@ export default function Supplies({ onNext }) {
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
         <div className="min-[1280px]:max-[1350px]:ml-[22px] min-[1351px]:max-[1500px]:ml-[24px] min-[1501px]:max-[1650px]:ml-[28px] min-[1651px]:max-[1850px]:ml-[32px] min-[1851px]:max-[2000px]:ml-[36px] min-[2001px]:max-[2250px]:ml-[40px] min-[2251px]:ml-[48px]">
-          ${totalActual}
+          ${totalActual.toFixed(2)}
         </div>
         <div></div>
         <div className="text-center ml-15">0</div>
@@ -184,7 +214,7 @@ export default function Supplies({ onNext }) {
             color: totalActual - 0 >= 0 ? 'green' : 'red'
           }}
         >
-          {totalActual - 0}
+          ${(totalActual - 0).toFixed(2)}
         </div>
         <div></div>
       </div>
@@ -318,18 +348,25 @@ export default function Supplies({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="px-6 flex flex-col gap-14">
-      <GenericTable
-        columns={columns}
-        dataSource={tableData}
-        onCellChange={handleCellChange}
+    <React.Fragment>
+      <div className="px-6 flex flex-col gap-14">
+        <GenericTable
+          columns={columns}
+          dataSource={tableData}
+          onCellChange={handleCellChange}
+        />
+        <GenericTable
+          footer={footer}
+          loading={dataLoading}
+          dataSource={totalSupplies}
+          columns={totalSuppliesColumns}
+        />
+      </div>
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
-      <GenericTable
-        footer={footer}
-        loading={dataLoading}
-        dataSource={totalSupplies}
-        columns={totalSuppliesColumns}
-      />
-    </div>
+    </React.Fragment>
   );
 }

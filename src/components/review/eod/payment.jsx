@@ -3,6 +3,7 @@ import { Col, Row, Input } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 const { TextArea } = Input;
 
 const paymentOptions = [
@@ -90,41 +91,47 @@ export default function Payment({ onNext }) {
   }, [onNext]);
 
   return (
-    <div className="px-6">
-      <Row gutter={16}>
-        <Col span={12}>
-          <GenericTable
-            footer={footer}
-            columns={columns}
-            dataSource={tableData}
-          />
-        </Col>
-        <Col span={12}>
-          <Card className="!p-0 !gap-0 border border-secondary-50">
-            <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
-              <CardTitle className="text-[15px] font-medium text-black">
-                Payment Notes
-              </CardTitle>
-            </CardHeader>
-            <TextArea
-              rows={4}
-              disabled
-              value={notes}
-              placeholder="Enter note here..."
-              style={{
-                width: '100%',
-                border: 'none',
-                height: '170px',
-                color: '#777B8B',
-                fontSize: '15px',
-                boxShadow: 'none',
-                borderRadius: '12px',
-                padding: '10px 16px'
-              }}
+    <React.Fragment>
+      <div className="px-6">
+        <Row gutter={16}>
+          <Col span={12}>
+            <GenericTable
+              footer={footer}
+              columns={columns}
+              dataSource={tableData}
             />
-          </Card>
-        </Col>
-      </Row>
-    </div>
+          </Col>
+          <Col span={12}>
+            <Card className="!p-0 !gap-0 border border-secondary-50">
+              <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
+                <CardTitle className="text-[15px] font-medium text-black">
+                  Payment Notes
+                </CardTitle>
+              </CardHeader>
+              <TextArea
+                rows={4}
+                disabled
+                value={notes}
+                placeholder="Enter note here..."
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  height: '170px',
+                  color: '#777B8B',
+                  fontSize: '15px',
+                  boxShadow: 'none',
+                  borderRadius: '12px',
+                  padding: '10px 16px'
+                }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </div>
+      <StepNavigation
+        onNext={onNext}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }
