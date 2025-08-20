@@ -7,6 +7,7 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
   { value: 'Growth', label: 'Growth' },
@@ -324,43 +325,50 @@ export default function HiringTraining({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="flex flex-col gap-8 px-6">
-      <div>
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNewHiring}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Hiring
-          </Button>
+    <React.Fragment>
+      <div className="flex flex-col gap-8 px-6">
+        <div>
+          <div className="flex items-center justify-end mb-4">
+            <Button
+              size="lg"
+              variant="destructive"
+              onClick={handleAddNewHiring}
+              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+            >
+              <PlusOutlined />
+              Add New Hiring
+            </Button>
+          </div>
+          <GenericTable
+            columns={hiringColumns}
+            dataSource={hiringData}
+            onCellChange={handleHiringCellChange}
+          />
         </div>
-        <GenericTable
-          columns={hiringColumns}
-          dataSource={hiringData}
-          onCellChange={handleHiringCellChange}
-        />
-      </div>
-      <div>
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNewTraining}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Training
-          </Button>
+        <div>
+          <div className="flex items-center justify-end mb-4">
+            <Button
+              size="lg"
+              variant="destructive"
+              onClick={handleAddNewTraining}
+              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+            >
+              <PlusOutlined />
+              Add New Training
+            </Button>
+          </div>
+          <GenericTable
+            columns={trainingColumns}
+            dataSource={trainingData}
+            onCellChange={handleTrainingCellChange}
+          />
         </div>
-        <GenericTable
-          columns={trainingColumns}
-          dataSource={trainingData}
-          onCellChange={handleTrainingCellChange}
-        />
       </div>
-    </div>
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

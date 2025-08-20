@@ -300,7 +300,7 @@ export default function Dashboard() {
     setModalState({
       visible: true,
       title: 'Production by Providers',
-      data: productionByProviders || [],
+      data: [productionByProviders[index]] || [],
       columns: metricModalColumns['Production by Providers']
     });
   };
@@ -584,7 +584,7 @@ export default function Dashboard() {
                 cy="50%"
                 dataKey="value"
                 fill="#8884d8"
-                outerRadius={120}
+                outerRadius={100}
                 labelLine={false}
                 data={productionByProviders}
                 onClick={handlePieChartClick}

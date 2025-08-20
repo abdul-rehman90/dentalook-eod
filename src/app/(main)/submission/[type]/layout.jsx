@@ -69,7 +69,7 @@ export default function SubmissionLayout({ children }) {
                   <CardTitle className="text-sm text-secondary-400">
                     Step {currentStep} of {totalSteps}
                   </CardTitle>
-                  <CardDescription className="text-xl font-medium text-black mt-1">
+                  <CardDescription className="text-xl font-medium text-black mt-2">
                     {steps[currentStep - 1].name}
                   </CardDescription>
                 </div>

@@ -3,6 +3,7 @@ import { Input, Select } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
   generateTimeSlots
@@ -131,8 +132,14 @@ export default function TeamAbsences({ onNext }) {
   }, [onNext]);
 
   return (
-    <div className="px-6">
-      <GenericTable columns={columns} dataSource={tableData} />
-    </div>
+    <React.Fragment>
+      <div className="px-6">
+        <GenericTable columns={columns} dataSource={tableData} />
+      </div>
+      <StepNavigation
+        onNext={onNext}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

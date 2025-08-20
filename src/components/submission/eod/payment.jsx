@@ -7,6 +7,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const { TextArea } = Input;
 
@@ -87,6 +88,7 @@ export default function Payment({ onNext }) {
           type="text"
           prefix="$"
           value={record.amount || ''}
+          className={record.type === 'CC/DEBIT REFUND' ? 'refund-amount' : ''}
           onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
           onBlur={(e) => {
             const val = String(e.target.value || '').trim();
@@ -120,18 +122,22 @@ export default function Payment({ onNext }) {
     handleCellChange(record, dataIndex, v);
   };
 
-  const footer = () => (
-    <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
-      <div className="font-semibold">Total Amount</div>
-      <div className="min-[1280px]:max-[1300px]:pl-[64px] min-[1300px]:max-[1350px]:pl-[54px] min-[1350px]:max-[1400px]:pl-[50px] min-[1401px]:max-[1441px]:pl-[40px] min-[1441px]:pl-[36px]">
-        $
-        {tableData
-          .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-          .toFixed(2)}
+  const footer = () => {
+    const totalAmount = tableData.reduce((sum, item) => {
+      const amount = Number(item.amount) || 0;
+      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
+    }, 0);
+
+    return (
+      <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
+        <div className="font-semibold">Total Amount</div>
+        <div className="min-[1280px]:max-[1300px]:pl-[64px] min-[1300px]:max-[1350px]:pl-[56px] min-[1350px]:max-[1400px]:pl-[48px] min-[1401px]:max-[1441px]:pl-[38px] min-[1441px]:pl-[36px]">
+          ${totalAmount.toFixed(2)}
+        </div>
+        <div></div>
       </div>
-      <div></div>
-    </div>
-  );
+    );
+  };
 
   const handleTypeChange = (key, value) => {
     const newPayments = tableData.map((item) => {
@@ -326,56 +332,63 @@ export default function Payment({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="px-6">
-      <div className="flex items-center justify-end mb-4">
-        <Button
-          size="lg"
-          variant="destructive"
-          onClick={handleAddNew}
-          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-        >
-          <PlusOutlined />
-          Add New Payment
-        </Button>
+    <React.Fragment>
+      <div className="px-6">
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNew}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Payment
+          </Button>
+        </div>
+        <Row gutter={16}>
+          <Col span={12}>
+            <div className="payment-table">
+              <GenericTable
+                footer={footer}
+                columns={columns}
+                loading={dataLoading}
+                dataSource={tableData}
+                onCellChange={handleCellChange}
+              />
+            </div>
+          </Col>
+          <Col span={12}>
+            <Card className="!p-0 !gap-0 border border-secondary-50">
+              <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
+                <CardTitle className="text-[15px] font-medium text-black">
+                  Payment Notes
+                </CardTitle>
+              </CardHeader>
+              <TextArea
+                rows={4}
+                value={notes}
+                placeholder="Enter note here..."
+                onChange={(e) => setNotes(e.target.value)}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  height: '170px',
+                  fontSize: '15px',
+                  boxShadow: 'none',
+                  color: '#777B8B',
+                  borderRadius: '12px',
+                  padding: '10px 16px'
+                }}
+              />
+            </Card>
+          </Col>
+        </Row>
       </div>
-      <Row gutter={16}>
-        <Col span={12}>
-          <div className="payment-table">
-            <GenericTable
-              footer={footer}
-              columns={columns}
-              loading={dataLoading}
-              dataSource={tableData}
-              onCellChange={handleCellChange}
-            />
-          </div>
-        </Col>
-        <Col span={12}>
-          <Card className="!p-0 !gap-0 border border-secondary-50">
-            <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
-              <CardTitle className="text-[15px] font-medium text-black">
-                Payment Notes
-              </CardTitle>
-            </CardHeader>
-            <TextArea
-              rows={4}
-              value={notes}
-              placeholder="Enter note here..."
-              onChange={(e) => setNotes(e.target.value)}
-              style={{
-                width: '100%',
-                border: 'none',
-                height: '170px',
-                fontSize: '15px',
-                boxShadow: 'none',
-                color: '#777B8B',
-                borderRadius: '12px',
-                padding: '10px 16px'
-              }}
-            />
-          </Card>
-        </Col>
-      </Row>
-    </div>
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

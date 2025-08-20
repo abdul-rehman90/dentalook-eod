@@ -386,8 +386,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       <div className="pr-6">
         <div className="flex items-center justify-between mb-4">
           <p className="text-red-500 text-xs font-semibold">
-            Please input the number of units for Unfilled Spots, No Shows, Short
-            Notice, Failed Appts
+            Note: Please input the number of units for Unfilled Spots, No Shows,
+            Short Notice, Failed Appts
           </p>
           <Button
             size="lg"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
   { value: 'Growth', label: 'Growth' },
@@ -114,9 +115,15 @@ export default function HiringTraining({ onNext }) {
   }, [onNext]);
 
   return (
-    <div className="flex flex-col gap-6 px-6">
-      <GenericTable columns={hiringColumns} dataSource={hiringData} />
-      <GenericTable columns={trainingColumns} dataSource={trainingData} />
-    </div>
+    <React.Fragment>
+      <div className="flex flex-col gap-6 px-6">
+        <GenericTable columns={hiringColumns} dataSource={hiringData} />
+        <GenericTable columns={trainingColumns} dataSource={trainingData} />
+      </div>
+      <StepNavigation
+        onNext={onNext}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
+      />
+    </React.Fragment>
   );
 }

@@ -9,6 +9,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { ClockCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
   generateTimeOptions
@@ -361,23 +362,30 @@ export default function TeamAbsences({ onNext }) {
   }, [handleSubmit, handleSave]);
 
   return (
-    <div className="px-6">
-      <div className="flex items-center justify-end mb-4">
-        <Button
-          size="lg"
-          variant="destructive"
-          onClick={handleAddNew}
-          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-        >
-          <PlusOutlined />
-          Add New Absence
-        </Button>
+    <React.Fragment>
+      <div className="px-6">
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNew}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Absence
+          </Button>
+        </div>
+        <GenericTable
+          columns={columns}
+          dataSource={tableData}
+          onCellChange={handleCellChange}
+        />
       </div>
-      <GenericTable
-        columns={columns}
-        dataSource={tableData}
-        onCellChange={handleCellChange}
+      <StepNavigation
+        onSave={handleSave}
+        onNext={handleSubmit}
+        className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
-    </div>
+    </React.Fragment>
   );
 }
