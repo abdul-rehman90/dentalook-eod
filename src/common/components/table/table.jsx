@@ -45,6 +45,36 @@ function GenericTable({
   bordered = true,
   showHeader = true
 }) {
+  const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
+
+  const isValidAmountInput = (value) => {
+    if (value === '' || value == null) return true;
+    return AMOUNT_REGEX.test(value);
+  };
+
+  const handleNumberChange = (record, dataIndex, value) => {
+    const v = String(value).trim();
+    if (!isValidAmountInput(v)) return;
+    onCellChange(record, dataIndex, v);
+  };
+
+  const handleNumberBlur = (record, dataIndex, value) => {
+    if (value === '' || value === null || value === undefined) {
+      onCellChange(record, dataIndex, '');
+      return;
+    }
+
+    const num = parseFloat(value);
+    if (isNaN(num)) {
+      onCellChange(record, dataIndex, '');
+      return;
+    }
+
+    // Format to two decimal places
+    const formattedValue = num.toFixed(2);
+    onCellChange(record, dataIndex, formattedValue);
+  };
+
   const transformedColumns = columns.map((col) => {
     if (!col.render && col.editable) {
       col.render = (text, record) => {
@@ -56,6 +86,20 @@ function GenericTable({
               style={{ width: '100%' }}
               options={col.selectOptions}
               onChange={(value) => onCellChange(record, col.dataIndex, value)}
+            />
+          ) : col.inputType === 'number' ? (
+            <Input
+              value={text}
+              prefix={'$'}
+              type="number"
+              controls={false}
+              disabled={col.disabled}
+              onChange={(e) =>
+                handleNumberChange(record, col.dataIndex, e.target.value)
+              }
+              onBlur={(e) =>
+                handleNumberBlur(record, col.dataIndex, e.target.value)
+              }
             />
           ) : (
             <Input

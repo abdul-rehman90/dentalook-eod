@@ -73,11 +73,15 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         );
         return (
           <Select
+            showSearch
             options={timeOptions}
             placeholder="Select one"
             value={record.start_time}
             style={{ width: '100%' }}
             disabled={!record.is_active}
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             onChange={(value) => {
               const updatedProviders = tableData.map((p) =>
                 p.key === record.key
@@ -105,11 +109,15 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         );
         return (
           <Select
+            showSearch
             options={timeOptions}
             value={record.end_time}
             placeholder="Select one"
             style={{ width: '100%' }}
             disabled={!record.is_active}
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             onChange={(value) => {
               const updatedProviders = tableData.map((p) =>
                 p.key === record.key
@@ -376,7 +384,11 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         <GetModalContent />
       </AddModal>
       <div className="pr-6">
-        <div className="flex items-center justify-end mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-red-500 text-xs font-semibold">
+            Please input the number of units for Unfilled Spots, No Shows, Short
+            Notice, Failed Appts
+          </p>
           <Button
             size="lg"
             variant="destructive"
