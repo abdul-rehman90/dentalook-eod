@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
@@ -7,7 +7,6 @@ import { FormControl } from '@/common/utils/form-control';
 import { EODReportService } from '@/common/services/eod-report';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 export default function BasicDetails() {
   const router = useRouter();
@@ -86,8 +85,12 @@ export default function BasicDetails() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (id) return router.push(`/submission/eom/${currentStep + 1}/${id}`);
+  const handleSubmit = useCallback(async () => {
+    if (id) {
+      router.push(`/submission/eom/${currentStep + 1}/${id}`);
+      return;
+    }
+
     try {
       const values = await form.validateFields();
       setLoading(true);
@@ -110,7 +113,15 @@ export default function BasicDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    id,
+    form,
+    router,
+    setLoading,
+    currentStep,
+    currentStepId,
+    updateStepData
+  ]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
@@ -150,58 +161,62 @@ export default function BasicDetails() {
     }
   }, [clinicId, provinces]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+    };
+  }, [handleSubmit]);
+
   return (
-    <React.Fragment>
-      <Form
-        form={form}
-        initialValues={initialValues}
-        style={{ padding: '0 24px' }}
-      >
-        <Row justify="space-between">
-          <FormControl
-            required={!id}
-            name="province"
-            control="select"
-            label="Province"
-            options={provinces}
-            onChange={handleProvinceChange}
-          />
-          <FormControl
-            name="user"
-            control="select"
-            label="Regional Manager"
-            options={regionalManagers}
-          />
-        </Row>
-        <Row justify="space-between">
-          <FormControl
-            name="clinic"
-            required={!id}
-            control="select"
-            options={practices}
-            label="Practice Name"
-            onChange={handleClinicChange}
-          />
-          <FormControl
-            control="date"
-            picker="month"
-            required={!id}
-            format="MMM YYYY"
-            name="submission_month"
-            label="Submission Month"
-            placeholder="Select Date"
-          />
-        </Row>
-        <div className="proud-moment">
-          <FormControl
-            control="input"
-            name="proud_moment"
-            label="Proud Moment of the Month:"
-            placeholder="Write your proud moment"
-          />
-        </div>
-      </Form>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+    <Form
+      form={form}
+      initialValues={initialValues}
+      style={{ padding: '0 24px' }}
+    >
+      <Row justify="space-between">
+        <FormControl
+          required={!id}
+          name="province"
+          control="select"
+          label="Province"
+          options={provinces}
+          onChange={handleProvinceChange}
+        />
+        <FormControl
+          name="user"
+          control="select"
+          label="Regional Manager"
+          options={regionalManagers}
+        />
+      </Row>
+      <Row justify="space-between">
+        <FormControl
+          name="clinic"
+          required={!id}
+          control="select"
+          options={practices}
+          label="Practice Name"
+          onChange={handleClinicChange}
+        />
+        <FormControl
+          control="date"
+          picker="month"
+          required={!id}
+          format="MMM YYYY"
+          name="submission_month"
+          label="Submission Month"
+          placeholder="Select Date"
+        />
+      </Row>
+      <div className="proud-moment">
+        <FormControl
+          control="input"
+          name="proud_moment"
+          label="Proud Moment of the Month:"
+          placeholder="Write your proud moment"
+        />
+      </div>
+    </Form>
   );
 }

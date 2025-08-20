@@ -2,11 +2,12 @@
 
 import React from 'react';
 import dayjs from 'dayjs';
-import { redirect, useRouter } from 'next/navigation';
 import { LeftOutlined } from '@ant-design/icons';
+import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   Card,
   CardTitle,
@@ -26,6 +27,18 @@ export default function SubmissionLayout({ children }) {
   if (currentStep > 1 && !id) {
     redirect(`/submission/${type}/1`);
   }
+
+  const handleNext = async () => {
+    try {
+      window.dispatchEvent(new CustomEvent('stepNavigationNext'));
+    } catch (error) {}
+  };
+
+  const handleSave = async () => {
+    try {
+      window.dispatchEvent(new CustomEvent('stepNavigationSave'));
+    } catch (error) {}
+  };
 
   return (
     <div className="px-13 py-6 bg-[#FAFAFB] min-h-screen">
@@ -49,14 +62,19 @@ export default function SubmissionLayout({ children }) {
           <Stepper />
         </div>
         <div className="flex-1">
-          <Card className="border !border-[#F7F7F7] bg-white !shadow-none">
+          <Card className="border !border-[#F7F7F7] bg-white !shadow-none !gap-4">
             <CardHeader className="!border-b-0">
-              <CardTitle className="text-sm text-secondary-400">
-                Step {currentStep} of {totalSteps}
-              </CardTitle>
-              <CardDescription className="text-xl font-medium text-black">
-                {steps[currentStep - 1].name}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm text-secondary-400">
+                    Step {currentStep} of {totalSteps}
+                  </CardTitle>
+                  <CardDescription className="text-xl font-medium text-black mt-1">
+                    {steps[currentStep - 1].name}
+                  </CardDescription>
+                </div>
+                <StepNavigation onNext={handleNext} onSave={handleSave} />
+              </div>
             </CardHeader>
             {children}
           </Card>

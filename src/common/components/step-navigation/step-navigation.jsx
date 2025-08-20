@@ -3,7 +3,7 @@ import { Button } from '../button/button';
 import { usePathname, useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
-export default function StepNavigation({ onNext }) {
+export default function StepNavigation({ onNext, onSave }) {
   const router = useRouter();
   const pathname = usePathname();
   const { id, type, loading, currentStep, totalSteps } = useGlobalContext();
@@ -26,7 +26,10 @@ export default function StepNavigation({ onNext }) {
   };
 
   return (
-    <div className="flex items-center gap-4 border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6">
+    <div
+      className="flex items-center gap-4"
+      // className="flex items-center gap-4 border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6
+    >
       {currentStep > 1 && (
         <Button
           size="lg"
@@ -45,6 +48,15 @@ export default function StepNavigation({ onNext }) {
       >
         {getNextButtonText()}
       </Button>
+      {currentStep > 1 && !isLastStep && !isReviewPath && (
+        <Button
+          size="lg"
+          onClick={onSave}
+          className="h-9 !shadow-none text-black !rounded-lg"
+        >
+          Save
+        </Button>
+      )}
     </div>
   );
 }

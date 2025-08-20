@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { DatePicker } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const typeOptions = [
   { value: 'Purchase', label: 'Purchase' },
@@ -85,12 +84,16 @@ export default function EquipmentRepairs({ onNext }) {
     }
   }, [currentStepData]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', onNext);
+    return () => {
+      window.removeEventListener('stepNavigationNext', onNext);
+    };
+  }, [onNext]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <GenericTable columns={columns} dataSource={tableData} />
-      </div>
-      <StepNavigation onNext={onNext} />
-    </React.Fragment>
+    <div className="px-6">
+      <GenericTable columns={columns} dataSource={tableData} />
+    </div>
   );
 }

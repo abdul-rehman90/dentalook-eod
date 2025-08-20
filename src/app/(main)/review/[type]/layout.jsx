@@ -7,6 +7,7 @@ import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { useGlobalContext } from '@/common/context/global-context';
+import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   Card,
   CardTitle,
@@ -22,6 +23,12 @@ export default function ReviewLayout({ children }) {
     reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
   const stepName = steps[currentStep - 1]?.name;
+
+  const handleNext = async () => {
+    try {
+      window.dispatchEvent(new CustomEvent('stepNavigationNext'));
+    } catch (error) {}
+  };
 
   return (
     <div className="px-13 py-6 bg-[#FAFAFB] min-h-screen">
@@ -45,14 +52,19 @@ export default function ReviewLayout({ children }) {
           <Stepper />
         </div>
         <div className="flex-1">
-          <Card className="border !border-[#F7F7F7] bg-white !shadow-none">
-            <CardHeader className="!border-b-0 !px-4">
-              <CardTitle className="text-sm text-secondary-400">
-                Step {currentStep} of {totalSteps}
-              </CardTitle>
-              <CardDescription className="text-xl font-medium text-black">
-                {steps[currentStep - 1].name}
-              </CardDescription>
+          <Card className="border !border-[#F7F7F7] bg-white !shadow-none !gap-4">
+            <CardHeader className="!border-b-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm text-secondary-400">
+                    Step {currentStep} of {totalSteps}
+                  </CardTitle>
+                  <CardDescription className="text-xl font-medium text-black mt-1">
+                    {steps[currentStep - 1].name}
+                  </CardDescription>
+                </div>
+                <StepNavigation onNext={handleNext} />
+              </div>
             </CardHeader>
             {children}
           </Card>
@@ -61,11 +73,3 @@ export default function ReviewLayout({ children }) {
     </div>
   );
 }
-
-// End of {type === 'eod' ? 'Day' : 'Month'} Reporting: View
-//     <div className="w-22 h-6 bg-primary-50 text-sm font-semibold text-primary-400 rounded-full flex items-center justify-center mx-2">
-//       Submitted
-//     </div>
-//     {type === 'eod'
-//       ? `/ ${dayjs(submission_date).format('MMMM D, YYYY')}`
-//       : `/ ${dayjs(submission_month).format('MMM YYYY')}`}
