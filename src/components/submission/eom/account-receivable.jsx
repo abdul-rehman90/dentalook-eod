@@ -51,7 +51,7 @@ export default function AccountReceivable({ onNext }) {
       title: '0-30',
       editable: true,
       key: 'age_0_30',
-      inputType: 'number',
+      inputType: 'text',
       dataIndex: 'age_0_30'
     },
     {
@@ -59,7 +59,7 @@ export default function AccountReceivable({ onNext }) {
       editable: true,
       title: '30-60',
       key: 'age_30_60',
-      inputType: 'number',
+      inputType: 'text',
       dataIndex: 'age_30_60'
     },
     {
@@ -67,21 +67,21 @@ export default function AccountReceivable({ onNext }) {
       editable: true,
       title: '60-90',
       key: 'age_60_90',
-      inputType: 'number',
+      inputType: 'text',
       dataIndex: 'age_60_90'
     },
     {
       width: 100,
       title: '90+',
       editable: true,
-      inputType: 'number',
+      inputType: 'text',
       key: 'age_90_plus',
       dataIndex: 'age_90_plus'
     },
     {
       width: 150,
       editable: true,
-      inputType: 'number',
+      inputType: 'text',
       key: 'payment_plan',
       title: 'Payment Plans',
       dataIndex: 'payment_plan'

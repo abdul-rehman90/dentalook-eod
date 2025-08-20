@@ -76,7 +76,8 @@ export default function DailyProduction({ onNext }) {
       {
         key: 'totalProduction',
         title: 'Total Production',
-        dataIndex: 'totalProduction'
+        dataIndex: 'totalProduction',
+        render: (value) => (value ? `$${value}` : '$0')
       },
       {
         key: 'target',
@@ -147,12 +148,18 @@ export default function DailyProduction({ onNext }) {
 
   useEffect(() => {
     if (currentStepData.length > 0) {
-      const transformedData = currentStepData.map((item) => ({
-        name: item.user?.name,
-        key: item.id.toString(),
-        type: item.user?.user_type,
-        production_amount: item.production_amount
-      }));
+      const transformedData = currentStepData
+        .map((item) => ({
+          name: item.user?.name,
+          key: item.id.toString(),
+          type: item.user?.user_type,
+          production_amount: item.production_amount
+        }))
+        .sort((a, b) => {
+          if (a.type === 'DDS') return -1;
+          if (b.type === 'DDS') return 1;
+          return 0;
+        });
       setTableData(transformedData);
     }
   }, [currentStepData]);
