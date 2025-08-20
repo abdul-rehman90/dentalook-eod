@@ -201,8 +201,12 @@
   box-shadow: none !important;
 }
 
+.payment-table .refund-amount input {
+  color: red;
+}
+
 .ant-table .ant-table-tbody .ant-input-affix-wrapper {
-  padding: 4px;
+  padding: 6px;
 }
 
 .ant-table .ant-table-tbody .ant-input-affix-wrapper input {
