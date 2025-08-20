@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
   { value: 'Issue', label: 'Issue' },
@@ -48,12 +47,20 @@ export default function IssuesIdeas() {
     }
   }, [currentStepData]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', () =>
+      router.push('/review/list/eom')
+    );
+    return () => {
+      window.removeEventListener('stepNavigationNext', () =>
+        router.push('/review/list/eom')
+      );
+    };
+  }, []);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <GenericTable columns={columns} dataSource={tableData} />
-      </div>
-      <StepNavigation onNext={() => router.push('/review/list/eom')} />
-    </React.Fragment>
+    <div className="px-6">
+      <GenericTable columns={columns} dataSource={tableData} />
+    </div>
   );
 }

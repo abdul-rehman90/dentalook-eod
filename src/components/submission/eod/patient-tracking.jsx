@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Col, Input } from 'antd';
 import toast from 'react-hot-toast';
@@ -8,7 +8,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
@@ -189,52 +188,69 @@ export default function PatientTracking({ onNext }) {
     setActual((prev) => prev + 1);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const rowsWithPatientButNoSource = tableData.filter(
-        (item) => item.patient_name && !item.source
-      );
-
-      const rowsWithMissingOtherSource = tableData.filter(
-        (item) => item.source === 'Other' && !item.other_source
-      );
-
-      if (rowsWithPatientButNoSource.length > 0) {
-        toast.error('Please specify the "Source" for all patients with names');
-        return;
-      }
-
-      if (rowsWithMissingOtherSource.length > 0) {
-        toast.error(
-          'Please specify the "Other Source" for all rows where source is "Other"'
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const rowsWithPatientButNoSource = tableData.filter(
+          (item) => item.patient_name && !item.source
         );
-        return;
-      }
 
-      const payload = tableData
-        .filter((item) => item.patient_name && item.source)
-        .map((item) => ({
-          ...item,
-          eodsubmission: Number(id)
-        }));
+        const rowsWithMissingOtherSource = tableData.filter(
+          (item) => item.source === 'Other' && !item.other_source
+        );
 
-      if (payload.length > 0) {
-        setLoading(true);
-        const response = await EODReportService.addPatientTracking(payload);
-        if (response.status === 201) {
-          updateStepData(currentStepId, tableData);
-          toast.success('Record is successfully saved');
-          onNext();
+        if (rowsWithPatientButNoSource.length > 0) {
+          toast.error(
+            'Please specify the "Source" for all patients with names'
+          );
+          return;
         }
-        return;
+
+        if (rowsWithMissingOtherSource.length > 0) {
+          toast.error(
+            'Please specify the "Other Source" for all rows where source is "Other"'
+          );
+          return;
+        }
+
+        const payload = tableData
+          .filter((item) => item.patient_name && item.source)
+          .map((item) => ({
+            ...item,
+            eodsubmission: Number(id)
+          }));
+
+        if (payload.length > 0) {
+          setLoading(true);
+          const response = await EODReportService.addPatientTracking(payload);
+          if (response.status === 201) {
+            updateStepData(currentStepId, tableData);
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
+          updateStepData(currentStepId, tableData);
+          if (navigate) {
+            onNext();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-      updateStepData(currentStepId, tableData);
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -250,30 +266,37 @@ export default function PatientTracking({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="flex flex-col gap-4 px-6">
-        <Col span={10}>
-          <GenericTable dataSource={summaryData} columns={newPatientColumns} />
-        </Col>
-        <div className="flex items-center justify-end">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Patient
-          </Button>
-        </div>
-        <GenericTable
-          dataSource={tableData}
-          columns={patientSourceColumns}
-          onCellChange={handleCellChange}
-        />
+    <div className="flex flex-col gap-4 px-6">
+      <Col span={10}>
+        <GenericTable dataSource={summaryData} columns={newPatientColumns} />
+      </Col>
+      <div className="flex items-center justify-end">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Patient
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        dataSource={tableData}
+        columns={patientSourceColumns}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

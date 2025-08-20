@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -7,7 +7,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const defaultRow = {
   key: 1,
@@ -103,32 +102,47 @@ export default function ClinicalUpgrade({ onNext }) {
     setTableData([...tableData, newItem]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const payload = tableData
-        .filter((item) => item.items && item.cost)
-        .map((item) => ({
-          ...item,
-          submission: id
-        }));
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const payload = tableData
+          .filter((item) => item.items && item.cost)
+          .map((item) => ({
+            ...item,
+            submission: id
+          }));
 
-      if (payload.length > 0) {
-        setLoading(true);
-        const response = await EOMReportService.addClinicUpgrade(payload);
-        if (response.status === 201) {
+        if (payload.length > 0) {
+          setLoading(true);
+          const response = await EOMReportService.addClinicUpgrade(payload);
+          if (response.status === 201) {
+            updateStepData(currentStepId, tableData);
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
           updateStepData(currentStepId, tableData);
-          toast.success('Record is successfully saved');
-          onNext();
+          if (navigate) {
+            onNext();
+          }
         }
-        return;
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-      updateStepData(currentStepId, tableData);
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [tableData, id, currentStepId, setLoading, updateStepData]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -142,27 +156,34 @@ export default function ClinicalUpgrade({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add New Upgrade
-          </Button>
-        </div>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add New Upgrade
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

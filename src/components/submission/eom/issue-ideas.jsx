@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -8,7 +8,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
   { value: 'Issue', label: 'Issue' },
@@ -108,7 +107,7 @@ export default function IssuesIdeas() {
     setTableData([...tableData, newItem]);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
       const payload = tableData
         .filter((item) => item.category && item.details)
@@ -120,13 +119,17 @@ export default function IssuesIdeas() {
       if (payload.length > 0) {
         const response = await EOMReportService.addIssueIdeas(payload);
         if (response.status === 201) {
-          handleSubmitEOMReport();
+          await handleSubmitEOMReport();
         }
         return;
+      } else {
+        await handleSubmitEOMReport();
       }
-      handleSubmitEOMReport();
-    } catch (error) {}
-  };
+    } catch (error) {
+      toast.error('Failed to save issues/ideas data');
+      return Promise.reject(error);
+    }
+  }, [tableData, id, handleSubmitEOMReport]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -139,27 +142,31 @@ export default function IssuesIdeas() {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+    };
+  }, [handleSubmit]);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            size="lg"
-            variant="destructive"
-            onClick={handleAddNew}
-            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-          >
-            <PlusOutlined />
-            Add Issue/Idea
-          </Button>
-        </div>
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+    <div className="px-6">
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          size="lg"
+          variant="destructive"
+          onClick={handleAddNew}
+          className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+        >
+          <PlusOutlined />
+          Add Issue/Idea
+        </Button>
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <GenericTable
+        columns={columns}
+        dataSource={tableData}
+        onCellChange={handleCellChange}
+      />
+    </div>
   );
 }

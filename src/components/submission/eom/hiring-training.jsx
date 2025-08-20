@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -7,7 +7,6 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const categoryOptions = [
   { value: 'Growth', label: 'Growth' },
@@ -201,83 +200,97 @@ export default function HiringTraining({ onNext }) {
     setTrainingData([...trainingData, newItem]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const invalidHiringRows = hiringData.filter(
-        (item) => item.hiring_position && !item.category
-      );
-
-      const invalidTrainingRows = trainingData.filter(
-        (item) => item.training_position && !item.training_name
-      );
-
-      if (invalidHiringRows.length > 0 || invalidTrainingRows.length > 0) {
-        let errorMessage = 'Please complete all required fields:';
-
-        if (invalidHiringRows.length > 0) {
-          errorMessage +=
-            '\n- For hiring, when Position is provided, Category must be specified';
-        }
-
-        if (invalidTrainingRows.length > 0) {
-          errorMessage +=
-            '\n- For training, when Position is provided, Name must be specified';
-        }
-
-        toast.error(errorMessage);
-        return;
-      }
-
-      const apiCalls = [];
-      const hiringPayload = hiringData
-        .filter((item) => item.hiring_position && item.category)
-        .map((item) => ({
-          ...item,
-          submission: id
-        }));
-
-      const trainingPayload = trainingData
-        .filter((item) => item.training_name && item.training_position)
-        .map((item) => ({
-          ...item,
-          submission: id
-        }));
-
-      if (hiringPayload.length > 0) {
-        apiCalls.push(EOMReportService.addHiringNeed(hiringPayload));
-      }
-
-      if (trainingPayload.length > 0) {
-        apiCalls.push(EOMReportService.addTrainingNeed(trainingPayload));
-      }
-
-      if (apiCalls.length > 0) {
-        setLoading(true);
-        const responses = await Promise.all(apiCalls);
-        const allSuccess = responses.every(
-          (response) => response.status === 201
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const invalidHiringRows = hiringData.filter(
+          (item) => item.hiring_position && !item.category
         );
-        if (allSuccess) {
+
+        const invalidTrainingRows = trainingData.filter(
+          (item) => item.training_position && !item.training_name
+        );
+
+        if (invalidHiringRows.length > 0 || invalidTrainingRows.length > 0) {
+          let errorMessage = 'Please complete all required fields:';
+
+          if (invalidHiringRows.length > 0) {
+            errorMessage +=
+              '\n- For hiring, when Position is provided, Category must be specified';
+          }
+
+          if (invalidTrainingRows.length > 0) {
+            errorMessage +=
+              '\n- For training, when Position is provided, Name must be specified';
+          }
+
+          toast.error(errorMessage);
+          return;
+        }
+
+        const apiCalls = [];
+        const hiringPayload = hiringData
+          .filter((item) => item.hiring_position && item.category)
+          .map((item) => ({
+            ...item,
+            submission: id
+          }));
+
+        const trainingPayload = trainingData
+          .filter((item) => item.training_name && item.training_position)
+          .map((item) => ({
+            ...item,
+            submission: id
+          }));
+
+        if (hiringPayload.length > 0) {
+          apiCalls.push(EOMReportService.addHiringNeed(hiringPayload));
+        }
+
+        if (trainingPayload.length > 0) {
+          apiCalls.push(EOMReportService.addTrainingNeed(trainingPayload));
+        }
+
+        if (apiCalls.length > 0) {
+          setLoading(true);
+          const responses = await Promise.all(apiCalls);
+          const allSuccess = responses.every(
+            (response) => response.status === 201
+          );
+          if (allSuccess) {
+            updateStepData(currentStepId, {
+              hiring: hiringData,
+              training: trainingData
+            });
+            toast.success('Record is successfully saved');
+            if (navigate) {
+              onNext();
+            }
+          }
+        } else {
           updateStepData(currentStepId, {
             hiring: hiringData,
             training: trainingData
           });
-          toast.success('Record is successfully saved');
-          onNext();
+          if (navigate) {
+            onNext();
+          }
         }
-        return;
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
+    },
+    [hiringData, trainingData, id, currentStepId, setLoading, updateStepData]
+  );
 
-      updateStepData(currentStepId, {
-        hiring: hiringData,
-        training: trainingData
-      });
-      onNext();
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false); // Save without navigation
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData?.hiring?.length > 0) {
@@ -300,47 +313,54 @@ export default function HiringTraining({ onNext }) {
     }
   }, [clinicId]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', handleSubmit);
+    window.addEventListener('stepNavigationSave', handleSave);
+
+    return () => {
+      window.removeEventListener('stepNavigationNext', handleSubmit);
+      window.removeEventListener('stepNavigationSave', handleSave);
+    };
+  }, [handleSubmit, handleSave]);
+
   return (
-    <React.Fragment>
-      <div className="flex flex-col gap-8 px-6">
-        <div>
-          <div className="flex items-center justify-end mb-4">
-            <Button
-              size="lg"
-              variant="destructive"
-              onClick={handleAddNewHiring}
-              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-            >
-              <PlusOutlined />
-              Add New Hiring
-            </Button>
-          </div>
-          <GenericTable
-            columns={hiringColumns}
-            dataSource={hiringData}
-            onCellChange={handleHiringCellChange}
-          />
+    <div className="flex flex-col gap-8 px-6">
+      <div>
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNewHiring}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Hiring
+          </Button>
         </div>
-        <div>
-          <div className="flex items-center justify-end mb-4">
-            <Button
-              size="lg"
-              variant="destructive"
-              onClick={handleAddNewTraining}
-              className="!px-0 text-[15px] font-semibold text-[#339D5C]"
-            >
-              <PlusOutlined />
-              Add New Training
-            </Button>
-          </div>
-          <GenericTable
-            columns={trainingColumns}
-            dataSource={trainingData}
-            onCellChange={handleTrainingCellChange}
-          />
-        </div>
+        <GenericTable
+          columns={hiringColumns}
+          dataSource={hiringData}
+          onCellChange={handleHiringCellChange}
+        />
       </div>
-      <StepNavigation onNext={handleSubmit} />
-    </React.Fragment>
+      <div>
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNewTraining}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Training
+          </Button>
+        </div>
+        <GenericTable
+          columns={trainingColumns}
+          dataSource={trainingData}
+          onCellChange={handleTrainingCellChange}
+        />
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
-import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const specialityOptions = [
   { value: 'Orthodontics-Braces', label: 'Orthodontics-Braces' },
@@ -100,12 +99,20 @@ export default function Referrals() {
     }
   }, [currentStepData]);
 
+  useEffect(() => {
+    window.addEventListener('stepNavigationNext', () =>
+      router.push('/review/list/eod')
+    );
+    return () => {
+      window.removeEventListener('stepNavigationNext', () =>
+        router.push('/review/list/eod')
+      );
+    };
+  }, []);
+
   return (
-    <React.Fragment>
-      <div className="px-6">
-        <GenericTable columns={columns} dataSource={tableData} />
-      </div>
-      <StepNavigation onNext={() => router.push('/review/list/eod')} />
-    </React.Fragment>
+    <div className="px-6">
+      <GenericTable columns={columns} dataSource={tableData} />
+    </div>
   );
 }
