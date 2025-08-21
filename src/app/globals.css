@@ -215,6 +215,10 @@
   border: none !important;
 }
 
+.ant-table-measure-row {
+  display: none !important;
+}
+
 .payment-table .ant-table .ant-table-tbody .ant-input,
 .payment-table .ant-table .ant-table-tbody .ant-select {
   height: 25px;

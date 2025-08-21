@@ -133,7 +133,10 @@ export default function Dashboard() {
         key: 'submission_date',
         title: 'Submission Date',
         dataIndex: 'submission_date',
-        render: (text) => dayjs(text).format('MMM DD, YYYY')
+        render: (value, record) => {
+          if (record.rowType !== 'provider')
+            return value ? dayjs(value).format('MMM DD, YYYY') : '';
+        }
       },
       {
         key: 'clinic_name',
@@ -141,14 +144,19 @@ export default function Dashboard() {
         dataIndex: 'clinic_name'
       },
       {
-        key: 'clinic_open_time',
-        title: 'Clinic Open Time',
-        dataIndex: 'clinic_open_time'
+        key: 'provider_name',
+        title: 'Provider Name',
+        dataIndex: 'provider_name'
       },
       {
-        key: 'clinic_close_time',
-        title: 'Clinic Close Time',
-        dataIndex: 'clinic_close_time'
+        key: 'provider_type',
+        title: 'Provider Type',
+        dataIndex: 'provider_type'
+      },
+      {
+        key: 'total_production',
+        title: 'Total Production',
+        dataIndex: 'total_production'
       }
     ],
     'Production by Providers': [
