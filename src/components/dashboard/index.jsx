@@ -211,13 +211,20 @@ export default function Dashboard() {
     'Monthly Supplies': [
       {
         title: 'Actual',
-        key: 'avg_supplies_actual',
-        dataIndex: 'avg_supplies_actual'
+        key: 'supplies_actual',
+        dataIndex: 'supplies_actual',
+        render: (value) => `$${value.toFixed(2)}`
       },
       {
         title: 'Monthly Budget',
         key: 'avg_budget_supplies',
-        dataIndex: 'avg_budget_supplies'
+        dataIndex: 'avg_budget_supplies',
+        render: (value) => 0
+      },
+      {
+        title: 'Remarks',
+        key: 'overage_reason',
+        dataIndex: 'overage_reason'
       }
     ]
   };
@@ -393,8 +400,8 @@ export default function Dashboard() {
       {
         percentage: 0,
         title: 'Monthly Supplies',
-        details: [apiData.monthly_metrics],
-        value: apiData.monthly_metrics.total_submissions
+        details: apiData.monthly_metrics.supplies,
+        value: `$${apiData.monthly_metrics.total_supplies_actual.toLocaleString()}`
       }
     ];
   };
