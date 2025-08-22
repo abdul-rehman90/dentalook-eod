@@ -58,7 +58,8 @@ export default function Supplies({ onNext }) {
           (sum, item) => sum + (Number(item.supplies_actual) || 0),
           0
         );
-        return total || text;
+
+        return `$${Number(total).toFixed(2)}` || text;
       }
     },
     {
@@ -119,7 +120,7 @@ export default function Supplies({ onNext }) {
             />
           );
         }
-        return text;
+        return `$${Number(text).toFixed(2)}`;
       }
     },
     {
