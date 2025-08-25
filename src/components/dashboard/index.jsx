@@ -109,6 +109,9 @@ export default function Dashboard() {
   const [metrics, setMetrics] = useState(defaultMetrics);
   const [clinicSubmissions, setClinicSubmissions] = useState([]);
   const [productionByProviders, setProductionByProviders] = useState([]);
+  const [productionByProviderTypes, setProductionByProviderTypes] = useState(
+    []
+  );
   const [filters, setFilters] = useState({
     end_date: null,
     clinic_id: null,
@@ -120,6 +123,25 @@ export default function Dashboard() {
     columns: [],
     visible: false
   });
+
+  const groupProvidersByType = (providers) => {
+    const grouped = {};
+
+    providers.forEach((provider) => {
+      if (!grouped[provider.provider_type]) {
+        grouped[provider.provider_type] = {
+          name: provider.provider_type,
+          value: 0,
+          providers: []
+        };
+      }
+
+      grouped[provider.provider_type].value += provider.total_production;
+      grouped[provider.provider_type].providers.push(provider);
+    });
+
+    return Object.values(grouped);
+  };
 
   const getCurrentMonthRange = () => {
     const startOfMonth = dayjs().startOf('month');
@@ -184,11 +206,21 @@ export default function Dashboard() {
       {
         key: 'total_production',
         title: 'Total Production',
-        dataIndex: 'total_production'
+        dataIndex: 'total_production',
+        render: (value, record) => {
+          return `$${value.toFixed(2)}`;
+        }
       }
     ],
     'Number of Patients': [
-      { title: 'Date', dataIndex: 'date', key: 'date' },
+      {
+        key: 'date',
+        title: 'Date',
+        dataIndex: 'date',
+        render: (value, record) => {
+          return value ? dayjs(value).format('MMM DD, YYYY') : '';
+        }
+      },
       { title: 'Name', dataIndex: 'name', key: 'name' },
       { title: 'Source', dataIndex: 'source', key: 'source' },
       { title: 'Comments', dataIndex: 'comments', key: 'comments' }
@@ -245,6 +277,14 @@ export default function Dashboard() {
       }
     ],
     'Monthly Supplies': [
+      {
+        key: 'submission_date',
+        title: 'Submission Date',
+        dataIndex: 'submission_date',
+        render: (value, record) => {
+          return value ? dayjs(value).format('MMM DD, YYYY') : '';
+        }
+      },
       {
         title: 'Actual',
         key: 'supplies_actual',
@@ -312,7 +352,11 @@ export default function Dashboard() {
       title: 'Action',
       render: (_, record) => (
         <div className="flex items-center">
-          <Button size="sm" variant="destructive">
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => router.push(`/submission/eom/1/${record.id}`)}
+          >
             <EditOutlined />
           </Button>
           <Button size="sm" variant="destructive">
@@ -348,10 +392,15 @@ export default function Dashboard() {
   };
 
   const handlePieChartClick = (data, index) => {
+    const providerType = productionByProviderTypes[index].name;
+    const providersOfType = productionByProviders.filter(
+      (provider) => provider.provider_type === providerType
+    );
+
     setModalState({
       visible: true,
-      title: 'Production by Providers',
-      data: [productionByProviders[index]] || [],
+      data: providersOfType,
+      title: `Production by ${providerType} Providers`,
       columns: metricModalColumns['Production by Providers']
     });
   };
@@ -418,26 +467,38 @@ export default function Dashboard() {
       {
         title: 'Total Productions',
         percentage: apiData.total_production.percentage,
-        details: apiData.total_production.eod_submissions,
-        value: `$${apiData.total_production.value.toLocaleString()}`
+        value: `$${apiData.total_production.value.toLocaleString()}`,
+        details:
+          apiData.total_production.eod_submissions.sort(
+            (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
+          ) || []
       },
       {
         title: 'Number of Patients',
         value: apiData.number_of_patients.value,
         percentage: apiData.number_of_patients.percentage,
-        details: apiData.number_of_patients.patient_details?.[0]?.patients || []
+        details:
+          apiData.number_of_patients.patient_details?.[0]?.patients.sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          ) || []
       },
       {
         title: 'Missed Opportunities',
         // percentage: apiData.missed_schedule.percentage,
-        details: apiData.missed_schedule.provider_details,
-        value: apiData.missed_schedule.total_missed_appointments
+        value: apiData.missed_schedule.total_missed_appointments,
+        details:
+          apiData.missed_schedule.provider_details.sort(
+            (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
+          ) || []
       },
       {
         // percentage: 0,
         title: 'Monthly Supplies',
-        details: apiData.monthly_metrics.supplies,
-        value: `$${apiData.monthly_metrics.total_supplies_actual.toLocaleString()}`
+        value: `$${apiData.monthly_metrics.total_supplies_actual.toLocaleString()}`,
+        details:
+          apiData.monthly_metrics.supplies.sort(
+            (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
+          ) || []
       }
     ];
   };
@@ -485,22 +546,24 @@ export default function Dashboard() {
           const data = response.data;
           setMetrics(formatMetricsData(data));
           setRevenueData(processRevenueData(data));
-          setProductionByProviders(
-            data.production_by_provider.map((item) => ({
-              ...item,
-              name: item.provider_type,
-              value: item.total_production
-            }))
+          const groupedProviders = groupProvidersByType(
+            data.production_by_provider
           );
+          setProductionByProviderTypes(groupedProviders);
+
+          setProductionByProviders(data.production_by_provider);
           setClinicSubmissions(
-            data.clinic_submissions.map((item, index) => ({
-              date: item.date,
-              key: `${index + 1}`,
-              status: item.status,
-              practice: item.practice,
-              province: item.province,
-              user: item.regional_manager
-            }))
+            data.clinic_submissions
+              .map((item, index) => ({
+                date: item.date,
+                key: `${index + 1}`,
+                status: item.status,
+                id: item.submission_id,
+                practice: item.practice,
+                province: item.province,
+                user: item.regional_manager
+              }))
+              .sort((a, b) => new Date(b.date) - new Date(a.date)) || []
           );
         }
       } catch (error) {
@@ -655,8 +718,8 @@ export default function Dashboard() {
                 fill="#8884d8"
                 outerRadius={100}
                 labelLine={false}
-                data={productionByProviders}
                 onClick={handlePieChartClick}
+                data={productionByProviderTypes}
                 label={({ name, value, percent }) =>
                   `${name}: ${formatValue(value)} (${(percent * 100).toFixed(
                     0
