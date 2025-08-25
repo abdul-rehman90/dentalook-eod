@@ -194,6 +194,14 @@ export default function Dashboard() {
       { title: 'Comments', dataIndex: 'comments', key: 'comments' }
     ],
     'Missed Opportunities': [
+      {
+        key: 'submission_date',
+        title: 'Submission Date',
+        dataIndex: 'submission_date',
+        render: (value, record) => {
+          return value ? dayjs(value).format('MMM DD, YYYY') : '';
+        }
+      },
       { title: 'Clinic Name', dataIndex: 'clinic_name', key: 'clinic_name' },
       {
         key: 'unfilled_spots',
@@ -206,7 +214,27 @@ export default function Dashboard() {
         key: 'short_notice_cancellations',
         dataIndex: 'short_notice_cancellations'
       },
-      { title: 'Total Missed', dataIndex: 'total_missed', key: 'total_missed' }
+      {
+        title: 'Failed Appts',
+        key: 'failed_appointments',
+        dataIndex: 'failed_appointments'
+      },
+      {
+        key: 'total_number_in_hours',
+        title: 'Total Numbers in hours',
+        dataIndex: 'total_number_in_hours',
+        render: (value, record) => {
+          return `${value.toFixed(2)}`;
+        }
+      },
+      {
+        key: 'total_value_missed',
+        title: 'Total Value Missed',
+        dataIndex: 'total_value_missed',
+        render: (value, record) => {
+          return `$${value.toFixed(2)}`;
+        }
+      }
     ],
     'Monthly Supplies': [
       {
