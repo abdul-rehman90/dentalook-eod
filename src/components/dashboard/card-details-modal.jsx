@@ -18,13 +18,25 @@ export default function CardDetailsModal({
           0
         ) || 0;
 
+      // Sort providers: DDS first, then others
+      const sortedProviders = submission.prduction_by_provider
+        ? [...submission.prduction_by_provider].sort((a, b) => {
+            if (a.provider_type === 'DDS' && b.provider_type !== 'DDS') {
+              return -1; // DDS comes first
+            } else if (a.provider_type !== 'DDS' && b.provider_type === 'DDS') {
+              return 1; // DDS comes first
+            }
+            return 0; // Keep original order for same types
+          })
+        : null;
+
       return {
         key: `submission-${index}`,
         clinic_name: submission.clinic_name,
         submission_date: submission.submission_date,
         total_production: `$${totalProduction.toFixed(2)}`,
-        children: submission.prduction_by_provider
-          ? submission.prduction_by_provider.map((provider, pIndex) => ({
+        children: sortedProviders
+          ? sortedProviders.map((provider, pIndex) => ({
               rowType: 'provider',
               provider_type: provider.provider_type,
               provider_name: provider.provider_name,
@@ -54,7 +66,9 @@ export default function CardDetailsModal({
         columns={columns}
         pagination={false}
         scroll={{ x: 1000 }}
-        dataSource={treeData}
+        dataSource={treeData.sort(
+          (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
+        )}
         expandable={{
           expandRowByClick: true,
           showExpandColumn: false
