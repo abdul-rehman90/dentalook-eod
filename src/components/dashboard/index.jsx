@@ -183,6 +183,14 @@ export default function Dashboard() {
     ],
     'Production by Providers': [
       {
+        key: 'submission_date',
+        title: 'Submission Date',
+        dataIndex: 'submission_date',
+        render: (value, record) => {
+          return value ? dayjs(value).format('MMM DD, YYYY') : '';
+        }
+      },
+      {
         key: 'provider_name',
         title: 'Provider Name',
         dataIndex: 'provider_name'
@@ -191,11 +199,6 @@ export default function Dashboard() {
         key: 'provider_type',
         title: 'Provider Type',
         dataIndex: 'provider_type'
-      },
-      {
-        key: 'provider_email',
-        title: 'Provider Email',
-        dataIndex: 'provider_email'
       },
       { title: 'Hours Open', dataIndex: 'hours_open', key: 'hours_open' },
       {
@@ -550,7 +553,6 @@ export default function Dashboard() {
             data.production_by_provider
           );
           setProductionByProviderTypes(groupedProviders);
-
           setProductionByProviders(data.production_by_provider);
           setClinicSubmissions(
             data.clinic_submissions
