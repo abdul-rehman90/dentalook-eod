@@ -22,7 +22,7 @@ export default function StepNavigation({ onNext, onSave, className = '' }) {
     if (isReviewPath && isLastStep) {
       return 'Close';
     }
-    return isLastStep ? 'Submit' : 'Save & Next';
+    return isLastStep ? 'Submit' : 'Next';
   };
 
   return (
