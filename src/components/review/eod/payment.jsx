@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Row, Input, Select } from 'antd';
+import { Col, Row, Input, Select, Table } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
@@ -27,7 +27,7 @@ export default function Payment({ onNext }) {
 
   const columns = [
     {
-      width: 50,
+      width: 100,
       key: 'type',
       dataIndex: 'type',
       title: 'Payment Type',
@@ -50,7 +50,7 @@ export default function Payment({ onNext }) {
       }
     },
     {
-      width: 50,
+      width: 100,
       key: 'amount',
       title: 'Amount ($)',
       dataIndex: 'amount',
@@ -67,7 +67,7 @@ export default function Payment({ onNext }) {
       )
     },
     {
-      width: 200,
+      width: 150,
       key: 'remarks',
       title: 'Remarks',
       dataIndex: 'remarks',
@@ -83,18 +83,21 @@ export default function Payment({ onNext }) {
     }
   ];
 
-  const footer = () => (
-    <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
-      <div className="font-semibold">Total Amount</div>
-      <div>
-        $
-        {tableData
-          .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-          .toFixed(2)}
-      </div>
-      <div></div>
-    </div>
-  );
+  const footer = () => {
+    const totalAmount = tableData.reduce((sum, item) => {
+      const amount = Number(item.amount) || 0;
+      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
+    }, 0);
+
+    return (
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
+        <Table.Summary.Cell index={1} colSpan={2}>
+          ${totalAmount.toFixed(2)}
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
+    );
+  };
 
   useEffect(() => {
     if (currentStepData.length > 0) {
