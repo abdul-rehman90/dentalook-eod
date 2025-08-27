@@ -56,7 +56,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       dataIndex: 'type'
     },
     {
-      width: 140,
+      width: 150,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
@@ -135,7 +135,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       // width: 50,
-      title: 'Pt.Seen',
+      title: 'Pt. Seen',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
       onCell: () => ({ className: 'divider-cell' }),
