@@ -48,6 +48,35 @@ export default function CardDetailsModal({
     });
   };
 
+  const getMissedOpportunitiesFooter = () => {
+    if (title !== 'Missed Opportunities' || !data || data.length === 0) {
+      return null;
+    }
+
+    const totalHours = data.reduce(
+      (sum, record) => sum + (record.total_number_in_hours || 0),
+      0
+    );
+    const totalValueMissed = data.reduce(
+      (sum, record) => sum + (record.total_value_missed || 0),
+      0
+    );
+
+    return (
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0} colSpan={7} className="font-semibold">
+          Total
+        </Table.Summary.Cell>
+        <Table.Summary.Cell index={7} className="font-semibold">
+          {totalHours.toFixed(2)}
+        </Table.Summary.Cell>
+        <Table.Summary.Cell index={8} className="font-semibold">
+          ${totalValueMissed.toFixed(2)}
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
+    );
+  };
+
   const treeData = title === 'Total Productions' ? prepareTreeData(data) : data;
 
   return (
@@ -76,6 +105,11 @@ export default function CardDetailsModal({
         onRow={(record) => ({
           className: record.rowType === 'provider' ? 'bg-gray-50' : ''
         })}
+        summary={
+          title === 'Missed Opportunities'
+            ? getMissedOpportunitiesFooter
+            : undefined
+        }
       />
     </Modal>
   );

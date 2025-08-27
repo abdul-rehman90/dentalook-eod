@@ -34,7 +34,7 @@ export default function ActiveProviders({ form }) {
 
   const columns = [
     {
-      width: 50,
+      // width: 50,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -47,19 +47,19 @@ export default function ActiveProviders({ form }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'type',
       title: 'Title',
       dataIndex: 'type'
     },
     {
-      width: 50,
+      width: 140,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
     },
     {
-      width: 50,
+      // width: 50,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
@@ -80,7 +80,7 @@ export default function ActiveProviders({ form }) {
       }
     },
     {
-      width: 50,
+      // width: 50,
       key: 'end_time',
       title: 'End Time',
       dataIndex: 'end_time',
@@ -101,12 +101,13 @@ export default function ActiveProviders({ form }) {
       }
     },
     {
-      width: 50,
+      // width: 50,
       editable: true,
+      title: 'Pt.Seen',
       inputType: 'number',
-      title: 'Patients Seen',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
+      onCell: () => ({ className: 'divider-cell' }),
       render: (_, record) => (
         <Input
           disabled
@@ -116,16 +117,16 @@ export default function ActiveProviders({ form }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
+      title: 'Unfilled',
       key: 'unfilled_spots',
-      title: 'Unfilled Spots',
       dataIndex: 'unfilled_spots',
       render: (_, record) => (
         <Input disabled type="number" value={record.unfilled_spots} />
       )
     },
     {
-      width: 50,
+      // width: 50,
       key: 'no_shows',
       title: 'No Shows',
       dataIndex: 'no_shows',
@@ -134,8 +135,8 @@ export default function ActiveProviders({ form }) {
       )
     },
     {
-      width: 50,
-      title: 'Short Notice',
+      // width: 50,
+      title: 'Short Ntc',
       key: 'short_notice_cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
@@ -147,9 +148,9 @@ export default function ActiveProviders({ form }) {
       )
     },
     {
-      width: 50,
+      // width: 50,
+      title: 'Failed',
       key: 'failed_appointments',
-      title: 'Failed Appts (Units)',
       dataIndex: 'failed_appointments',
       render: (_, record) => (
         <Input disabled type="number" value={record.failed_appointments} />

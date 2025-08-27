@@ -34,12 +34,12 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
+        DDS: totalDDS,
+        RDT: totalRDT,
+        RDH: totalRDH,
         variance: difference,
-        target: `$${goal.toLocaleString()}`,
-        DDS: `${totalDDS.toLocaleString()}`,
-        RDT: `${totalRDT.toLocaleString()}`,
-        RDH: `${totalRDH.toLocaleString()}`,
-        totalProduction: `${totalProduction.toLocaleString()}`
+        totalProduction: totalProduction,
+        target: `$${goal.toLocaleString()}`
       }
     ];
   }, [tableData, goal]);

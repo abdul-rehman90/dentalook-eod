@@ -21,7 +21,7 @@ const stepConfig = {
     { id: 'team', name: 'Team Absences' },
     { id: 'patient', name: 'New Patients' },
     { id: 'auto', name: 'Attrition Tracking' },
-    { id: 'referrals', name: 'Referrals' }
+    { id: 'referrals', name: 'Outgoing Referrals' }
   ],
   eom: [
     { id: 'basic', name: 'Clinic Details' },
