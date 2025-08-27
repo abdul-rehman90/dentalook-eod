@@ -491,7 +491,7 @@ export default function Dashboard() {
       },
       {
         title: 'Missed Opportunities',
-        value: apiData.missed_schedule.total_number_in_hours,
+        value: apiData.missed_schedule.total_number_in_hours.toFixed(2),
         percentage: `$${apiData.missed_schedule.total_value_missed
           .toFixed(2)
           .toLocaleString()}`,

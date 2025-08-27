@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import { Table } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -93,25 +94,51 @@ export default function Supplies({ onNext }) {
       (sum, item) => sum + (Number(item.supplies_actual) || 0),
       0
     );
+
     return (
-      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
-        <div className="font-semibold">Total</div>
-        <div className="min-[1280px]:max-[1450px]:ml-[18px] min-[1451px]:max-[2000px]:ml-[24px] min-[2001px]:max-[2500px]:ml-[28px] min-[2501px]:ml-[34px]">
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
+        <Table.Summary.Cell index={1} colSpan={2}>
           ${totalActual.toFixed(2)}
-        </div>
-        <div></div>
-        <div className="text-center">0</div>
-        <div
-          className="max-[1500px]:ml-[44px] min-[1501px]:max-[1750px]:ml-[52px] min-[1751px]:max-[1950px]:ml-[58px] min-[1951px]:max-[2200px]:ml-[66px] min-[2201px]:ml-[78px]"
-          style={{
-            color: totalActual - 0 >= 0 ? 'green' : 'red'
-          }}
-        >
-          ${(totalActual - 0).toFixed(2)}
-        </div>
-      </div>
+        </Table.Summary.Cell>
+        <Table.Summary.Cell index={3}>0</Table.Summary.Cell>
+        <Table.Summary.Cell index={4} colSpan={2}>
+          <div
+            style={{
+              color: totalActual - 0 >= 0 ? 'green' : 'red'
+            }}
+          >
+            ${(totalActual - 0).toFixed(2)}
+          </div>{' '}
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
     );
   };
+
+  // const footer = () => {
+  //   const totalActual = totalSupplies.reduce(
+  //     (sum, item) => sum + (Number(item.supplies_actual) || 0),
+  //     0
+  //   );
+  //   return (
+  //     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
+  //       <div className="font-semibold">Total</div>
+  //       <div className="min-[1280px]:max-[1450px]:ml-[18px] min-[1451px]:max-[2000px]:ml-[24px] min-[2001px]:max-[2500px]:ml-[28px] min-[2501px]:ml-[34px]">
+  //         ${totalActual.toFixed(2)}
+  //       </div>
+  //       <div></div>
+  //       <div className="text-center">0</div>
+  //       <div
+  //         className="max-[1500px]:ml-[44px] min-[1501px]:max-[1750px]:ml-[52px] min-[1751px]:max-[1950px]:ml-[58px] min-[1951px]:max-[2200px]:ml-[66px] min-[2201px]:ml-[78px]"
+  //         style={{
+  //           color: totalActual - 0 >= 0 ? 'green' : 'red'
+  //         }}
+  //       >
+  //         ${(totalActual - 0).toFixed(2)}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   useEffect(() => {
     if (Object.entries(currentStepData).length > 0) {
