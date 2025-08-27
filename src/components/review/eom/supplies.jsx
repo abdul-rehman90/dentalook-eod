@@ -44,7 +44,8 @@ export default function Supplies({ onNext }) {
           (sum, item) => sum + (Number(item.supplies_actual) || 0),
           0
         );
-        return total || text;
+
+        return `$${Number(total).toFixed(2)}` || text;
       }
     },
     {
@@ -97,7 +98,7 @@ export default function Supplies({ onNext }) {
     return (
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total</div>
-        <div className="max-[1500px]:ml-[20px] min-[1501px]:max-[1650px]:ml-[24px] min-[1651px]:max-[1900px]:ml-[28px] min-[1901px]:max-[2150px]:ml-[32px] min-[2151px]:ml-[40px]">
+        <div className="min-[1280px]:max-[1450px]:ml-[18px] min-[1451px]:max-[2000px]:ml-[24px] min-[2001px]:max-[2500px]:ml-[28px] min-[2501px]:ml-[34px]">
           ${totalActual.toFixed(2)}
         </div>
         <div></div>

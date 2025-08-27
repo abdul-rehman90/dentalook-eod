@@ -156,8 +156,14 @@ export default function BasicDetails() {
           .map((provider) => {
             const errors = [];
             if (!provider.start_time) errors.push('start time');
-            if (!provider.end_time) errors.push('end time');
-            if (!provider.number_of_patients_seen) errors.push('patients seen');
+            else if (!provider.end_time) errors.push('end time');
+            else if (!provider.number_of_patients_seen)
+              errors.push('patients seen');
+            if (!provider.unfilled_spots) errors.push('Unfilled');
+            if (!provider.no_shows) errors.push('No Shows');
+            if (!provider.short_notice_cancellations)
+              errors.push('Short Notice');
+            if (!provider.failed_appointments) errors.push('Failed appts');
             return {
               provider,
               errors
@@ -166,13 +172,15 @@ export default function BasicDetails() {
           .filter(({ errors }) => errors.length > 0);
 
         if (incompleteProviders.length > 0) {
-          const errorMessages = incompleteProviders
-            .map(({ errors }) => `${errors.join(', ')}`)
-            .join('; ');
+          const uniqueErrors = [
+            ...new Set(incompleteProviders.flatMap(({ errors }) => errors))
+          ];
+
+          const errorMessage = uniqueErrors.join(', ');
 
           toast.error(
-            `Please complete the following fields for active providers: ${errorMessages}`,
-            { duration: 5000 }
+            `Please complete the following fields for active providers: ${errorMessage}`,
+            { duration: 10000 }
           );
           return;
         }
