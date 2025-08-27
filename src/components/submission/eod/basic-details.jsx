@@ -156,14 +156,25 @@ export default function BasicDetails() {
           .map((provider) => {
             const errors = [];
             if (!provider.start_time) errors.push('start time');
-            else if (!provider.end_time) errors.push('end time');
-            else if (!provider.number_of_patients_seen)
-              errors.push('patients seen');
-            if (!provider.unfilled_spots) errors.push('Unfilled');
-            if (!provider.no_shows) errors.push('No Shows');
-            if (!provider.short_notice_cancellations)
+            if (!provider.end_time) errors.push('end time');
+            if (!provider.number_of_patients_seen) errors.push('patients seen');
+            if (
+              provider.unfilled_spots === undefined ||
+              provider.unfilled_spots === null
+            )
+              errors.push('Unfilled');
+            if (provider.no_shows === undefined || provider.no_shows === null)
+              errors.push('No Shows');
+            if (
+              provider.short_notice_cancellations === undefined ||
+              provider.short_notice_cancellations === null
+            )
               errors.push('Short Notice');
-            if (!provider.failed_appointments) errors.push('Failed appts');
+            if (
+              provider.failed_appointments === undefined ||
+              provider.failed_appointments === null
+            )
+              errors.push('Failed appts');
             return {
               provider,
               errors
