@@ -56,7 +56,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       dataIndex: 'type'
     },
     {
-      // width: 50,
+      width: 140,
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name'
@@ -135,34 +135,37 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       // width: 50,
-      title: 'Patients Seen',
+      title: 'Pt.Seen',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
+      onCell: () => ({ className: 'divider-cell' }),
       render: (_, record) => (
-        <Input
-          type="number"
-          disabled={!record.is_active}
-          value={record.number_of_patients_seen || ''}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    number_of_patients_seen: e.target.value
-                      ? parseInt(e.target.value)
-                      : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
-        />
+        <div>
+          <Input
+            type="number"
+            disabled={!record.is_active}
+            value={record.number_of_patients_seen || ''}
+            onChange={(e) => {
+              const updatedProviders = tableData.map((p) =>
+                p.key === record.key
+                  ? {
+                      ...p,
+                      number_of_patients_seen: e.target.value
+                        ? parseInt(e.target.value)
+                        : null
+                    }
+                  : p
+              );
+              setTableData(updatedProviders);
+            }}
+          />
+        </div>
       )
     },
     {
       // width: 50,
       key: 'unfilled_spots',
-      title: 'Unfilled Spots',
+      title: 'Unfilled (Units)',
       dataIndex: 'unfilled_spots',
       render: (_, record) => (
         <Input
@@ -188,8 +191,8 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     {
       // width: 50,
       key: 'no_shows',
-      title: 'No Shows',
       dataIndex: 'no_shows',
+      title: 'No Shows (Units)',
       render: (_, record) => (
         <Input
           type="number"
@@ -211,7 +214,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       // width: 50,
-      title: 'Short Notice',
+      title: 'Short Ntc (Units)',
       key: 'short_notice_cancellations',
       dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
@@ -237,7 +240,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       // width: 50,
-      title: 'Failed Appts',
+      title: 'Failed (Units)',
       key: 'failed_appointments',
       dataIndex: 'failed_appointments',
       render: (_, record) => (

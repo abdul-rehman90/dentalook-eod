@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Row, Input } from 'antd';
+import { Col, Row, Input, Select } from 'antd';
 import { GenericTable } from '@/common/components/table/table';
 import { useGlobalContext } from '@/common/context/global-context';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
@@ -29,30 +29,57 @@ export default function Payment({ onNext }) {
     {
       width: 50,
       key: 'type',
-      disabled: true,
-      editable: true,
       dataIndex: 'type',
-      inputType: 'select',
       title: 'Payment Type',
-      selectOptions: paymentOptions
+      render: (type, record) => {
+        return (
+          <Select
+            value={type}
+            disabled={true}
+            className={
+              record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+            }
+          >
+            {paymentOptions.map((option) => (
+              <Select.Option key={option.value} value={option.value}>
+                {option.label}
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      }
     },
     {
       width: 50,
       key: 'amount',
-      editable: true,
-      disabled: true,
-      inputType: 'number',
       title: 'Amount ($)',
-      dataIndex: 'amount'
+      dataIndex: 'amount',
+      render: (_, record) => (
+        <Input
+          prefix="$"
+          type="text"
+          disabled={true}
+          value={record.amount || ''}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
+        />
+      )
     },
     {
       width: 200,
       key: 'remarks',
-      disabled: true,
-      editable: true,
       title: 'Remarks',
-      inputType: 'text',
-      dataIndex: 'remarks'
+      dataIndex: 'remarks',
+      render: (remarks, record) => (
+        <Input
+          disabled={true}
+          value={remarks}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
+        />
+      )
     }
   ];
 
@@ -95,11 +122,13 @@ export default function Payment({ onNext }) {
       <div className="px-6">
         <Row gutter={16}>
           <Col span={12}>
-            <GenericTable
-              footer={footer}
-              columns={columns}
-              dataSource={tableData}
-            />
+            <div className="payment-table">
+              <GenericTable
+                footer={footer}
+                columns={columns}
+                dataSource={tableData}
+              />
+            </div>
           </Col>
           <Col span={12}>
             <Card className="!p-0 !gap-0 border border-secondary-50">

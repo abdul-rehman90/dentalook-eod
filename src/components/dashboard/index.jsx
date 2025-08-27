@@ -200,7 +200,11 @@ export default function Dashboard() {
         title: 'Provider Type',
         dataIndex: 'provider_type'
       },
-      { title: 'Hours Open', dataIndex: 'hours_open', key: 'hours_open' },
+      {
+        title: 'Hours Open',
+        key: 'provider_hours',
+        dataIndex: 'provider_hours'
+      },
       {
         title: 'Production / Hour',
         key: 'production_per_hour',
@@ -215,7 +219,7 @@ export default function Dashboard() {
         }
       }
     ],
-    'Number of Patients': [
+    'Number of New Patients': [
       {
         key: 'date',
         title: 'Date',
@@ -247,18 +251,18 @@ export default function Dashboard() {
         }
       },
       {
+        title: 'Unfilled',
         key: 'unfilled_spots',
-        title: 'Unfilled Spots',
         dataIndex: 'unfilled_spots'
       },
       { title: 'No Shows', dataIndex: 'no_shows', key: 'no_shows' },
       {
-        title: 'Short Notice',
+        title: 'Short Ntc',
         key: 'short_notice_cancellations',
         dataIndex: 'short_notice_cancellations'
       },
       {
-        title: 'Failed Appts',
+        title: 'Failed',
         key: 'failed_appointments',
         dataIndex: 'failed_appointments'
       },
@@ -477,7 +481,7 @@ export default function Dashboard() {
           ) || []
       },
       {
-        title: 'Number of Patients',
+        title: 'Number of New Patients',
         value: apiData.number_of_patients.value,
         percentage: apiData.number_of_patients.percentage,
         details:
@@ -487,8 +491,10 @@ export default function Dashboard() {
       },
       {
         title: 'Missed Opportunities',
-        // percentage: apiData.missed_schedule.percentage,
-        value: apiData.missed_schedule.total_missed_appointments,
+        value: apiData.missed_schedule.total_number_in_hours,
+        percentage: `$${apiData.missed_schedule.total_value_missed
+          .toFixed(2)
+          .toLocaleString()}`,
         details:
           apiData.missed_schedule.provider_details.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
