@@ -85,6 +85,7 @@ export default function CardDetailsModal({
       footer={null}
       open={visible}
       onCancel={onCancel}
+      bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
       title={
         <div className="p-4">
           <h4 className="text-lg font-semibold text-gray-800">{title}</h4>
@@ -94,7 +95,6 @@ export default function CardDetailsModal({
       <Table
         columns={columns}
         pagination={false}
-        scroll={{ x: 1000 }}
         dataSource={treeData.sort(
           (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
         )}

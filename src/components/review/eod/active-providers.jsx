@@ -103,7 +103,7 @@ export default function ActiveProviders({ form }) {
     {
       // width: 50,
       editable: true,
-      title: 'Pt.Seen',
+      title: 'Pt. Seen',
       inputType: 'number',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',

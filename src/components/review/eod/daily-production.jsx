@@ -11,7 +11,7 @@ export default function DailyProduction({ onNext }) {
   const currentStepData = getCurrentStepData();
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
   const hasRDT = reportData?.eod?.basic?.activeProviders?.some(
-    (item) => item.user.user_type === 'RDT'
+    (item) => item.type === 'RDT' || item?.user?.user_type === 'RDT'
   );
 
   // Calculate summary data
