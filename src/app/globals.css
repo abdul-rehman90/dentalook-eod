@@ -45,28 +45,7 @@
 }
 
 * {
-  font-family: Montserrat !important;
-}
-
-.dentalook-bg {
-  width: 100%;
-  height: 100%;
-  background: url('../common/assets/images/dentalook.png') center / 100% 100%;
-}
-
-.step::before {
-  top: 25;
-  left: 12px;
-  width: 2px;
-  content: '';
-  height: 50px;
-  position: absolute;
-  background-image: url('../common/assets/svg/dashed-line.svg');
-}
-
-.proud-moment label > span {
-  line-height: 18px;
-  white-space: break-spaces;
+  font-family: Montserrat, sans-serif !important;
 }
 
 /* Ant form */
@@ -94,12 +73,12 @@
 }
 
 .ant-radio-wrapper:hover .ant-radio-inner {
-  border-color: #339d5c !important;
+  border-color: var(--color-primary-400) !important;
 }
 
 .ant-radio-checked .ant-radio-inner {
-  border-color: #339d5c !important;
-  background-color: #339d5c !important;
+  border-color: var(--color-primary-400) !important;
+  background-color: var(--color-primary-400) !important;
 }
 
 .ant-radio-wrapper .ant-radio-label {
@@ -107,7 +86,7 @@
 }
 
 .ant-radio-wrapper .ant-radio-disabled .ant-radio-inner::after {
-  background-color: white !important;
+  background-color: var(--color-white) !important;
 }
 
 .ant-table-wrapper .ant-table-container {
@@ -137,11 +116,18 @@
   border-bottom: 1px solid #f0f0f0 !important;
 }
 
+.ant-table-summary {
+  background: var(--color-secondary-50) !important;
+}
+
 .ant-table-summary > tr > td {
+  font-size: 15px;
   padding: 8px !important;
+  color: #373940 !important;
   font-weight: 600 !important;
   border-bottom: none !important;
   border-top: 1px solid #f0f0f0;
+  border-inline-end: none !important;
 }
 
 .ant-table-tbody > tr > .divider-cell {
@@ -192,14 +178,6 @@
   box-shadow: 0px 0px 0px 2px #7db02d33;
 }
 
-.ant-table-footer {
-  font-size: 15px;
-  font-weight: 500;
-  padding: 0 !important;
-  color: #373940 !important;
-  background: #e6eaee !important;
-}
-
 .payment-table .ant-table .ant-table-tbody .ant-input-affix-wrapper {
   padding: 0;
   border: none !important;
@@ -226,10 +204,6 @@
   border: none !important;
 }
 
-.ant-table-measure-row {
-  display: none !important;
-}
-
 .payment-table .ant-table .ant-table-tbody .ant-input,
 .payment-table .ant-table .ant-table-tbody .ant-select {
   padding: 0;
@@ -252,6 +226,10 @@
   -moz-appearance: textfield;
 }
 
+.ant-table-measure-row {
+  display: none !important;
+}
+
 /* Ant modal */
 .ant-modal-content {
   padding: 0 !important;
@@ -264,61 +242,83 @@
 
 .ant-modal-content .ant-modal-body {
   padding: 16px;
-  border-top: 1px solid #e6eaee;
-  border-bottom: 1px solid #e6eaee;
+  border-top: 1px solid var(--color-secondary-50);
+  border-bottom: 1px solid var(--color-secondary-50);
 }
 
+/* Ant Tabs */
 .ant-tabs-nav::before {
   display: none;
 }
 
 .ant-tabs .ant-tabs-tab {
   font-weight: 500;
-  color: #030303;
   padding: 6px 0 !important;
+  color: var(--color-black);
   margin-left: 20px !important;
 }
 
 .ant-tabs .ant-tabs-tab-active {
   font-weight: 700;
-  color: '#030303';
-  border-bottom: 2px solid #339d5c;
+  color: var(--color-black);
+  border-bottom: 2px solid var(--color-primary-400);
 }
 
 .ant-tabs-tab-active .ant-tabs-tab-btn,
 .ant-tabs-tab-btn:active {
-  color: #339d5c !important;
+  color: var(--color-primary-400) !important;
 }
 
 .ant-tabs .ant-tabs-tab:hover {
-  color: #339d5c !important;
-  border-bottom: 2px solid #339d5c;
-  transition: color all 0.3s, border-bottom all 0.3s, padding all 0.3s;
+  color: var(--color-primary-400) !important;
+  border-bottom: 2px solid var(--color-primary-400);
+  transition: color 0.3s, border-bottom 0.3s, padding 0.3s;
 }
 
 .ant-tabs .ant-tabs-ink-bar {
   display: none !important;
 }
 
-/* Custom green checkbox styles */
+/* Custom Checkbox */
 .custom-checkbox .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #339d5c; /* Ant Design green-6 */
-  border-color: #339d5c;
+  background: var(--color-primary-400);
+  border-color: var(--color-primary-400);
 }
 
 .custom-checkbox .ant-checkbox-wrapper:hover .ant-checkbox-inner,
 .custom-checkbox .ant-checkbox:hover .ant-checkbox-inner,
 .custom-checkbox .ant-checkbox-input:focus + .ant-checkbox-inner {
-  border-color: #339d5c;
+  border-color: var(--color-primary-400);
 }
 
 .custom-checkbox .ant-checkbox-checked::after {
-  border-color: #339d5c;
+  border-color: var(--color-primary-400);
 }
 
 /* Other styles */
 .add-provider-form > .ant-form-item {
   width: 100% !important;
+}
+
+.dentalook-bg {
+  width: 100%;
+  height: 100%;
+  background: url('../common/assets/images/dentalook.png') center / 100% 100%;
+}
+
+.step::before {
+  top: 25;
+  left: 12px;
+  width: 2px;
+  content: '';
+  height: 50px;
+  position: absolute;
+  background-image: url('../common/assets/svg/dashed-line.svg');
+}
+
+.proud-moment label > span {
+  line-height: 18px;
+  white-space: break-spaces;
 }
 
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {

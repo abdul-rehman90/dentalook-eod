@@ -129,13 +129,13 @@ function GenericTable({
     <Table
       rowKey="key"
       size="middle"
-      footer={footer}
       loading={loading}
       pagination={false}
       bordered={bordered}
       showHeader={showHeader}
       dataSource={dataSource}
       columns={transformedColumns}
+      summary={footer ? footer : null}
       components={{ body: { row: Row } }}
     />
   );

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Col, Row, Input, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { Col, Row, Input, Select, Table } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -44,7 +44,7 @@ export default function Payment({ onNext }) {
 
   const columns = [
     {
-      width: 50,
+      width: 100,
       key: 'type',
       dataIndex: 'type',
       title: 'Payment Type',
@@ -78,7 +78,7 @@ export default function Payment({ onNext }) {
       }
     },
     {
-      width: 150,
+      width: 100,
       key: 'amount',
       title: 'Amount',
       dataIndex: 'amount',
@@ -103,7 +103,7 @@ export default function Payment({ onNext }) {
       )
     },
     {
-      width: 200,
+      width: 150,
       key: 'remarks',
       title: 'Remarks',
       dataIndex: 'remarks',
@@ -137,15 +137,31 @@ export default function Payment({ onNext }) {
     }, 0);
 
     return (
-      <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
-        <div className="font-semibold">Total Amount</div>
-        <div className="min-[1280px]:max-[1300px]:pl-[52px] min-[1301px]:max-[1330px]:pl-[48px] min-[1331px]:max-[1360px]:pl-[44px] min-[1361px]:max-[1400px]:pl-[38px] min-[1401px]:max-[1430px]:pl-[32px] min-[1431px]:max-[1460px]:pl-[28px] min-[1461px]:max-[1500px]:pl-[20px] min-[1501px]:pl-[15px]">
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
+        <Table.Summary.Cell index={1} colSpan={2}>
           ${totalAmount.toFixed(2)}
-        </div>
-        <div></div>
-      </div>
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
     );
   };
+
+  // const footer = () => {
+  //   const totalAmount = tableData.reduce((sum, item) => {
+  //     const amount = Number(item.amount) || 0;
+  //     return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
+  //   }, 0);
+
+  //   return (
+  //     <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
+  //       <div className="font-semibold">Total Amount</div>
+  //       <div className="min-[1280px]:max-[1300px]:pl-[52px] min-[1301px]:max-[1330px]:pl-[48px] min-[1331px]:max-[1360px]:pl-[44px] min-[1361px]:max-[1400px]:pl-[38px] min-[1401px]:max-[1430px]:pl-[32px] min-[1431px]:max-[1460px]:pl-[28px] min-[1461px]:max-[1500px]:pl-[20px] min-[1501px]:pl-[15px]">
+  //         ${totalAmount.toFixed(2)}
+  //       </div>
+  //       <div></div>
+  //     </div>
+  //   );
+  // };
 
   const handleTypeChange = (key, value) => {
     const newPayments = tableData.map((item) => {
