@@ -24,7 +24,7 @@ export default function DailyProduction({ onNext }) {
   const isClinicClosed =
     reportData?.eod?.basic?.clinicDetails?.status === 'closed';
   const hasRDT = reportData?.eod?.basic?.activeProviders?.some(
-    (item) => item.type || item?.user?.user_type === 'RDT'
+    (item) => item.type === 'RDT' || item?.user?.user_type === 'RDT'
   );
 
   const summaryData = useMemo(() => {
