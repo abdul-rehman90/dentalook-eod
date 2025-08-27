@@ -46,12 +46,12 @@ export default function DailyProduction({ onNext }) {
     return [
       {
         key: 'summary',
+        DDS: totalDDS,
+        RDT: totalRDT,
+        RDH: totalRDH,
         variance: difference,
-        target: `$${goal.toLocaleString()}`,
-        DDS: `${totalDDS.toLocaleString()}`,
-        RDT: `${totalRDT.toLocaleString()}`,
-        RDH: `${totalRDH.toLocaleString()}`,
-        totalProduction: `${totalProduction.toLocaleString()}`
+        totalProduction: totalProduction,
+        target: `$${goal.toLocaleString()}`
       }
     ];
   }, [tableData, goal]);
@@ -69,14 +69,20 @@ export default function DailyProduction({ onNext }) {
         dataIndex: 'DDS',
         title: 'Total (DDS)',
         render: (value) =>
-          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
+          `$${Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}`
       },
       {
         key: 'RDH',
         dataIndex: 'RDH',
         title: 'Total (RDH)',
         render: (value) =>
-          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
+          `$${Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}`
       }
     ];
 
@@ -86,7 +92,10 @@ export default function DailyProduction({ onNext }) {
         dataIndex: 'RDT',
         title: 'Total (RDT)',
         render: (value) =>
-          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
+          `$${Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}`
       });
     }
 
@@ -96,7 +105,10 @@ export default function DailyProduction({ onNext }) {
         title: 'Total Production',
         dataIndex: 'totalProduction',
         render: (value) =>
-          value ? `$${parseFloat(value).toFixed(2)}` : '$0.00'
+          `$${Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}`
       },
       {
         key: 'target',
@@ -109,7 +121,11 @@ export default function DailyProduction({ onNext }) {
         dataIndex: 'variance',
         render: (value) => (
           <span style={{ color: value >= 0 ? 'green' : 'red' }}>
-            ${value.toLocaleString()}
+            $
+            {Number(value).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
           </span>
         )
       }
@@ -142,7 +158,6 @@ export default function DailyProduction({ onNext }) {
       key: 'production_amount',
       dataIndex: 'production_amount'
     },
-
     {
       key: '',
       title: '',
@@ -176,7 +191,7 @@ export default function DailyProduction({ onNext }) {
             ...item,
             user: item.id,
             eodsubmission: Number(id),
-            production_amount: Number(item.production_amount)
+            production_amount: item.production_amount
           }));
 
         if (payload.length > 0) {

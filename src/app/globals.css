@@ -51,9 +51,7 @@
 .dentalook-bg {
   width: 100%;
   height: 100%;
-  background-size: 100% 100%;
-  background-position: center;
-  background-image: url('../common/assets/images/dentalook.png');
+  background: url('../common/assets/images/dentalook.png') center / 100% 100%;
 }
 
 .step::before {
@@ -80,15 +78,15 @@
 .ant-input-disabled,
 .ant-picker-disabled input,
 .ant-select-disabled .ant-select-selector {
-  color: #171717 !important;
-}
-
-.ant-checkbox-disabled .ant-checkbox-inner::after {
-  border-color: #171717 !important;
+  color: var(--foreground) !important;
 }
 
 .ant-checkbox-disabled .ant-checkbox-inner {
   background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.ant-checkbox-disabled .ant-checkbox-inner::after {
+  border-color: var(--foreground) !important;
 }
 
 .ant-form-item-explain-error {
@@ -118,7 +116,7 @@
 
 /* Ant table */
 .ant-table-wrapper table {
-  /* border-radius: 8px; */
+  border-radius: 8px;
   border: 1px solid #f0f0f0;
 }
 
@@ -137,6 +135,17 @@
   border: none !important;
   color: #333333 !important;
   border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.ant-table-summary > tr > td {
+  padding: 8px !important;
+  font-weight: 600 !important;
+  border-bottom: none !important;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ant-table-tbody > tr > .divider-cell {
+  border-right: 1px solid #f0f0f0ed !important;
 }
 
 .ant-table .ant-table-tbody > tr:hover > td {
@@ -201,8 +210,10 @@
   box-shadow: none !important;
 }
 
-.payment-table .refund-amount input {
-  color: red;
+.payment-table .refund-amount-cell,
+.payment-table .refund-amount-cell input,
+.payment-table .refund-amount-cell .ant-select-selection-item {
+  color: red !important;
 }
 
 .ant-table .ant-table-tbody .ant-input-affix-wrapper {
@@ -221,6 +232,7 @@
 
 .payment-table .ant-table .ant-table-tbody .ant-input,
 .payment-table .ant-table .ant-table-tbody .ant-select {
+  padding: 0;
   height: 25px;
   border: none !important;
 }
@@ -304,6 +316,7 @@
   border-color: #339d5c;
 }
 
+/* Other styles */
 .add-provider-form > .ant-form-item {
   width: 100% !important;
 }

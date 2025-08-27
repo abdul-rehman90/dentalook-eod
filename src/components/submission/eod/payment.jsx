@@ -46,17 +46,17 @@ export default function Payment({ onNext }) {
     {
       width: 50,
       key: 'type',
-      editable: true,
       dataIndex: 'type',
-      inputType: 'select',
       title: 'Payment Type',
-      selectOptions: paymentOptions,
       render: (type, record) => {
         return (
           <div className="flex flex-col gap-1">
             <Select
               value={type}
               onChange={(value) => handleTypeChange(record.key, value)}
+              className={
+                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+              }
             >
               {paymentOptions.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
@@ -80,7 +80,6 @@ export default function Payment({ onNext }) {
     {
       width: 150,
       key: 'amount',
-      editable: true,
       title: 'Amount',
       dataIndex: 'amount',
       render: (_, record) => (
@@ -88,7 +87,9 @@ export default function Payment({ onNext }) {
           type="text"
           prefix="$"
           value={record.amount || ''}
-          className={record.type === 'CC/DEBIT REFUND' ? 'refund-amount' : ''}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
           onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
           onBlur={(e) => {
             const val = String(e.target.value || '').trim();
@@ -104,10 +105,17 @@ export default function Payment({ onNext }) {
     {
       width: 200,
       key: 'remarks',
-      editable: true,
       title: 'Remarks',
-      inputType: 'text',
-      dataIndex: 'remarks'
+      dataIndex: 'remarks',
+      render: (remarks, record) => (
+        <Input
+          value={remarks}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
+          onChange={(e) => handleCellChange(record, 'remarks', e.target.value)}
+        />
+      )
     }
   ];
 
@@ -131,7 +139,7 @@ export default function Payment({ onNext }) {
     return (
       <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
         <div className="font-semibold">Total Amount</div>
-        <div className="min-[1280px]:max-[1300px]:pl-[64px] min-[1300px]:max-[1350px]:pl-[56px] min-[1350px]:max-[1400px]:pl-[48px] min-[1401px]:max-[1441px]:pl-[38px] min-[1441px]:pl-[36px]">
+        <div className="min-[1280px]:max-[1300px]:pl-[52px] min-[1301px]:max-[1330px]:pl-[48px] min-[1331px]:max-[1360px]:pl-[44px] min-[1361px]:max-[1400px]:pl-[38px] min-[1401px]:max-[1430px]:pl-[32px] min-[1431px]:max-[1460px]:pl-[28px] min-[1461px]:max-[1500px]:pl-[20px] min-[1501px]:pl-[15px]">
           ${totalAmount.toFixed(2)}
         </div>
         <div></div>
