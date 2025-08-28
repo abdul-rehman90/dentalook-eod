@@ -321,6 +321,11 @@
   white-space: break-spaces;
 }
 
+.recharts-surface:focus,
+.recharts-sector:focus {
+  outline: none;
+}
+
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
   display: none !important;
 }

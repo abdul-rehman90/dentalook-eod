@@ -64,20 +64,20 @@ export default function CardDetailsModal({
 
     return (
       <Table.Summary.Row>
-        <Table.Summary.Cell index={0} colSpan={7} className="font-semibold">
+        <Table.Summary.Cell index={0} colSpan={8} className="font-semibold">
           Total
         </Table.Summary.Cell>
-        <Table.Summary.Cell index={7} className="font-semibold">
+        <Table.Summary.Cell index={8} className="font-semibold">
           {totalHours.toFixed(2)}
         </Table.Summary.Cell>
-        <Table.Summary.Cell index={8} className="font-semibold">
+        <Table.Summary.Cell index={9} className="font-semibold">
           ${totalValueMissed.toFixed(2)}
         </Table.Summary.Cell>
       </Table.Summary.Row>
     );
   };
 
-  const treeData = title === 'Total Productions' ? prepareTreeData(data) : data;
+  const treeData = title === 'Total Production' ? prepareTreeData(data) : data;
 
   return (
     <Modal
