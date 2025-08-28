@@ -31,13 +31,12 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  Label
+  Cell
 } from 'recharts';
 
 const { RangePicker } = DatePicker;
 
-const monthOrder = [
+const MONTH_ORDER = [
   'January',
   'February',
   'March',
@@ -52,9 +51,16 @@ const monthOrder = [
   'December'
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+// const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const PRODUCTION_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const MISSED_OPPORTUNITIES_COLORS = [
+  '#FF6B6B',
+  '#FF9F43',
+  '#A8A8A8',
+  '#FFCC80'
+];
 
-const defaultMetrics = [
+const DEFAULT_METRICS = [
   {
     value: '$0',
     details: [],
@@ -65,7 +71,7 @@ const defaultMetrics = [
     value: 0,
     details: [],
     percentage: 0,
-    title: 'Number of Patients'
+    title: 'Number of New Patients'
   },
   {
     value: 0,
@@ -76,7 +82,6 @@ const defaultMetrics = [
   {
     value: 0,
     details: [],
-    percentage: 0,
     title: 'Monthly Supplies'
   }
 ];
@@ -106,12 +111,13 @@ export default function Dashboard() {
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);
-  const [metrics, setMetrics] = useState(defaultMetrics);
+  const [metrics, setMetrics] = useState(DEFAULT_METRICS);
   const [clinicSubmissions, setClinicSubmissions] = useState([]);
-  const [productionByProviders, setProductionByProviders] = useState([]);
-  const [productionByProviderTypes, setProductionByProviderTypes] = useState(
-    []
-  );
+  const [prodProviders, setProdProviders] = useState([]);
+  const [missedProviders, setMissedProviders] = useState([]);
+  const [prodTypes, setProdTypes] = useState([]);
+  const [missedTypes, setMissedTypes] = useState([]);
+
   const [filters, setFilters] = useState({
     end_date: null,
     clinic_id: null,
@@ -124,20 +130,27 @@ export default function Dashboard() {
     visible: false
   });
 
-  const groupProvidersByType = (providers) => {
+  const groupByProviderType = (
+    providers,
+    typeExtractor,
+    valueExtractor,
+    hoursExtractor
+  ) => {
     const grouped = {};
 
     providers.forEach((provider) => {
-      if (!grouped[provider.provider_type]) {
-        grouped[provider.provider_type] = {
-          name: provider.provider_type,
+      const type = typeExtractor(provider);
+      if (!grouped[type]) {
+        grouped[type] = {
+          name: type,
           value: 0,
+          totalHours: 0,
           providers: []
         };
       }
-
-      grouped[provider.provider_type].value += provider.total_production;
-      grouped[provider.provider_type].providers.push(provider);
+      grouped[type].value += valueExtractor(provider);
+      grouped[type].totalHours += hoursExtractor(provider);
+      grouped[type].providers.push(provider);
     });
 
     return Object.values(grouped);
@@ -150,15 +163,12 @@ export default function Dashboard() {
   };
 
   const metricModalColumns = {
-    'Total Productions': [
+    'Total Production': [
       {
         key: 'submission_date',
         title: 'Submission Date',
         dataIndex: 'submission_date',
-        render: (value, record) => {
-          if (record.rowType !== 'provider')
-            return value ? dayjs(value).format('MMM DD, YYYY') : '';
-        }
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
       },
       {
         key: 'clinic_name',
@@ -186,9 +196,7 @@ export default function Dashboard() {
         key: 'submission_date',
         title: 'Submission Date',
         dataIndex: 'submission_date',
-        render: (value, record) => {
-          return value ? dayjs(value).format('MMM DD, YYYY') : '';
-        }
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
       },
       {
         key: 'provider_name',
@@ -214,9 +222,7 @@ export default function Dashboard() {
         key: 'total_production',
         title: 'Total Production',
         dataIndex: 'total_production',
-        render: (value, record) => {
-          return `$${value.toFixed(2)}`;
-        }
+        render: (value) => `$${value.toFixed(2)}`
       }
     ],
     'Number of New Patients': [
@@ -224,9 +230,7 @@ export default function Dashboard() {
         key: 'date',
         title: 'Date',
         dataIndex: 'date',
-        render: (value, record) => {
-          return value ? dayjs(value).format('MMM DD, YYYY') : '';
-        }
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
       },
       { title: 'Name', dataIndex: 'name', key: 'name' },
       { title: 'Source', dataIndex: 'source', key: 'source' },
@@ -237,18 +241,20 @@ export default function Dashboard() {
         key: 'submission_date',
         title: 'Submission Date',
         dataIndex: 'submission_date',
-        render: (value, record) => {
-          return value ? dayjs(value).format('MMM DD, YYYY') : '';
-        }
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
       },
       { title: 'Clinic Name', dataIndex: 'clinic_name', key: 'clinic_name' },
       {
         key: 'provider_name',
         title: 'Provider Name',
         dataIndex: 'provider_name',
-        render: (value, record) => {
-          return record.provider_details.provider_name;
-        }
+        render: (_, record) => record.provider_details.provider_name
+      },
+      {
+        title: 'Type',
+        key: 'provider_type',
+        dataIndex: 'provider_type',
+        render: (_, record) => record.provider_details.provider_type
       },
       {
         title: 'Unfilled',
@@ -270,17 +276,13 @@ export default function Dashboard() {
         key: 'total_number_in_hours',
         title: 'Total Numbers in hours',
         dataIndex: 'total_number_in_hours',
-        render: (value, record) => {
-          return `${value.toFixed(2)}`;
-        }
+        render: (value) => `${value.toFixed(2)}`
       },
       {
         key: 'total_value_missed',
         title: 'Total Value Missed',
         dataIndex: 'total_value_missed',
-        render: (value, record) => {
-          return `$${value.toFixed(2)}`;
-        }
+        render: (value) => `$${value.toFixed(2)}`
       }
     ],
     'Monthly Supplies': [
@@ -288,9 +290,7 @@ export default function Dashboard() {
         key: 'submission_date',
         title: 'Submission Date',
         dataIndex: 'submission_date',
-        render: (value, record) => {
-          return value ? dayjs(value).format('MMM DD, YYYY') : '';
-        }
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
       },
       {
         title: 'Actual',
@@ -302,12 +302,61 @@ export default function Dashboard() {
         title: 'Monthly Budget',
         key: 'avg_budget_supplies',
         dataIndex: 'avg_budget_supplies',
-        render: (value) => 0
+        render: () => 0
       },
       {
         title: 'Remarks',
         key: 'overage_reason',
         dataIndex: 'overage_reason'
+      }
+    ],
+    'Missed Opportunities by Providers': [
+      {
+        key: 'submission_date',
+        title: 'Submission Date',
+        dataIndex: 'submission_date',
+        render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
+      },
+      { title: 'Clinic Name', dataIndex: 'clinic_name', key: 'clinic_name' },
+      {
+        key: 'provider_name',
+        title: 'Provider Name',
+        dataIndex: 'provider_name',
+        render: (_, record) => record.provider_details.provider_name
+      },
+      {
+        title: 'Type',
+        key: 'provider_type',
+        dataIndex: 'provider_type',
+        render: (_, record) => record.provider_details.provider_type
+      },
+      {
+        title: 'Unfilled',
+        key: 'unfilled_spots',
+        dataIndex: 'unfilled_spots'
+      },
+      { title: 'No Shows', dataIndex: 'no_shows', key: 'no_shows' },
+      {
+        title: 'Short Ntc',
+        key: 'short_notice_cancellations',
+        dataIndex: 'short_notice_cancellations'
+      },
+      {
+        title: 'Failed',
+        key: 'failed_appointments',
+        dataIndex: 'failed_appointments'
+      },
+      {
+        key: 'total_number_in_hours',
+        title: 'Total Numbers in hours',
+        dataIndex: 'total_number_in_hours',
+        render: (value) => `${value.toFixed(2)}`
+      },
+      {
+        key: 'total_value_missed',
+        title: 'Total Value Missed',
+        dataIndex: 'total_value_missed',
+        render: (value) => `$${value.toFixed(2)}`
       }
     ]
   };
@@ -398,17 +447,21 @@ export default function Dashboard() {
     }));
   };
 
-  const handlePieChartClick = (data, index) => {
-    const providerType = productionByProviderTypes[index].name;
-    const providersOfType = productionByProviders.filter(
-      (provider) => provider.provider_type === providerType
+  const handlePieChartClick = (isProduction, _, index) => {
+    const types = isProduction ? prodTypes : missedTypes;
+    const providers = isProduction ? prodProviders : missedProviders;
+    const providerType = types[index].name;
+    const providersOfType = providers.filter((p) =>
+      isProduction
+        ? p.provider_type === providerType
+        : p.provider_details.provider_type === providerType
     );
-
+    const baseTitle = isProduction ? 'Production' : 'Missed Opportunities';
     setModalState({
       visible: true,
       data: providersOfType,
-      title: `Production by ${providerType} Providers`,
-      columns: metricModalColumns['Production by Providers']
+      title: `${baseTitle} by ${providerType} Providers`,
+      columns: metricModalColumns[`${baseTitle} by Providers`]
     });
   };
 
@@ -459,7 +512,7 @@ export default function Dashboard() {
       accountReceivableMap.set(item.month, item.total);
     });
 
-    return monthOrder.map((month) => {
+    return MONTH_ORDER.map((month) => {
       const shortMonth = month.substring(0, 3);
       return {
         month: shortMonth,
@@ -472,11 +525,11 @@ export default function Dashboard() {
   const formatMetricsData = (apiData) => {
     return [
       {
-        title: 'Total Productions',
+        title: 'Total Production',
         percentage: apiData.total_production.percentage,
         value: `$${apiData.total_production.value.toLocaleString()}`,
         details:
-          apiData.total_production.eod_submissions.sort(
+          apiData.total_production.eod_submissions?.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
           ) || []
       },
@@ -485,7 +538,7 @@ export default function Dashboard() {
         value: apiData.number_of_patients.value,
         percentage: apiData.number_of_patients.percentage,
         details:
-          apiData.number_of_patients.patient_details?.[0]?.patients.sort(
+          apiData.number_of_patients.patient_details?.[0]?.patients?.sort(
             (a, b) => new Date(b.date) - new Date(a.date)
           ) || []
       },
@@ -496,16 +549,15 @@ export default function Dashboard() {
           .toFixed(2)
           .toLocaleString()}`,
         details:
-          apiData.missed_schedule.provider_details.sort(
+          apiData.missed_schedule.provider_details?.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
           ) || []
       },
       {
-        // percentage: 0,
         title: 'Monthly Supplies',
         value: `$${apiData.monthly_metrics.total_supplies_actual.toLocaleString()}`,
         details:
-          apiData.monthly_metrics.supplies.sort(
+          apiData.monthly_metrics.supplies?.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
           ) || []
       }
@@ -513,7 +565,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchAllRegionalManagers = async () => {
+    const fetchClinics = async () => {
       try {
         const { data } = await EODReportService.getAllRegionalManagers();
         const clinicsData = data.clinics.map((item) => ({
@@ -539,7 +591,7 @@ export default function Dashboard() {
       } catch (error) {}
     };
 
-    fetchAllRegionalManagers();
+    fetchClinics();
   }, []);
 
   useEffect(() => {
@@ -555,11 +607,27 @@ export default function Dashboard() {
           const data = response.data;
           setMetrics(formatMetricsData(data));
           setRevenueData(processRevenueData(data));
-          const groupedProviders = groupProvidersByType(
-            data.production_by_provider
+          const prodProvidersData = data.production_by_provider || [];
+          const missedProvidersData =
+            data.missed_schedule.provider_details || [];
+          setProdProviders(prodProvidersData);
+          setMissedProviders(missedProvidersData);
+          setProdTypes(
+            groupByProviderType(
+              prodProvidersData,
+              (p) => p.provider_type,
+              (p) => p.total_production,
+              () => 0
+            )
           );
-          setProductionByProviderTypes(groupedProviders);
-          setProductionByProviders(data.production_by_provider);
+          setMissedTypes(
+            groupByProviderType(
+              missedProvidersData,
+              (p) => p.provider_details.provider_type,
+              (p) => p.total_value_missed,
+              (p) => p.total_number_in_hours || 0
+            )
+          );
           setClinicSubmissions(
             data.clinic_submissions
               .map((item, index) => ({
@@ -600,17 +668,32 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
-          <div className="mb-4">
-            <Skeleton.Input active style={{ width: 200, height: 24 }} />
+        <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-[#D9DADF]">
+          <div className="w-full h-full">
+            <div className="mb-4">
+              <Skeleton.Input active style={{ width: 200, height: 24 }} />
+            </div>
+            <div className="w-full h-full flex items-center justify-center">
+              <Skeleton.Avatar
+                active
+                size={200}
+                shape="circle"
+                style={{ width: 200, height: 200 }}
+              />
+            </div>
           </div>
-          <div className="w-full h-full p-4 flex justify-center items-center">
-            <Skeleton.Avatar
-              active
-              size={200}
-              shape="circle"
-              style={{ width: 200, height: 200 }}
-            />
+          <div className="w-full h-full">
+            <div className="mb-4 text-center">
+              <Skeleton.Input active style={{ width: 200, height: 24 }} />
+            </div>
+            <div className="w-full h-full flex items-center justify-center">
+              <Skeleton.Avatar
+                active
+                size={200}
+                shape="circle"
+                style={{ width: 200, height: 200 }}
+              />
+            </div>
           </div>
         </div>
 
@@ -648,7 +731,6 @@ export default function Dashboard() {
           </p>
           <Select
             options={clinics}
-            // allowClear={true}
             value={filters.clinic_id}
             style={{ width: '100%' }}
             placeholder="Select Clinic"
@@ -710,13 +792,11 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
-        <div className="mb-4">
-          <h2 className="text-base font-semibold text-black">
+      <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-[#D9DADF]">
+        <div className="w-full h-full border-r-[#f0f0f0] border-r border-solid">
+          <h2 className="text-base font-semibold text-black mb-4">
             Total Production by Providers
           </h2>
-        </div>
-        <div className="w-full h-full p-4">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -724,24 +804,66 @@ export default function Dashboard() {
                 cy="50%"
                 dataKey="value"
                 fill="#8884d8"
+                data={prodTypes}
                 outerRadius={100}
                 labelLine={false}
-                onClick={handlePieChartClick}
-                data={productionByProviderTypes}
+                onClick={(data, index) =>
+                  handlePieChartClick(true, data, index)
+                }
                 label={({ name, value, percent }) =>
                   `${name}: ${formatValue(value)} (${(percent * 100).toFixed(
                     0
                   )}%)`
                 }
               >
-                {productionByProviders.map((entry, index) => (
+                {prodTypes.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={PRODUCTION_COLORS[index % PRODUCTION_COLORS.length]}
                   />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => formatValue(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="w-full h-full">
+          <h2 className="text-base font-semibold text-black text-center mb-4">
+            Total Missed Opportunities by Providers
+          </h2>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                cx="50%"
+                cy="50%"
+                dataKey="value"
+                fill="#8884d8"
+                innerRadius={60}
+                outerRadius={100}
+                labelLine={false}
+                data={missedTypes}
+                onClick={(data, index) =>
+                  handlePieChartClick(false, data, index)
+                }
+                label={({ name, value, percent, totalHours }) =>
+                  `${name}: ${formatValue(value.toFixed(2))} (${(
+                    percent * 100
+                  ).toFixed(0)}%) - ${totalHours.toFixed(2)} hrs`
+                }
+              >
+                {missedTypes.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      MISSED_OPPORTUNITIES_COLORS[
+                        index % MISSED_OPPORTUNITIES_COLORS.length
+                      ]
+                    }
+                  />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatValue(value.toFixed(2))} />
             </PieChart>
           </ResponsiveContainer>
         </div>
