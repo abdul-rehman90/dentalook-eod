@@ -136,7 +136,7 @@ export default function DailyProduction({ onNext }) {
 
   const providersColumns = [
     {
-      width: 150,
+      width: 145,
       key: 'type',
       title: 'Title',
       dataIndex: 'type',
@@ -146,7 +146,7 @@ export default function DailyProduction({ onNext }) {
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
-      width: hasRDT ? 350 : 250,
+      width: hasRDT ? 350 : 240,
       render: (name) => name || 'N/A'
     },
     {
@@ -161,8 +161,8 @@ export default function DailyProduction({ onNext }) {
     {
       key: '',
       title: '',
-      dataIndex: '',
-      width: hasRDT ? 240 : 250
+      width: 250,
+      dataIndex: ''
     }
   ];
 
