@@ -51,14 +51,7 @@ const MONTH_ORDER = [
   'December'
 ];
 
-// const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-const PRODUCTION_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-const MISSED_OPPORTUNITIES_COLORS = [
-  '#FF6B6B',
-  '#FF9F43',
-  '#A8A8A8',
-  '#FFCC80'
-];
+const COLORS = ['#005FB2', '#00896F', '#CC8F00', '#B35A2E'];
 
 const DEFAULT_METRICS = [
   {
@@ -209,14 +202,15 @@ export default function Dashboard() {
         dataIndex: 'provider_type'
       },
       {
-        title: 'Hours Open',
+        title: 'Hours Work',
         key: 'provider_hours',
         dataIndex: 'provider_hours'
       },
       {
         title: 'Production / Hour',
         key: 'production_per_hour',
-        dataIndex: 'production_per_hour'
+        dataIndex: 'production_per_hour',
+        render: (value) => `$${value.toFixed(2)}`
       },
       {
         key: 'total_production',
@@ -273,8 +267,8 @@ export default function Dashboard() {
         dataIndex: 'failed_appointments'
       },
       {
+        title: 'Total Hrs',
         key: 'total_number_in_hours',
-        title: 'Total Numbers in hours',
         dataIndex: 'total_number_in_hours',
         render: (value) => `${value.toFixed(2)}`
       },
@@ -347,8 +341,8 @@ export default function Dashboard() {
         dataIndex: 'failed_appointments'
       },
       {
+        title: 'Total Hrs',
         key: 'total_number_in_hours',
-        title: 'Total Numbers in hours',
         dataIndex: 'total_number_in_hours',
         render: (value) => `${value.toFixed(2)}`
       },
@@ -766,8 +760,11 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center justify-between">
-              <p className="text-3xl font-semibold text-black">
+              <p className="flex items-baseline gap-1 text-3xl font-semibold text-black">
                 {metric.value}
+                {metric.title === 'Missed Opportunities' && (
+                  <span className="text-base font-normal">hrs</span>
+                )}
               </p>
               {metric.percentage !== undefined && (
                 <div
@@ -819,7 +816,7 @@ export default function Dashboard() {
                 {prodTypes.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={PRODUCTION_COLORS[index % PRODUCTION_COLORS.length]}
+                    fill={COLORS[index % COLORS.length]}
                   />
                 ))}
               </Pie>
@@ -827,7 +824,6 @@ export default function Dashboard() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-
         <div className="w-full h-full">
           <h2 className="text-base font-semibold text-black text-center mb-4">
             Total Missed Opportunities by Providers
@@ -839,7 +835,7 @@ export default function Dashboard() {
                 cy="50%"
                 dataKey="value"
                 fill="#8884d8"
-                innerRadius={60}
+                // innerRadius={60}
                 outerRadius={100}
                 labelLine={false}
                 data={missedTypes}
@@ -847,7 +843,7 @@ export default function Dashboard() {
                   handlePieChartClick(false, data, index)
                 }
                 label={({ name, value, percent, totalHours }) =>
-                  `${name}: ${formatValue(value.toFixed(2))} (${(
+                  `${name}: ${formatValue(value.toFixed(0))} (${(
                     percent * 100
                   ).toFixed(0)}%) - ${totalHours.toFixed(2)} hrs`
                 }
@@ -855,15 +851,11 @@ export default function Dashboard() {
                 {missedTypes.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={
-                      MISSED_OPPORTUNITIES_COLORS[
-                        index % MISSED_OPPORTUNITIES_COLORS.length
-                      ]
-                    }
+                    fill={COLORS[index % COLORS.length]}
                   />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => formatValue(value.toFixed(2))} />
+              <Tooltip formatter={(value) => formatValue(value.toFixed(0))} />
             </PieChart>
           </ResponsiveContainer>
         </div>
