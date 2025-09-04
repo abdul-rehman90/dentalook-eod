@@ -3,24 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
-import { Skeleton, DatePicker, Select } from 'antd';
 import CardDetailsModal from './card-details-modal';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { EODReportService } from '@/common/services/eod-report';
+import { Card, Statistic, Skeleton, DatePicker, Select } from 'antd';
+import { CardHeader, CardContent } from '@/common/components/card/card';
 import {
   EditOutlined,
   DeleteOutlined,
   ArrowUpOutlined,
-  ArrowDownOutlined
+  ArrowDownOutlined,
+  DownOutlined
 } from '@ant-design/icons';
-import {
-  Card,
-  CardTitle,
-  CardHeader,
-  CardContent
-} from '@/common/components/card/card';
 import {
   Area,
   XAxis,
@@ -651,7 +647,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
           {[...Array(4)].map((_, index) => (
             <Card key={index} className="bg-white !gap-4 h-fit">
-              <CardHeader>
+              <CardHeader className="mb-5">
                 <Skeleton.Input active style={{ width: 150, height: 20 }} />
               </CardHeader>
               <CardContent className="flex items-center justify-between">
@@ -724,9 +720,10 @@ export default function Dashboard() {
             Clinics
           </p>
           <Select
+            size="large"
             options={clinics}
+            className="custom-filter"
             value={filters.clinic_id}
-            style={{ width: '100%' }}
             placeholder="Select Clinic"
             onChange={(value) => handleFilterChange('clinic_id', value)}
           />
@@ -736,8 +733,9 @@ export default function Dashboard() {
             Date Range
           </p>
           <RangePicker
+            size="large"
             allowClear={false}
-            style={{ width: '100%' }}
+            className="custom-filter"
             onChange={handleDateRangeChange}
             value={[
               filters.start_date ? dayjs(filters.start_date) : null,
@@ -752,44 +750,49 @@ export default function Dashboard() {
           <Card
             key={index}
             onClick={() => handleCardClick(metric)}
-            className="bg-white !border !border-solid !border-[#D9DADF] !gap-4 h-fit cursor-pointer !rounded-xl shadow-[0px_14px_20px_0px_#0000000A]"
+            className="!border !border-solid !border-[#ececec] !rounded-xl shadow-[0px_14px_20px_0px_#0000000A] cursor-pointer"
           >
-            <CardHeader>
-              <CardTitle className="text-[#5D606D] font-semibold text-sm">
-                {metric.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <p className="flex items-baseline gap-1 text-3xl font-semibold text-black">
-                {metric.value}
-                {metric.title === 'Missed Opportunities' && (
-                  <span className="text-base font-normal">hrs</span>
-                )}
-              </p>
-              {metric.percentage !== undefined && (
-                <div
-                  className={`inline-flex items-center text-sm font-medium px-2 py-1 rounded-full ${
-                    metric.percentage > 0
-                      ? 'bg-[#E9F7EE] text-[#167F3D]'
-                      : metric.percentage < 0
-                      ? 'bg-[#FEF3F2] text-[#B42318]'
-                      : 'bg-[#F2F4F7] text-[#344054]'
-                  }`}
-                >
-                  {metric.percentage > 0 ? (
-                    <ArrowUpOutlined />
-                  ) : metric.percentage < 0 ? (
-                    <ArrowDownOutlined />
-                  ) : null}
-                  {metric.percentage}
-                </div>
-              )}
-            </CardContent>
+            <Statistic
+              title={
+                <span className="text-[#5D606D] font-semibold text-sm">
+                  {metric.title}
+                </span>
+              }
+              value={metric.value}
+              valueStyle={{
+                display: 'flex',
+                fontWeight: 600,
+                fontSize: '30px',
+                marginTop: '20px',
+                color: '#1F1F1F',
+                justifyContent: 'space-between'
+              }}
+              suffix={
+                metric.percentage !== undefined && (
+                  <div
+                    className={`inline-flex items-center text-sm font-medium px-2 py-1 rounded-full ${
+                      metric.percentage > 0
+                        ? 'bg-[#E9F7EE] text-[#167F3D]'
+                        : metric.percentage < 0
+                        ? 'bg-[#FEF3F2] text-[#B42318]'
+                        : 'bg-[#F2F4F7] text-[#344054]'
+                    }`}
+                  >
+                    {metric.percentage > 0 ? (
+                      <ArrowUpOutlined />
+                    ) : metric.percentage < 0 ? (
+                      <ArrowDownOutlined />
+                    ) : null}
+                    {metric.percentage}
+                  </div>
+                )
+              }
+            />
           </Card>
         ))}
       </div>
 
-      <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-solid border-[#D9DADF]">
+      <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-solid border-[#ececec] shadow-[0px_14px_20px_0px_#0000000A]">
         <div className="w-full h-full border-r-[#f0f0f0] border-r border-solid">
           <h2 className="text-base font-semibold text-black mb-4">
             Total Production by Providers
@@ -861,7 +864,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="p-6 h-90 rounded-xl border border-solid border-[#D9DADF]">
+      <div className="p-6 h-90 rounded-xl border border-solid border-[#ececec] shadow-[0px_14px_20px_0px_#0000000A]">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
         </div>
@@ -875,6 +878,8 @@ export default function Dashboard() {
                 {/* ✅ Production Gradients */}
                 <linearGradient id="productionFill" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#1173E4" stopOpacity={0.2} />
+                  <stop offset="50%" stopColor="#F7931F" stopOpacity={0.2} />
+                  <stop offset="75%" stopColor="#1173E4" stopOpacity={0.2} />
                   <stop offset="100%" stopColor="#F7931F" stopOpacity={0.2} />
                 </linearGradient>
 
@@ -886,17 +891,23 @@ export default function Dashboard() {
                   y2="0"
                 >
                   <stop offset="0%" stopColor="#1173E4" />
+                  <stop offset="50%" stopColor="#F7931F" />
+                  <stop offset="75%" stopColor="#1173E4" />
                   <stop offset="100%" stopColor="#F7931F" />
                 </linearGradient>
 
                 {/* ✅ Account Receivable Gradients */}
                 <linearGradient id="accountFill" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#21B30A" stopOpacity={0.2} />
+                  <stop offset="50%" stopColor="#D81919" stopOpacity={0.2} />
+                  <stop offset="75%" stopColor="#21B30A" stopOpacity={0.2} />
                   <stop offset="100%" stopColor="#D81919" stopOpacity={0.2} />
                 </linearGradient>
 
                 <linearGradient id="accountStroke" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#21B30A" />
+                  <stop offset="50%" stopColor="#D81919" />
+                  <stop offset="75%" stopColor="#21B30A" />
                   <stop offset="100%" stopColor="#D81919" />
                 </linearGradient>
               </defs>
@@ -948,7 +959,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="p-6 rounded-xl border border-solid border-[#D9DADF]">
+      <div className="p-6 rounded-xl border border-solid border-[#ececec] shadow-[0px_14px_20px_0px_#0000000A]">
         <h2 className="text-black text-base font-medium mb-4">
           Clinic Submissions
         </h2>
@@ -957,3 +968,41 @@ export default function Dashboard() {
     </div>
   );
 }
+
+// <Card
+//   key={index}
+//   onClick={() => handleCardClick(metric)}
+//   className="bg-white !border !border-solid !border-[#D9DADF] !gap-4 h-fit cursor-pointer !rounded-xl shadow-[0px_14px_20px_0px_#0000000A]"
+// >
+//   <CardHeader>
+//     <CardTitle className="text-[#5D606D] font-semibold text-sm">
+//       {metric.title}
+//     </CardTitle>
+//   </CardHeader>
+//   <CardContent className="flex items-center justify-between">
+//     <p className="flex items-baseline gap-1 text-3xl font-semibold text-black">
+//       {metric.value}
+//       {metric.title === 'Missed Opportunities' && (
+//         <span className="text-base font-normal">hrs</span>
+//       )}
+//     </p>
+//     {metric.percentage !== undefined && (
+//       <div
+//         className={`inline-flex items-center text-sm font-medium px-2 py-1 rounded-full ${
+//           metric.percentage > 0
+//             ? 'bg-[#E9F7EE] text-[#167F3D]'
+//             : metric.percentage < 0
+//             ? 'bg-[#FEF3F2] text-[#B42318]'
+//             : 'bg-[#F2F4F7] text-[#344054]'
+//         }`}
+//       >
+//         {metric.percentage > 0 ? (
+//           <ArrowUpOutlined />
+//         ) : metric.percentage < 0 ? (
+//           <ArrowDownOutlined />
+//         ) : null}
+//         {metric.percentage}
+//       </div>
+//     )}
+//   </CardContent>
+// </Card>;
