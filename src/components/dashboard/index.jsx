@@ -747,12 +747,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
           <Card
             key={index}
             onClick={() => handleCardClick(metric)}
-            className="bg-white !gap-4 h-fit cursor-pointer"
+            className="bg-white !border !border-solid !border-[#D9DADF] !gap-4 h-fit cursor-pointer !rounded-xl shadow-[0px_14px_20px_0px_#0000000A]"
           >
             <CardHeader>
               <CardTitle className="text-[#5D606D] font-semibold text-sm">
@@ -789,7 +789,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-[#D9DADF]">
+      <div className="p-6 h-90 flex items-center justify-between rounded-xl border border-solid border-[#D9DADF]">
         <div className="w-full h-full border-r-[#f0f0f0] border-r border-solid">
           <h2 className="text-base font-semibold text-black mb-4">
             Total Production by Providers
@@ -861,14 +861,47 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="p-6 h-90 rounded-xl border border-[#D9DADF]">
+      <div className="p-6 h-90 rounded-xl border border-solid border-[#D9DADF]">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-black">Revenue Trends</h2>
         </div>
         <div className="w-full h-full p-4">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData}>
-              <CartesianGrid stroke="#E5E7EB" vertical={false} />
+            <AreaChart
+              data={revenueData}
+              margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+            >
+              <defs>
+                {/* ✅ Production Gradients */}
+                <linearGradient id="productionFill" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#1173E4" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#F7931F" stopOpacity={0.2} />
+                </linearGradient>
+
+                <linearGradient
+                  id="productionStroke"
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="0"
+                >
+                  <stop offset="0%" stopColor="#1173E4" />
+                  <stop offset="100%" stopColor="#F7931F" />
+                </linearGradient>
+
+                {/* ✅ Account Receivable Gradients */}
+                <linearGradient id="accountFill" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#21B30A" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#D81919" stopOpacity={0.2} />
+                </linearGradient>
+
+                <linearGradient id="accountStroke" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#21B30A" />
+                  <stop offset="100%" stopColor="#D81919" />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid stroke="none" />
               <XAxis
                 dataKey="month"
                 axisLine={false}
@@ -897,25 +930,25 @@ export default function Dashboard() {
                 dot={false}
                 type="monotone"
                 strokeWidth={2}
-                stroke="#1B3A57"
                 dataKey="production"
-                fill="rgba(15, 23, 42, 0.1)"
+                fill="url(#productionFill)"
+                stroke="url(#productionStroke)"
               />
 
               <Area
                 dot={false}
                 type="monotone"
                 strokeWidth={2}
-                stroke="#008433"
+                fill="url(#accountFill)"
                 dataKey="accountReceivable"
-                fill="rgba(34, 197, 94, 0.1)"
+                stroke="url(#accountStroke)"
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="p-6 rounded-xl border border-[#D9DADF]">
+      <div className="p-6 rounded-xl border border-solid border-[#D9DADF]">
         <h2 className="text-black text-base font-medium mb-4">
           Clinic Submissions
         </h2>
