@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, dentalook-frontend-runner]
+    runs-on: [self-hosted, dentalook-eod-runner]
 
     steps:
       - name: Checkout code
