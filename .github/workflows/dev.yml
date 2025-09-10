@@ -36,4 +36,3 @@ jobs:
 
       - name: Show API container logs
         run: docker-compose -f docker-compose.yaml logs
-        
