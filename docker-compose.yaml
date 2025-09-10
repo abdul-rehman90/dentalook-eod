@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  dentalook-eod-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dentalook-eod-frontend
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: >
+      sh -c "if [ \"$NODE_ENV\" = 'development' ]; then
+               npm run dev;
+             else
+               npm run build && npm start;
+             fi"
+    restart: unless-stopped
