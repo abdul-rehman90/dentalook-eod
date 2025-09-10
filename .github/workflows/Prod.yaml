@@ -1,0 +1,38 @@
+name: Dev Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, dentalook-prod-eod-runner]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create env file
+        run: |
+          cat > .env << EOF
+          ${{ vars.PROD_ENV }}
+          EOF
+
+      - name: Stop and remove old containers
+        run: |
+          docker-compose -f docker-compose.yaml down
+
+      - name: Remove old images
+        run: |
+          docker image prune -af
+
+      - name: Build and start latest container
+        run: |
+          docker-compose -f docker-compose.yaml up -d --build
+
+      - name: Wait for container to initialize
+        run: sleep 30
+
+      - name: Show API container logs
+        run: docker-compose -f docker-compose.yaml logs
