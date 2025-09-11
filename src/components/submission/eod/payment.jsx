@@ -19,7 +19,7 @@ const paymentOptions = [
   { value: 'CC/DEBIT REFUND', label: 'CC/DEBIT REFUND' },
   { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' },
   { value: 'PATIENT CHEQUE', label: 'PATIENT CHEQUE' },
-  { value: 'INSURANCE  CHEQUE', label: 'INSURANCE  CHEQUE' },
+  { value: 'INSURANCE CHEQUE', label: 'INSURANCE CHEQUE' },
   { value: 'EFT PAYMENT', label: 'EFT PAYMENT' },
   { value: 'CASH', label: 'CASH' }
 ];
@@ -29,6 +29,7 @@ export default function Payment({ onNext }) {
   const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [tableData, setTableData] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
+
   const {
     id,
     steps,
@@ -38,9 +39,75 @@ export default function Payment({ onNext }) {
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
+
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+
+  const isValidAmountInput = (value) => {
+    if (value === '' || value == null) return true;
+    return AMOUNT_REGEX.test(value);
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    const newPayments = tableData.map((item) =>
+      item.key === record.key ? { ...item, [dataIndex]: value } : item
+    );
+    setTableData(newPayments);
+  };
+
+  const handleAmountChange = (record, dataIndex, rawValue) => {
+    const v = String(rawValue).trim();
+    if (!isValidAmountInput(v)) return; // ignore invalid keystrokes
+    handleCellChange(record, dataIndex, v);
+  };
+
+  const handleTypeChange = (key, value) => {
+    const newPayments = tableData.map((item) =>
+      item.key === key
+        ? {
+            ...item,
+            type: value,
+            ...(value !== 'EFT PAYMENT' && { insurance_company: undefined })
+          }
+        : item
+    );
+    setTableData(newPayments);
+  };
+
+  const handleDetailChange = (key, field, value) => {
+    const newPayments = tableData.map((item) =>
+      item.key === key ? { ...item, [field]: value } : item
+    );
+    setTableData(newPayments);
+  };
+
+  const handleAddNew = () => {
+    const newPayment = {
+      key: `new-${Date.now()}-${Math.random()}`,
+      type: '',
+      amount: '',
+      remarks: '',
+      action: ''
+    };
+    setTableData([...tableData, newPayment]);
+  };
+
+  const footer = () => {
+    const totalAmount = tableData.reduce((sum, item) => {
+      const amount = Number(item.amount) || 0;
+      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
+    }, 0);
+
+    return (
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
+        <Table.Summary.Cell index={1} colSpan={2}>
+          ${totalAmount.toFixed(2)}
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
+    );
+  };
 
   const columns = [
     {
@@ -49,14 +116,13 @@ export default function Payment({ onNext }) {
       dataIndex: 'type',
       title: 'Payment Type',
       render: (type, record) => {
+        const showInsuranceInput =
+          type === 'EFT PAYMENT' || type === 'INSURANCE CHEQUE';
         return (
           <div className="flex flex-col gap-1">
             <Select
               value={type}
               onChange={(value) => handleTypeChange(record.key, value)}
-              className={
-                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-              }
             >
               {paymentOptions.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
@@ -64,12 +130,16 @@ export default function Payment({ onNext }) {
                 </Select.Option>
               ))}
             </Select>
-            {type === 'EFT PAYMENT' && (
+            {showInsuranceInput && (
               <Input
                 placeholder="Insurance Company"
-                value={record.eftReference || ''}
+                value={record.insurance_company || ''}
                 onChange={(e) =>
-                  handleDetailChange(record.key, 'eftReference', e.target.value)
+                  handleDetailChange(
+                    record.key,
+                    'insurance_company',
+                    e.target.value
+                  )
                 }
               />
             )}
@@ -87,9 +157,6 @@ export default function Payment({ onNext }) {
           type="text"
           prefix="$"
           value={record.amount || ''}
-          className={
-            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-          }
           onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
           onBlur={(e) => {
             const val = String(e.target.value || '').trim();
@@ -110,129 +177,54 @@ export default function Payment({ onNext }) {
       render: (remarks, record) => (
         <Input
           value={remarks}
-          className={
-            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-          }
           onChange={(e) => handleCellChange(record, 'remarks', e.target.value)}
         />
       )
     }
   ];
 
-  const isValidAmountInput = (value) => {
-    if (value === '' || value == null) return true;
-    return AMOUNT_REGEX.test(value);
-  };
-
-  const handleAmountChange = (record, dataIndex, rawValue) => {
-    const v = String(rawValue).trim();
-    if (!isValidAmountInput(v)) return; // ignore invalid keystrokes
-    handleCellChange(record, dataIndex, v);
-  };
-
-  const footer = () => {
-    const totalAmount = tableData.reduce((sum, item) => {
-      const amount = Number(item.amount) || 0;
-      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
-    }, 0);
-
-    return (
-      <Table.Summary.Row>
-        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
-        <Table.Summary.Cell index={1} colSpan={2}>
-          ${totalAmount.toFixed(2)}
-        </Table.Summary.Cell>
-      </Table.Summary.Row>
-    );
-  };
-
-  // const footer = () => {
-  //   const totalAmount = tableData.reduce((sum, item) => {
-  //     const amount = Number(item.amount) || 0;
-  //     return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
-  //   }, 0);
-
-  //   return (
-  //     <div className="grid grid-cols-[1fr_1fr_1fr] p-2">
-  //       <div className="font-semibold">Total Amount</div>
-  //       <div className="min-[1280px]:max-[1300px]:pl-[52px] min-[1301px]:max-[1330px]:pl-[48px] min-[1331px]:max-[1360px]:pl-[44px] min-[1361px]:max-[1400px]:pl-[38px] min-[1401px]:max-[1430px]:pl-[32px] min-[1431px]:max-[1460px]:pl-[28px] min-[1461px]:max-[1500px]:pl-[20px] min-[1501px]:pl-[15px]">
-  //         ${totalAmount.toFixed(2)}
-  //       </div>
-  //       <div></div>
-  //     </div>
-  //   );
-  // };
-
-  const handleTypeChange = (key, value) => {
-    const newPayments = tableData.map((item) => {
-      if (item.key === key) {
-        return {
-          ...item,
-          type: value,
-          // Clear EFT reference if changing from EFT PAYMENT to another type
-          ...(value !== 'EFT PAYMENT' && { eftReference: undefined })
-        };
-      }
-      return item;
-    });
-    setTableData(newPayments);
-  };
-
-  const handleDetailChange = (key, field, value) => {
-    const newPayments = tableData.map((item) => {
-      if (item.key === key) {
-        return {
-          ...item,
-          [field]: value
-        };
-      }
-      return item;
-    });
-    setTableData(newPayments);
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    let newValue = value;
-
-    if (dataIndex === 'amount') {
-      newValue = value === null || value === undefined ? '' : String(value);
-    }
-
-    const newPayments = tableData.map((item) =>
-      item.key === record.key ? { ...item, [dataIndex]: newValue } : item
-    );
-
-    setTableData(newPayments);
-  };
-
-  const handleAddNew = () => {
-    const newPayment = {
-      key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
-      type: '',
-      amount: '',
-      remarks: '',
-      action: ''
-    };
-    setTableData([...tableData, newPayment]);
-  };
-
-  const handlePaymentTypeOrder = useCallback(async () => {
-    try {
-      const paymentOrderPayload = {
-        clinic_id: clinicId,
-        payment_type_order: tableData.reduce((acc, item, index) => {
-          acc[item.type] = index + 1;
-          return acc;
-        }, {})
-      };
-      await EODReportService.handlePaymentTypeOrder(paymentOrderPayload);
-    } catch (error) {}
-  }, [clinicId, tableData]);
-
-  // Create a memoized handleSubmit function
   const saveData = useCallback(
     async (navigate = false) => {
       try {
+        // Check for duplicate payment type for non-EFT/Insurance Cheque
+        const typeCounts = tableData.reduce((acc, item) => {
+          if (
+            item.type &&
+            item.amount &&
+            item.type !== 'EFT PAYMENT' &&
+            item.type !== 'INSURANCE CHEQUE'
+          ) {
+            acc[item.type] = (acc[item.type] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        const duplicateType = Object.keys(typeCounts).find(
+          (type) => typeCounts[type] > 1
+        );
+
+        if (duplicateType) {
+          toast.error(
+            `Duplicate payment type "${duplicateType}" is not allowed`
+          );
+          return;
+        }
+
+        // Check for insurance company if required
+        const invalidInsurance = tableData.find(
+          (item) =>
+            (item.type === 'EFT PAYMENT' || item.type === 'INSURANCE CHEQUE') &&
+            item.amount &&
+            !item.insurance_company
+        );
+
+        if (invalidInsurance) {
+          toast.error(
+            `Insurance Company is required for ${invalidInsurance.type}`
+          );
+          return;
+        }
+
         const validPayments = tableData.filter(
           (item) => item.amount && !isNaN(item.amount)
         );
@@ -251,73 +243,66 @@ export default function Payment({ onNext }) {
           setLoading(true);
           const response = await EODReportService.addPayment(payload);
           if (response.status === 201) {
-            // await handlePaymentTypeOrder();
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, { notes, payments: tableData });
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
           }
         } else {
-          // await handlePaymentTypeOrder();
           updateStepData(currentStepId, { notes: '', payments: tableData });
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [
-      id,
-      notes,
-      tableData,
-      setLoading,
-      currentStepId,
-      updateStepData,
-      handlePaymentTypeOrder
-    ]
+    [tableData, notes, id, setLoading, currentStepId, updateStepData, onNext]
   );
 
   const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
+    await saveData(true);
   }, [saveData]);
 
   const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
+    await saveData(false);
   }, [saveData]);
 
-  const fetchAllPayments = async () => {
+  const fetchAllPayments = useCallback(async () => {
     try {
       setDataLoading(true);
       const response = await EODReportService.getAllPaymentsOrderByClinic(
         clinicId
       );
       if (response.status === 200) {
+        let mergedData = [];
         const basePayments = Object.entries(response.data.payment_type_order)
           .map(([type, order]) => ({
             amount: '',
-            key: order,
+            key: `api-${order}-${type}`, // unique string key
             type: type,
             remarks: ''
           }))
-          .sort((a, b) => a.key - b.key);
+          .sort((a, b) => a.key.localeCompare(b.key));
 
         if (currentStepData.length > 0) {
           const storedNotes = currentStepData[0]?.notes;
-          const mergedData = basePayments.map((payment) => {
-            const existingData = currentStepData.find(
+          basePayments.forEach((payment) => {
+            const existingRows = currentStepData.filter(
               (item) => item.payment_type === payment.type
             );
-            return existingData
-              ? {
+            if (existingRows.length > 0) {
+              existingRows.forEach((row, idx) => {
+                mergedData.push({
                   ...payment,
-                  remarks: existingData.remarks,
-                  amount: existingData.payment_amount
-                }
-              : payment;
+                  remarks: row.remarks,
+                  amount: row.payment_amount,
+                  key: `api-${payment.type}-${idx}`,
+                  insurance_company: row.insurance_company
+                });
+              });
+            } else {
+              mergedData.push(payment);
+            }
           });
           setNotes(storedNotes);
           setTableData(mergedData);
@@ -329,17 +314,15 @@ export default function Payment({ onNext }) {
     } finally {
       setDataLoading(false);
     }
-  };
+  }, [clinicId]);
 
   useEffect(() => {
     if (
       !Array.isArray(currentStepData) &&
       Object.keys(currentStepData).length > 0
     ) {
-      const notes = currentStepData.notes || '';
-      const payments = currentStepData.payments || [];
-      setNotes(notes);
-      setTableData(payments);
+      setNotes(currentStepData.notes || '');
+      setTableData(currentStepData.payments || []);
     } else if (clinicId) {
       fetchAllPayments();
     }
@@ -348,7 +331,6 @@ export default function Payment({ onNext }) {
   useEffect(() => {
     window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
-
     return () => {
       window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);

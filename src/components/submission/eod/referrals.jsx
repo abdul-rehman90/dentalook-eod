@@ -184,50 +184,73 @@ export default function Referrals() {
     ]);
   };
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      const rowsWithMissingData = tableData.filter(
-        (item) => item.patient_name && (!item.provider_name || !item.specialty)
-      );
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        setLoading(true);
 
-      const rowsWithMissingOtherSpeciality = tableData.filter(
-        (item) => item.specialty === 'Other' && !item.other_specialty
-      );
-
-      if (rowsWithMissingData.length > 0) {
-        toast.error(
-          'Please specify both Provider and Specialty for all patients with names'
+        const rowsWithMissingData = tableData.filter(
+          (item) =>
+            item.patient_name && (!item.provider_name || !item.specialty)
         );
-        return;
-      }
 
-      if (rowsWithMissingOtherSpeciality.length > 0) {
-        toast.error(
-          'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+        const rowsWithMissingOtherSpeciality = tableData.filter(
+          (item) => item.specialty === 'Other' && !item.other_specialty
         );
-        return;
-      }
 
-      const payload = tableData
-        .filter(
-          (item) => item.patient_name && item.provider_name && item.specialty
-        )
-        .map((item) => ({
-          ...item,
-          user: item.provider_name,
-          eodsubmission: Number(id)
-        }));
-
-      if (payload.length > 0) {
-        const response = await EODReportService.addRefferal(payload);
-        if (response.status === 201) {
-          await handleSubmitEODReport();
+        if (rowsWithMissingData.length > 0) {
+          toast.error(
+            'Please specify both Provider and Specialty for all patients with names'
+          );
+          return;
         }
-      } else {
-        await handleSubmitEODReport();
+
+        if (rowsWithMissingOtherSpeciality.length > 0) {
+          toast.error(
+            'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+          );
+          return;
+        }
+
+        const payload = tableData
+          .filter(
+            (item) => item.patient_name && item.provider_name && item.specialty
+          )
+          .map(({ key, ...item }) => ({
+            ...item,
+            user: item.provider_name,
+            eodsubmission: Number(id)
+          }));
+
+        if (payload.length > 0) {
+          const response = await EODReportService.addRefferal(payload);
+          if (response.status === 201) {
+            if (navigate) {
+              await handleSubmitEODReport();
+            } else {
+              toast.success('Record is successfully saved');
+            }
+          }
+        } else {
+          if (navigate) {
+            await handleSubmitEODReport();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {}
-  }, [tableData, id, handleSubmitEODReport]);
+    },
+    [tableData, clinicId, id, setLoading]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false);
+  }, [saveData]);
 
   const fetchActiveProviders = async () => {
     try {
@@ -284,6 +307,7 @@ export default function Referrals() {
         />
       </div>
       <StepNavigation
+        onSave={handleSave}
         onNext={handleSubmit}
         className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
