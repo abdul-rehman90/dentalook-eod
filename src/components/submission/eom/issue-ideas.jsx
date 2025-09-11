@@ -108,29 +108,67 @@ export default function IssuesIdeas() {
     setTableData([...tableData, newItem]);
   };
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      const payload = tableData
-        .filter((item) => item.category && item.details)
-        .map((item) => ({
-          ...item,
-          submission: id
-        }));
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const payload = tableData
+          .filter((item) => item.category && item.details)
+          .map((item) => ({
+            ...item,
+            submission: id
+          }));
 
-      if (payload.length > 0) {
-        const response = await EOMReportService.addIssueIdeas(payload);
-        if (response.status === 201) {
-          await handleSubmitEOMReport();
+        if (payload.length > 0) {
+          const response = await EOMReportService.addIssueIdeas(payload);
+          if (response.status === 201) {
+            if (navigate) {
+              await handleSubmitEOMReport();
+            } else {
+              toast.success('Record is successfully saved');
+            }
+          }
+        } else {
+          if (navigate) {
+            await handleSubmitEOMReport();
+          }
         }
-        return;
-      } else {
-        await handleSubmitEOMReport();
+      } catch (error) {
+        toast.error('Failed to save issues/ideas data');
       }
-    } catch (error) {
-      toast.error('Failed to save issues/ideas data');
-      return Promise.reject(error);
-    }
-  }, [tableData, id, handleSubmitEOMReport]);
+    },
+    [tableData, id, handleSubmitEOMReport]
+  );
+
+  // const handleSubmit = useCallback(async () => {
+  //   try {
+  //     const payload = tableData
+  //       .filter((item) => item.category && item.details)
+  //       .map((item) => ({
+  //         ...item,
+  //         submission: id
+  //       }));
+
+  //     if (payload.length > 0) {
+  //       const response = await EOMReportService.addIssueIdeas(payload);
+  //       if (response.status === 201) {
+  //         await handleSubmitEOMReport();
+  //       }
+  //       return;
+  //     } else {
+  //       await handleSubmitEOMReport();
+  //     }
+  //   } catch (error) {
+  //     toast.error('Failed to save issues/ideas data');
+  //   }
+  // }, [tableData, id, handleSubmitEOMReport]);
+
+  const handleSubmit = useCallback(async () => {
+    await saveData(true); // Save and navigate
+  }, [saveData]);
+
+  const handleSave = useCallback(async () => {
+    await saveData(false);
+  }, [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -171,6 +209,7 @@ export default function IssuesIdeas() {
         />
       </div>
       <StepNavigation
+        onSave={handleSave}
         onNext={handleSubmit}
         className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />

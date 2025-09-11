@@ -219,32 +219,6 @@ export default function Supplies({ onNext }) {
     );
   };
 
-  // const footer = () => {
-  //   const totalActual = totalSupplies.reduce(
-  //     (sum, item) => sum + (Number(item.supplies_actual) || 0),
-  //     0
-  //   );
-  //   return (
-  //     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
-  //       <div className="font-semibold">Total</div>
-  //       <div className="min-[1280px]:max-[1450px]:ml-[18px] min-[1451px]:max-[1700px]:ml-[24px] min-[1701px]:max-[2000px]:ml-[28px] min-[2001px]:max-[2200px]:ml-[36px] min-[2201px]:max-[2500px]:ml-[38px] min-[2501px]:ml-[46px]">
-  //         ${totalActual.toFixed(2)}
-  //       </div>
-  //       <div></div>
-  //       <div className="text-center ml-24">0</div>
-  //       <div
-  //         className="text-center min-[1280px]:max-[2200px]:ml-16 min-[1201px]:ml-12"
-  //         style={{
-  //           color: totalActual - 0 >= 0 ? 'green' : 'red'
-  //         }}
-  //       >
-  //         ${(totalActual - 0).toFixed(2)}
-  //       </div>
-  //       <div></div>
-  //     </div>
-  //   );
-  // };
-
   const handleSaveEdit = async (record) => {
     try {
       setLoading(true);
