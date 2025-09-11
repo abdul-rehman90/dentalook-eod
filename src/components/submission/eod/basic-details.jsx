@@ -104,6 +104,7 @@ export default function BasicDetails() {
         clinicDetails: values,
         activeProviders: activeProviders
       });
+      toast.success('Record is successfully saved');
       router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
     },
     [currentStep, currentStepId, router, updateStepData]
@@ -138,9 +139,14 @@ export default function BasicDetails() {
 
         const response = await EODReportService.addActiveProviders(payload);
         if (response.status === 201) {
-          toast.success('Record is successfully saved');
           if (navigate) {
             moveRouter(submission_id, values, payload);
+          } else {
+            toast.success('Record is successfully saved');
+            updateStepData(currentStepId, {
+              clinicDetails: values,
+              activeProviders: payload || []
+            });
           }
         }
       } catch (error) {}
@@ -210,8 +216,16 @@ export default function BasicDetails() {
               : null
         };
 
-        if (id) {
-          await addActiveProviders(payload, id, navigate);
+        if (
+          id ||
+          (currentStepData?.clinicDetails &&
+            Object.keys(currentStepData.clinicDetails).length > 0)
+        ) {
+          const submissionId =
+            id ||
+            currentStepData.clinicDetails.submission_id ||
+            currentStepData.activeProviders?.[0]?.eod_submission;
+          await addActiveProviders(payload, submissionId, navigate);
           return;
         }
 
@@ -230,12 +244,12 @@ export default function BasicDetails() {
         setLoading(false);
       }
     },
-    [form, tableData, id, addActiveProviders, setLoading]
+    [form, tableData, id, addActiveProviders, setLoading, currentStepData]
   );
 
   const handleSubmit = useCallback(async () => {
     await saveData(true); // Save and navigate
-  }, [saveData]);
+  }, [saveData, currentStepData, id, router, currentStep]);
 
   const handleSave = useCallback(async () => {
     await saveData(false); // Save without navigation

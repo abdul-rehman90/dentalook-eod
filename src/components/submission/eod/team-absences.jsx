@@ -280,6 +280,16 @@ export default function TeamAbsences({ onNext }) {
           return;
         }
 
+        const seen = new Set();
+        for (const row of nonEmptyRows) {
+          const key = `${row.position}-${row.name}`;
+          if (seen.has(key)) {
+            toast.error(`Duplicate entry is not allowed`);
+            return;
+          }
+          seen.add(key);
+        }
+
         const payload = nonEmptyRows.map((item) => {
           const isStandardPosition = ['DDS', 'RDH', 'RDT'].includes(
             item.position
