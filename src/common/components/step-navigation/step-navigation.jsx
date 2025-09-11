@@ -45,7 +45,7 @@ export default function StepNavigation({ onNext, onSave, className = '' }) {
       >
         {getNextButtonText()}
       </Button>
-      {!isLastStep && !isReviewPath && (
+      {!isReviewPath && (
         <Button
           size="lg"
           onClick={onSave}

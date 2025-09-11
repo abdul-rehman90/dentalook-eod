@@ -6,8 +6,8 @@ import './globals.css';
 const montserrat = Montserrat({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Dentalook',
-  description: 'Dentalook application'
+  title: 'Dentalook Clinics Reporting',
+  description: 'Dentalook Clinics Reporting application'
 };
 
 export default function RootLayout({ children }) {
