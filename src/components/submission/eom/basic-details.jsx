@@ -88,8 +88,12 @@ export default function BasicDetails() {
 
   const saveData = useCallback(
     async (navigate = false) => {
-      if (id && navigate) {
-        router.push(`/submission/eom/${currentStep + 1}/${id}`);
+      if ((id && navigate) || Object.keys(currentStepData).length > 0) {
+        router.push(
+          `/submission/eom/${currentStep + 1}/${
+            id || currentStepData.submission_id
+          }`
+        );
         return;
       }
 
@@ -103,8 +107,9 @@ export default function BasicDetails() {
 
         const response = await EOMReportService.addBasicDetails(payload);
         if (response.status === 201) {
-          updateStepData(currentStepId, payload);
           const submission_id = response.data.id;
+          payload.submission_id = submission_id;
+          updateStepData(currentStepId, payload);
           toast.success('Record is successfully saved');
           if (navigate) {
             router.push(`/submission/eom/${currentStep + 1}/${submission_id}`);
@@ -118,12 +123,21 @@ export default function BasicDetails() {
         setLoading(false);
       }
     },
-    [id, form, router, setLoading, currentStep, currentStepId, updateStepData]
+    [
+      id,
+      form,
+      router,
+      setLoading,
+      currentStep,
+      currentStepId,
+      updateStepData,
+      currentStepData
+    ]
   );
 
   const handleSubmit = useCallback(async () => {
     await saveData(true); // Save and navigate
-  }, [saveData]);
+  }, [saveData, currentStepData, id, router, currentStep]);
 
   const handleSave = useCallback(async () => {
     await saveData(false); // Save without navigation
