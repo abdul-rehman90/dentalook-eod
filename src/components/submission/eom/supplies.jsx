@@ -15,6 +15,7 @@ const defaultRow = {
 };
 
 export default function Supplies({ onNext }) {
+  const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [editingId, setEditingId] = useState(null);
   const [editRowData, setEditRowData] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
@@ -192,6 +193,11 @@ export default function Supplies({ onNext }) {
       }
     }
   ];
+
+  const isValidAmountInput = (value) => {
+    if (value === '' || value == null) return true;
+    return AMOUNT_REGEX.test(value);
+  };
 
   const footer = () => {
     const totalActual = totalSupplies.reduce(

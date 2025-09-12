@@ -15,8 +15,8 @@ import {
 } from '@/common/utils/time-handling';
 
 const options = [
-  { label: 'Open', value: 'opened' },
-  { label: 'Close', value: 'closed' }
+  { label: 'Open', value: 'open' },
+  { label: 'Close', value: 'close' }
 ];
 
 export default function BasicDetails() {
@@ -42,7 +42,7 @@ export default function BasicDetails() {
     user: null,
     clinic: null,
     province: null,
-    status: 'closed',
+    status: 'close',
     clinic_open_time: null,
     clinic_close_time: null,
     submission_date: dayjs()
@@ -207,11 +207,11 @@ export default function BasicDetails() {
           ...values,
           submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
           clinic_open_time:
-            values.status === 'opened'
+            values.status === 'open'
               ? dayjs(values.clinic_open_time, 'h:mm a').format('HH:mm:ss')
               : null,
           clinic_close_time:
-            values.status === 'opened'
+            values.status === 'open'
               ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
               : null
         };
@@ -258,7 +258,7 @@ export default function BasicDetails() {
   const initializeForm = async () => {
     form.setFieldsValue({
       clinic: currentStepData.clinicDetails.clinic,
-      status: currentStepData.clinicDetails.status || 'closed',
+      status: currentStepData.clinicDetails.status.toLowerCase() || 'close',
       province:
         currentStepData.clinicDetails.province_id ||
         currentStepData.clinicDetails.province,
@@ -373,7 +373,7 @@ export default function BasicDetails() {
           {({ getFieldValue }) => {
             const openTime = getFieldValue('clinic_open_time');
             const closeTime = getFieldValue('clinic_close_time');
-            const isOpened = getFieldValue('status') === 'opened';
+            const isOpened = getFieldValue('status') === 'open';
             const shouldShowProviders = isOpened && openTime && closeTime;
             return (
               <React.Fragment>

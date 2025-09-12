@@ -1,7 +1,8 @@
 import { Toaster } from 'react-hot-toast';
 import { Montserrat } from 'next/font/google';
-import { AppProvider } from '@/common/context/global-context';
 import './globals.css';
+import { AppProvider } from '@/common/context/global-context';
+// import GlobalLoader from '@/common/components/loader/loader';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 
