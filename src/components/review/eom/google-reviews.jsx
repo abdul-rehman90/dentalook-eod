@@ -27,17 +27,17 @@ export default function GoogleReviews({ onNext }) {
       editable: true,
       disabled: true,
       inputType: 'text',
-      key: 'google_review_count',
-      dataIndex: 'google_review_count',
+      key: 'google_review_score',
+      dataIndex: 'google_review_score',
       title: 'Current Google Score (Out of 5)'
     },
     {
       editable: true,
       disabled: true,
       inputType: 'text',
-      key: 'google_review_score',
+      key: 'google_review_count',
       title: 'Google Reviews (#)',
-      dataIndex: 'google_review_score'
+      dataIndex: 'google_review_count'
     }
   ];
 

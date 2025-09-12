@@ -206,6 +206,7 @@ export default function List() {
               From
             </p>
             <DatePicker
+              allowClear={false}
               format="MM/DD/YYYY"
               placeholder="Select date"
               style={{ width: '100%' }}
@@ -218,6 +219,7 @@ export default function List() {
               To
             </p>
             <DatePicker
+              allowClear={false}
               format="MM/DD/YYYY"
               value={filters.end_date}
               placeholder="Select date"
@@ -232,6 +234,7 @@ export default function List() {
           Clinic Submissions
         </p>
         <GenericTable
+          showPagination
           loading={loading}
           columns={columns}
           dataSource={submissions}

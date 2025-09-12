@@ -14,14 +14,14 @@ const { TextArea } = Input;
 const paymentOptions = [
   { value: 'VISA', label: 'VISA' },
   { value: 'AMEX', label: 'AMEX' },
+  { value: 'CASH', label: 'CASH' },
   { value: 'DEBIT', label: 'DEBIT' },
   { value: 'MASTERCARD', label: 'MASTERCARD' },
   { value: 'CC/DEBIT REFUND', label: 'CC/DEBIT REFUND' },
   { value: 'PATIENT E-TRANSFER', label: 'PATIENT E-TRANSFER' },
   { value: 'PATIENT CHEQUE', label: 'PATIENT CHEQUE' },
   { value: 'INSURANCE CHEQUE', label: 'INSURANCE CHEQUE' },
-  { value: 'EFT PAYMENT', label: 'EFT PAYMENT' },
-  { value: 'CASH', label: 'CASH' }
+  { value: 'EFT PAYMENT', label: 'EFT PAYMENT' }
 ];
 
 export default function Payment({ onNext }) {
@@ -29,7 +29,6 @@ export default function Payment({ onNext }) {
   const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [tableData, setTableData] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
-
   const {
     id,
     steps,
@@ -83,14 +82,16 @@ export default function Payment({ onNext }) {
   };
 
   const handleAddNew = () => {
-    const newPayment = {
-      key: `new-${Date.now()}-${Math.random()}`,
-      type: '',
-      amount: '',
-      remarks: '',
-      action: ''
-    };
-    setTableData([...tableData, newPayment]);
+    setTableData((prev) => [
+      ...prev,
+      {
+        key: `new-${Date.now()}-${Math.random()}`,
+        type: '',
+        amount: '',
+        remarks: '',
+        insurance_company: ''
+      }
+    ]);
   };
 
   const footer = () => {
@@ -267,55 +268,6 @@ export default function Payment({ onNext }) {
     await saveData(false);
   }, [saveData]);
 
-  const fetchAllPayments = useCallback(async () => {
-    try {
-      setDataLoading(true);
-      const response = await EODReportService.getAllPaymentsOrderByClinic(
-        clinicId
-      );
-      if (response.status === 200) {
-        let mergedData = [];
-        const basePayments = Object.entries(response.data.payment_type_order)
-          .map(([type, order]) => ({
-            amount: '',
-            key: `api-${order}-${type}`, // unique string key
-            type: type,
-            remarks: ''
-          }))
-          .sort((a, b) => a.key.localeCompare(b.key));
-
-        if (currentStepData.length > 0) {
-          const storedNotes = currentStepData[0]?.notes;
-          basePayments.forEach((payment) => {
-            const existingRows = currentStepData.filter(
-              (item) => item.payment_type === payment.type
-            );
-            if (existingRows.length > 0) {
-              existingRows.forEach((row, idx) => {
-                mergedData.push({
-                  ...payment,
-                  remarks: row.remarks,
-                  amount: row.payment_amount,
-                  key: `api-${payment.type}-${idx}`,
-                  insurance_company: row.insurance_company
-                });
-              });
-            } else {
-              mergedData.push(payment);
-            }
-          });
-          setNotes(storedNotes);
-          setTableData(mergedData);
-        } else {
-          setTableData(basePayments);
-        }
-      }
-    } catch (error) {
-    } finally {
-      setDataLoading(false);
-    }
-  }, [clinicId]);
-
   useEffect(() => {
     if (
       !Array.isArray(currentStepData) &&
@@ -324,7 +276,36 @@ export default function Payment({ onNext }) {
       setNotes(currentStepData.notes || '');
       setTableData(currentStepData.payments || []);
     } else if (clinicId) {
-      fetchAllPayments();
+      const storedNotes =
+        Array.isArray(currentStepData) && currentStepData[0]?.notes;
+
+      const mergedData = paymentOptions.flatMap((payment, index) => {
+        const existingRows = Array.isArray(currentStepData)
+          ? currentStepData.filter(
+              (item) => item.payment_type === payment.value
+            )
+          : [];
+
+        if (existingRows.length > 0) {
+          return existingRows.map((row, idx) => ({
+            type: payment.value,
+            remarks: row.remarks,
+            amount: row.payment_amount,
+            key: `merged-${idx}-${payment.value}`,
+            insurance_company: row.insurance_company
+          }));
+        }
+
+        return {
+          amount: '',
+          remarks: '',
+          type: payment.value,
+          key: `merged-${index}-${payment.value}`
+        };
+      });
+
+      setNotes(storedNotes || '');
+      setTableData(mergedData);
     }
   }, [clinicId]);
 
@@ -355,6 +336,7 @@ export default function Payment({ onNext }) {
           <Col span={12}>
             <div className="payment-table">
               <GenericTable
+                rowKey="key"
                 footer={footer}
                 columns={columns}
                 loading={dataLoading}
