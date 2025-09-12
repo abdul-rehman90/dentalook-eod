@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CSS } from '@dnd-kit/utilities';
-import { Table, Input, Select } from 'antd';
+import { Table, Input, Select, Pagination } from 'antd';
 import { useSortable } from '@dnd-kit/sortable';
 
 const Row = ({ children, ...props }) => {
@@ -37,15 +37,23 @@ const Row = ({ children, ...props }) => {
 };
 
 function GenericTable({
+  rowKey,
   columns,
   loading,
   onCellChange,
   footer = null,
   dataSource = [],
   bordered = true,
-  showHeader = true
+  showHeader = true,
+  showPagination = false,
+  paginationOptions = { pageSize: 10, current: 1, showSizeChanger: true }
 }) {
   const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
+  const [currentPage, setCurrentPage] = useState(
+    paginationOptions.current || 1
+  );
+  const [paginatedData, setPaginatedData] = useState([]);
+  const [pageSize, setPageSize] = useState(paginationOptions.pageSize || 10);
 
   const isValidAmountInput = (value) => {
     if (value === '' || value == null) return true;
@@ -70,7 +78,6 @@ function GenericTable({
       return;
     }
 
-    // Format to two decimal places
     const formattedValue = num.toFixed(2);
     onCellChange(record, dataIndex, formattedValue);
   };
@@ -116,28 +123,57 @@ function GenericTable({
         return <div className="h-full">{cellContent}</div>;
       };
 
-      col.onCell = () => {
-        return {
-          className: 'editable-cell'
-        };
-      };
+      col.onCell = () => ({ className: 'editable-cell' });
     }
     return col;
   });
 
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+    if (paginationOptions.onChange) {
+      paginationOptions.onChange(page, newPageSize);
+    }
+  };
+
+  useEffect(() => {
+    if (showPagination) {
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      setPaginatedData(dataSource.slice(start, end));
+    } else {
+      setPaginatedData(dataSource);
+    }
+  }, [currentPage, pageSize, dataSource, showPagination]);
+
   return (
-    <Table
-      rowKey="key"
-      size="middle"
-      loading={loading}
-      pagination={false}
-      bordered={bordered}
-      showHeader={showHeader}
-      dataSource={dataSource}
-      columns={transformedColumns}
-      summary={footer ? footer : null}
-      components={{ body: { row: Row } }}
-    />
+    <div>
+      <Table
+        size="middle"
+        rowKey={rowKey}
+        loading={loading}
+        pagination={false}
+        bordered={bordered}
+        showHeader={showHeader}
+        dataSource={paginatedData}
+        columns={transformedColumns}
+        summary={footer ? footer : null}
+        components={{ body: { row: Row } }}
+      />
+
+      {showPagination && (
+        <div className="flex justify-center mt-5">
+          <Pagination
+            pageSize={pageSize}
+            current={currentPage}
+            total={dataSource.length}
+            onChange={handlePageChange}
+            onShowSizeChange={handlePageChange}
+            showSizeChanger={paginationOptions.showSizeChanger}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

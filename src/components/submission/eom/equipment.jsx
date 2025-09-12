@@ -66,6 +66,7 @@ export default function EquipmentRepairs({ onNext }) {
       render: (_, record) => (
         <div className="h-full">
           <DatePicker
+            allowClear={false}
             format="ddd, MMM D, YYYY"
             placeholder="Select Date"
             value={record.last_maintenance_date}
