@@ -24,9 +24,18 @@ const defaultRow = {
 export default function IssuesIdeas() {
   const router = useRouter();
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
-  const clinicId = reportData?.eom?.basic?.clinic;
+  const {
+    id,
+    steps,
+    reportData,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eom?.basic?.clinic;
 
   const columns = [
     {
@@ -124,6 +133,7 @@ export default function IssuesIdeas() {
             if (navigate) {
               await handleSubmitEOMReport();
             } else {
+              updateStepData(currentStepId, tableData);
               toast.success('Record is successfully saved');
             }
           }
@@ -138,29 +148,6 @@ export default function IssuesIdeas() {
     },
     [tableData, id, handleSubmitEOMReport]
   );
-
-  // const handleSubmit = useCallback(async () => {
-  //   try {
-  //     const payload = tableData
-  //       .filter((item) => item.category && item.details)
-  //       .map((item) => ({
-  //         ...item,
-  //         submission: id
-  //       }));
-
-  //     if (payload.length > 0) {
-  //       const response = await EOMReportService.addIssueIdeas(payload);
-  //       if (response.status === 201) {
-  //         await handleSubmitEOMReport();
-  //       }
-  //       return;
-  //     } else {
-  //       await handleSubmitEOMReport();
-  //     }
-  //   } catch (error) {
-  //     toast.error('Failed to save issues/ideas data');
-  //   }
-  // }, [tableData, id, handleSubmitEOMReport]);
 
   const handleSubmit = useCallback(async () => {
     await saveData(true); // Save and navigate

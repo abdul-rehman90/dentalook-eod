@@ -6,6 +6,7 @@ import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import Link from 'next/link';
 
 export default function List() {
   const router = useRouter();
@@ -35,16 +36,16 @@ export default function List() {
       title: 'Status',
       key: 'submitted',
       dataIndex: 'submitted',
-      render: (text) =>
-        text ? (
+      render: (status) =>
+        status ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              text === 'Completed'
+              status === 'Completed'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
           >
-            {text}
+            {status === 'Completed' ? 'Submitted' : status}
           </span>
         ) : (
           'N/A'
@@ -60,9 +61,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            onClick={() =>
-              router.push(`/review/eod/1/${record.eodsubmission_id}`)
-            }
+            href={`/review/eod/1/${record.eodsubmission_id}`}
           >
             <EyeOutlined />
           </Button>
@@ -70,10 +69,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            // disabled={record.submitted === 'Completed'}
-            onClick={() =>
-              router.push(`/submission/eod/1/${record.eodsubmission_id}`)
-            }
+            href={`/submission/eod/1/${record.eodsubmission_id}`}
           >
             <EditOutlined />
           </Button>

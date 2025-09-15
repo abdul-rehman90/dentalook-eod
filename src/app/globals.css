@@ -264,7 +264,7 @@
   border-bottom: 2px solid var(--color-primary-400);
 }
 
-.ant-tabs-tab-active .ant-tabs-tab-btn,
+.ant-tabs .ant-tabs-tab-active a,
 .ant-tabs-tab-btn:active {
   color: var(--color-primary-400) !important;
 }
@@ -277,6 +277,14 @@
 
 .ant-tabs .ant-tabs-ink-bar {
   display: none !important;
+}
+
+.ant-tabs .ant-tabs-tab a {
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  display: block;
+  text-decoration: none;
 }
 
 /* Custom Checkbox */

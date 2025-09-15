@@ -51,8 +51,17 @@ export default function Referrals() {
   const router = useRouter();
   const [providers, setProviders] = useState([]);
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
+  const {
+    id,
+    steps,
+    reportData,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
   const columns = [
@@ -228,6 +237,7 @@ export default function Referrals() {
             if (navigate) {
               await handleSubmitEODReport();
             } else {
+              updateStepData(currentStepId, tableData);
               toast.success('Record is successfully saved');
             }
           }
@@ -270,10 +280,10 @@ export default function Referrals() {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         specialty: item.specialty,
-        provider_name: item.user?.id,
         patient_name: item.patient_name,
         other_specialty: item.other_specialty,
-        key: item.id?.toString() || item.key?.toString()
+        key: item.id?.toString() || item.key?.toString(),
+        provider_name: item.user?.id || item.provider_name
       }));
       setTableData(transformedData);
     }
