@@ -124,6 +124,9 @@ export default function Payment({ onNext }) {
             <Select
               value={type}
               onChange={(value) => handleTypeChange(record.key, value)}
+              className={
+                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+              }
             >
               {paymentOptions.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
@@ -159,6 +162,9 @@ export default function Payment({ onNext }) {
           prefix="$"
           value={record.amount || ''}
           onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
           onBlur={(e) => {
             const val = String(e.target.value || '').trim();
             if (val && !val.includes('.')) {
@@ -179,6 +185,9 @@ export default function Payment({ onNext }) {
         <Input
           value={remarks}
           onChange={(e) => handleCellChange(record, 'remarks', e.target.value)}
+          className={
+            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+          }
         />
       )
     }
