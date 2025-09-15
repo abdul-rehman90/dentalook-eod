@@ -41,16 +41,16 @@ export default function List() {
       key: 'status',
       title: 'Status',
       dataIndex: 'status',
-      render: (text) =>
-        text ? (
+      render: (status) =>
+        status ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              text === 'Completed'
+              status === 'Submitted'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
           >
-            {text}
+            {status}
           </span>
         ) : (
           'N/A'
@@ -66,9 +66,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            onClick={() =>
-              router.push(`/review/eom/1/${record.eodsubmission_id}`)
-            }
+            href={`/review/eom/1/${record.eodsubmission_id}`}
           >
             <EyeOutlined />
           </Button>
@@ -76,10 +74,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            // disabled={record.status === 'Completed'}
-            onClick={() =>
-              router.push(`/submission/eom/1/${record.eodsubmission_id}`)
-            }
+            href={`/submission/eom/1/${record.eodsubmission_id}`}
           >
             <EditOutlined />
           </Button>
