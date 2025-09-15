@@ -1,10 +1,7 @@
-import { Toaster } from 'react-hot-toast';
-import { Montserrat } from 'next/font/google';
 import './globals.css';
+import { Toaster } from 'react-hot-toast';
 import { AppProvider } from '@/common/context/global-context';
-// import GlobalLoader from '@/common/components/loader/loader';
-
-const montserrat = Montserrat({ subsets: ['latin'] });
+import Providers from '@/common/components/progress-bar/progress-bar';
 
 export const metadata = {
   title: 'Dentalook Clinics Reporting',
@@ -16,7 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AppProvider>
-          {children}
+          <Providers>{children}</Providers>
           <Toaster />
         </AppProvider>
       </body>

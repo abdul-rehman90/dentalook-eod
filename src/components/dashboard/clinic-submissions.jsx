@@ -36,7 +36,7 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
         text ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              text === 'Completed'
+              text === 'Submitted'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
@@ -55,9 +55,10 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
       render: (_, record) => (
         <div className="flex items-center">
           <Button
-            size="sm"
+            size="icon"
             variant="destructive"
-            onClick={() => router.push(`/submission/eom/1/${record.id}`)}
+            className="w-full m-auto"
+            href={`/submission/eod/1/${record.id}`}
           >
             <EditOutlined />
           </Button>

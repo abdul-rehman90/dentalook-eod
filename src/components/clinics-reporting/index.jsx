@@ -3,17 +3,9 @@
 import React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
-import { useRouter } from 'next/navigation';
-import {
-  Card,
-  CardTitle,
-  CardHeader,
-  CardDescription
-} from '@/common/components/card/card';
+import Link from 'next/link';
 
 export default function ClinicsReporting() {
-  const router = useRouter();
-
   const cardsData = [
     {
       id: '1',
@@ -41,10 +33,6 @@ export default function ClinicsReporting() {
     }
   ];
 
-  const handleCardClick = (route) => {
-    router.push(route);
-  };
-
   return (
     <React.Fragment>
       <div className="text-center mb-13">
@@ -61,28 +49,18 @@ export default function ClinicsReporting() {
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         {cardsData.map((card) => (
-          <Card
-            key={card.id}
+          <Link
             tabIndex={0}
-            role="button"
+            key={card.id}
+            href={card.route}
             aria-label={`Navigate to ${card.title}`}
-            className="justify-center h-37 cursor-pointer group hover:shadow-[0px_4px_25px_0px_rgba(125,176,45,0.25)] hover:border-primary-300 hover:border-2 transition-all"
-            onClick={() => handleCardClick(card.route)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleCardClick(card.route);
-              }
-            }}
+            className="flex flex-col justify-center h-37 cursor-pointer group border border-gray-200 rounded-xl p-6 text-center hover:shadow-[0px_4px_25px_0px_rgba(125,176,45,0.25)] hover:border-primary-300 transition-all"
           >
-            <CardHeader className="text-black text-center">
-              <CardTitle className="text-[18px] font-medium group-hover:text-primary-500 group-hover:text-xl group-hover:font-bold transition-all">
-                {card.title}
-              </CardTitle>
-              <CardDescription className="text-base">
-                {card.description}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+            <h3 className="text-[18px] font-medium group-hover:text-primary-500 group-hover:text-xl group-hover:font-bold transition-all">
+              {card.title}
+            </h3>
+            <p className="text-base text-gray-700 mt-2">{card.description}</p>
+          </Link>
         ))}
       </div>
     </React.Fragment>
