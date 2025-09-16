@@ -151,6 +151,7 @@ export default function DailyProduction({ onNext }) {
     },
     {
       width: 50,
+      prefix: '$',
       editable: true,
       inputType: 'number',
       title: 'Production',
@@ -165,19 +166,6 @@ export default function DailyProduction({ onNext }) {
       dataIndex: ''
     }
   ];
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key
-          ? {
-              ...item,
-              [dataIndex]: dataIndex === 'production' ? Number(value) : value
-            }
-          : item
-      )
-    );
-  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -218,13 +206,8 @@ export default function DailyProduction({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const fetchTargetGoal = async () => {
     try {
@@ -300,7 +283,6 @@ export default function DailyProduction({ onNext }) {
           loading={dataLoading}
           dataSource={tableData}
           columns={providersColumns}
-          onCellChange={handleCellChange}
         />
         <GenericTable
           dataSource={summaryData}

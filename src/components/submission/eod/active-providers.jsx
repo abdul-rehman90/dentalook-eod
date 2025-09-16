@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Checkbox } from 'antd';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
-import { Checkbox, Input, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import {
   formatTimeForUI,
   generateTimeOptions
@@ -19,6 +20,27 @@ const providerTypes = [
   { value: 'RDT', label: 'RDT' }
 ];
 
+const GetModalContent = () => {
+  return (
+    <div className="add-provider-form">
+      <FormControl
+        required
+        name="name"
+        control="input"
+        label="Provider FullName"
+        placeholder="Enter provider name"
+      />
+      <FormControl
+        required
+        name="user_type"
+        control="select"
+        label="Provider Title"
+        options={providerTypes}
+      />
+    </div>
+  );
+};
+
 export default function ActiveProviders({ form, tableData, setTableData }) {
   const { getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
@@ -29,9 +51,18 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const clinicOpenTime = form.getFieldValue('clinic_open_time');
   const clinicCloseTime = form.getFieldValue('clinic_close_time');
 
+  console.log(tableData);
+
+  const timeOptions = useMemo(
+    () =>
+      generateTimeOptions(clinicOpenTime, clinicCloseTime)[
+        (clinicOpenTime, clinicCloseTime)
+      ]
+  );
+
   const columns = [
     {
-      // width: 20,
+      width: 50,
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
@@ -49,241 +80,143 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         />
       )
     },
+    { width: 50, key: 'type', title: 'Title', dataIndex: 'type' },
+    { width: 100, key: 'name', title: 'Provider Name', dataIndex: 'name' },
     {
-      // width: 50,
-      key: 'type',
-      title: 'Title',
-      dataIndex: 'type'
-    },
-    {
-      width: 150,
-      key: 'name',
-      dataIndex: 'name',
-      title: 'Provider Name'
-    },
-    {
-      // width: 20,
+      width: 80,
+      editable: true,
       key: 'start_time',
       title: 'Start Time',
+      inputType: 'select',
       dataIndex: 'start_time',
+      selectOptions: timeOptions,
       render: (_, record) => {
-        const timeOptions = generateTimeOptions(
-          clinicOpenTime,
-          clinicCloseTime
-        );
+        // const timeOptions = generateTimeOptions(
+        //   clinicOpenTime,
+        //   clinicCloseTime
+        // );
+        console.log(timeOptions);
         return (
-          <Select
-            showSearch
+          <EditableCell
+            type="select"
+            field="start_time"
             options={timeOptions}
-            placeholder="Select one"
+            recordKey={record.key}
             value={record.start_time}
-            style={{ width: '100%' }}
+            onCommit={handleCellCommit}
             disabled={!record.is_active}
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            onChange={(value) => {
-              const updatedProviders = tableData.map((p) =>
-                p.key === record.key
-                  ? {
-                      ...p,
-                      start_time: value
-                    }
-                  : p
-              );
-              setTableData(updatedProviders);
-            }}
           />
         );
       }
     },
     {
-      // width: 20,
+      width: 80,
+      editable: true,
       key: 'end_time',
       title: 'End Time',
+      inputType: 'select',
       dataIndex: 'end_time',
+      selectOptions: timeOptions,
       render: (_, record) => {
-        const timeOptions = generateTimeOptions(
-          clinicOpenTime,
-          clinicCloseTime
-        );
+        // const timeOptions = generateTimeOptions(
+        //   clinicOpenTime,
+        //   clinicCloseTime
+        // );
         return (
-          <Select
-            showSearch
+          <EditableCell
+            type="select"
+            field="end_time"
             options={timeOptions}
+            recordKey={record.key}
             value={record.end_time}
-            placeholder="Select one"
-            style={{ width: '100%' }}
+            onCommit={handleCellCommit}
             disabled={!record.is_active}
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            onChange={(value) => {
-              const updatedProviders = tableData.map((p) =>
-                p.key === record.key
-                  ? {
-                      ...p,
-                      end_time: value
-                    }
-                  : p
-              );
-              setTableData(updatedProviders);
-            }}
           />
         );
       }
     },
     {
-      // width: 50,
+      width: 80,
       title: 'Pt. Seen',
       key: 'number_of_patients_seen',
-      dataIndex: 'number_of_patients_seen',
-      onCell: () => ({ className: 'divider-cell' }),
       render: (_, record) => (
-        <div>
-          <Input
-            type="number"
-            disabled={!record.is_active}
-            value={record.number_of_patients_seen || ''}
-            onChange={(e) => {
-              const updatedProviders = tableData.map((p) =>
-                p.key === record.key
-                  ? {
-                      ...p,
-                      number_of_patients_seen: e.target.value
-                        ? parseInt(e.target.value)
-                        : null
-                    }
-                  : p
-              );
-              setTableData(updatedProviders);
-            }}
-          />
-        </div>
+        <EditableCell
+          type="number"
+          recordKey={record.key}
+          onCommit={handleCellCommit}
+          disabled={!record.is_active}
+          field="number_of_patients_seen"
+          value={record.number_of_patients_seen}
+        />
       )
     },
     {
-      // width: 50,
+      width: 80,
       key: 'unfilled_spots',
       title: 'Unfilled (Units)',
-      dataIndex: 'unfilled_spots',
       render: (_, record) => (
-        <Input
+        <EditableCell
           type="number"
+          field="unfilled_spots"
+          recordKey={record.key}
+          onCommit={handleCellCommit}
           disabled={!record.is_active}
           value={record.unfilled_spots}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    unfilled_spots: e.target.value
-                      ? parseInt(e.target.value)
-                      : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
         />
       )
     },
     {
-      // width: 50,
+      width: 80,
       key: 'no_shows',
-      dataIndex: 'no_shows',
       title: 'No Shows (Units)',
       render: (_, record) => (
-        <Input
+        <EditableCell
           type="number"
+          field="no_shows"
+          recordKey={record.key}
           value={record.no_shows}
+          onCommit={handleCellCommit}
           disabled={!record.is_active}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    no_shows: e.target.value ? parseInt(e.target.value) : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
         />
       )
     },
     {
-      // width: 50,
+      width: 80,
       title: 'Short Ntc (Units)',
       key: 'short_notice_cancellations',
-      dataIndex: 'short_notice_cancellations',
       render: (_, record) => (
-        <Input
+        <EditableCell
           type="number"
+          recordKey={record.key}
+          onCommit={handleCellCommit}
           disabled={!record.is_active}
+          field="short_notice_cancellations"
           value={record.short_notice_cancellations}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    short_notice_cancellations: e.target.value
-                      ? parseInt(e.target.value)
-                      : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
         />
       )
     },
     {
-      // width: 50,
+      width: 80,
       title: 'Failed (Units)',
       key: 'failed_appointments',
-      dataIndex: 'failed_appointments',
       render: (_, record) => (
-        <Input
+        <EditableCell
           type="number"
+          recordKey={record.key}
+          field="failed_appointments"
+          onCommit={handleCellCommit}
           disabled={!record.is_active}
           value={record.failed_appointments}
-          onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key
-                ? {
-                    ...p,
-                    failed_appointments: e.target.value
-                      ? parseInt(e.target.value)
-                      : null
-                  }
-                : p
-            );
-            setTableData(updatedProviders);
-          }}
         />
       )
     }
   ];
 
-  const GetModalContent = () => {
-    return (
-      <div className="add-provider-form">
-        <FormControl
-          required
-          name="name"
-          control="input"
-          label="Provider FullName"
-          placeholder="Enter provider name"
-        />
-        <FormControl
-          required
-          name="user_type"
-          control="select"
-          label="Provider Title"
-          options={providerTypes}
-        />
-      </div>
+  const handleCellCommit = (recordKey, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === recordKey ? { ...item, [field]: value } : item
+      )
     );
   };
 

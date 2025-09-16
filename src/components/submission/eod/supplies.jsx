@@ -51,6 +51,7 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 50,
+      prefix: '$',
       editable: true,
       title: 'Actual',
       inputType: 'number',
@@ -221,14 +222,6 @@ export default function Supplies({ onNext }) {
     );
   };
 
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
   const handleSaveEdit = async (record) => {
     try {
       setLoading(true);
@@ -294,13 +287,8 @@ export default function Supplies({ onNext }) {
     [tableData, clinicId, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && Object.entries(currentStepData).length > 0) {
@@ -350,11 +338,7 @@ export default function Supplies({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6 flex flex-col gap-14">
-        <GenericTable
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <GenericTable rowKey="key" columns={columns} dataSource={tableData} />
         <GenericTable
           footer={footer}
           loading={dataLoading}
