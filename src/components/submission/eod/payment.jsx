@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { PlusOutlined } from '@ant-design/icons';
 import { Col, Row, Input, Select, Table } from 'antd';
@@ -49,10 +49,11 @@ export default function Payment({ onNext }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
-    const newPayments = tableData.map((item) =>
-      item.key === record.key ? { ...item, [dataIndex]: value } : item
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
     );
-    setTableData(newPayments);
   };
 
   const handleAmountChange = (record, dataIndex, rawValue) => {
@@ -110,88 +111,95 @@ export default function Payment({ onNext }) {
     );
   };
 
-  const columns = [
-    {
-      width: 100,
-      key: 'type',
-      dataIndex: 'type',
-      title: 'Payment Type',
-      render: (type, record) => {
-        const showInsuranceInput =
-          type === 'EFT PAYMENT' || type === 'INSURANCE CHEQUE';
-        return (
-          <div className="flex flex-col gap-1">
-            <Select
-              value={type}
-              onChange={(value) => handleTypeChange(record.key, value)}
-              className={
-                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-              }
-            >
-              {paymentOptions.map((option) => (
-                <Select.Option key={option.value} value={option.value}>
-                  {option.label}
-                </Select.Option>
-              ))}
-            </Select>
-            {showInsuranceInput && (
-              <Input
-                placeholder="Insurance Company"
-                value={record.insurance_company || ''}
-                onChange={(e) =>
-                  handleDetailChange(
-                    record.key,
-                    'insurance_company',
-                    e.target.value
-                  )
+  const columns = useMemo(
+    () => [
+      {
+        width: 100,
+        key: 'type',
+        dataIndex: 'type',
+        title: 'Payment Type',
+        render: (type, record) => {
+          const showInsuranceInput =
+            type === 'EFT PAYMENT' || type === 'INSURANCE CHEQUE';
+          return (
+            <div className="flex flex-col gap-1">
+              <Select
+                value={type}
+                onChange={(value) => handleTypeChange(record.key, value)}
+                className={
+                  record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
                 }
-              />
-            )}
-          </div>
-        );
-      }
-    },
-    {
-      width: 100,
-      key: 'amount',
-      title: 'Amount',
-      dataIndex: 'amount',
-      render: (_, record) => (
-        <Input
-          type="text"
-          prefix="$"
-          value={record.amount || ''}
-          onChange={(e) => handleAmountChange(record, 'amount', e.target.value)}
-          className={
-            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-          }
-          onBlur={(e) => {
-            const val = String(e.target.value || '').trim();
-            if (val && !val.includes('.')) {
-              handleCellChange(record, 'amount', `${val}.00`);
-            } else {
-              handleCellChange(record, 'amount', val);
+              >
+                {paymentOptions.map((option) => (
+                  <Select.Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Option>
+                ))}
+              </Select>
+              {showInsuranceInput && (
+                <Input
+                  placeholder="Insurance Company"
+                  value={record.insurance_company || ''}
+                  onChange={(e) =>
+                    handleDetailChange(
+                      record.key,
+                      'insurance_company',
+                      e.target.value
+                    )
+                  }
+                />
+              )}
+            </div>
+          );
+        }
+      },
+      {
+        width: 100,
+        key: 'amount',
+        title: 'Amount',
+        dataIndex: 'amount',
+        render: (_, record) => (
+          <Input
+            prefix="$"
+            type="text"
+            value={record.amount || ''}
+            onChange={(e) =>
+              handleAmountChange(record, 'amount', e.target.value)
             }
-          }}
-        />
-      )
-    },
-    {
-      width: 150,
-      key: 'remarks',
-      title: 'Remarks',
-      dataIndex: 'remarks',
-      render: (remarks, record) => (
-        <Input
-          value={remarks}
-          onChange={(e) => handleCellChange(record, 'remarks', e.target.value)}
-          className={
-            record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-          }
-        />
-      )
-    }
-  ];
+            className={
+              record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+            }
+            onBlur={(e) => {
+              const val = String(e.target.value || '').trim();
+              if (val && !val.includes('.')) {
+                handleCellChange(record, 'amount', `${val}.00`);
+              } else {
+                handleCellChange(record, 'amount', val);
+              }
+            }}
+          />
+        )
+      },
+      {
+        width: 150,
+        key: 'remarks',
+        title: 'Remarks',
+        dataIndex: 'remarks',
+        render: (remarks, record) => (
+          <Input
+            value={remarks}
+            onChange={(e) =>
+              handleCellChange(record, 'remarks', e.target.value)
+            }
+            className={
+              record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+            }
+          />
+        )
+      }
+    ],
+    [tableData]
+  );
 
   const saveData = useCallback(
     async (navigate = false) => {
