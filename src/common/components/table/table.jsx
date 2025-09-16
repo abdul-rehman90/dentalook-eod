@@ -1,40 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CSS } from '@dnd-kit/utilities';
 import { Table, Input, Select, Pagination } from 'antd';
-import { useSortable } from '@dnd-kit/sortable';
-
-const Row = ({ children, ...props }) => {
-  const {
-    listeners,
-    transform,
-    attributes,
-    setNodeRef,
-    transition,
-    isDragging
-  } = useSortable({
-    id: props['data-row-key']
-  });
-
-  const style = {
-    transition,
-    cursor: 'move',
-    ...props.style,
-    transform: CSS.Transform.toString(transform),
-    ...(isDragging ? { position: 'relative', zIndex: 9999 } : {})
-  };
-
-  return (
-    <tr
-      {...props}
-      style={style}
-      {...listeners}
-      {...attributes}
-      ref={setNodeRef}
-    >
-      {children}
-    </tr>
-  );
-};
 
 function GenericTable({
   rowKey,
@@ -158,7 +123,7 @@ function GenericTable({
         dataSource={paginatedData}
         columns={transformedColumns}
         summary={footer ? footer : null}
-        components={{ body: { row: Row } }}
+        // components={{ body: { row: Row } }}
       />
 
       {showPagination && (
