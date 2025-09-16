@@ -64,6 +64,34 @@ export default function Referrals() {
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
+  const EditableCell = ({ value, field, disabled, recordKey }) => {
+    const [localValue, setLocalValue] = useState(value ?? '');
+
+    useEffect(() => setLocalValue(value ?? ''), [value]);
+
+    return (
+      <Input
+        value={localValue}
+        disabled={disabled}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={() => handleCellCommit(recordKey, field, localValue)}
+      />
+    );
+  };
+
+  const handleCellCommit = (recordKey, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === recordKey
+          ? {
+              ...item,
+              [field]: value
+            }
+          : item
+      )
+    );
+  };
+
   const columns = [
     {
       width: 150,
@@ -99,20 +127,11 @@ export default function Referrals() {
             title: 'Other Speciality',
             dataIndex: 'other_specialty',
             render: (_, record) => (
-              <Input
+              <EditableCell
+                recordKey={record.key}
+                field="other_specialty"
                 value={record.other_specialty}
                 disabled={record.specialty !== 'Other'}
-                onChange={(e) => {
-                  const updatedProviders = tableData.map((p) =>
-                    p.key === record.key
-                      ? {
-                          ...p,
-                          other_specialty: e.target.value
-                        }
-                      : p
-                  );
-                  setTableData(updatedProviders);
-                }}
               />
             )
           }
