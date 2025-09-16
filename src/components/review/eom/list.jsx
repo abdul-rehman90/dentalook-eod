@@ -45,12 +45,14 @@ export default function List() {
         status ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              status === 'Submitted'
+              status === 'Submitted' || status === 'Completed'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
           >
-            {status}
+            {status === 'Submitted' || status === 'Completed'
+              ? 'Submitted'
+              : 'Draft'}
           </span>
         ) : (
           'N/A'
