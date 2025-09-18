@@ -139,15 +139,13 @@ export default function DailyProduction({ onNext }) {
       width: 145,
       key: 'type',
       title: 'Title',
-      dataIndex: 'type',
-      render: (type) => type || 'N/A'
+      dataIndex: 'type'
     },
     {
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
-      width: hasRDT ? 350 : 240,
-      render: (name) => name || 'N/A'
+      width: hasRDT ? 350 : 240
     },
     {
       width: 50,
@@ -166,6 +164,14 @@ export default function DailyProduction({ onNext }) {
       dataIndex: ''
     }
   ];
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -267,12 +273,12 @@ export default function DailyProduction({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 
@@ -283,6 +289,7 @@ export default function DailyProduction({ onNext }) {
           loading={dataLoading}
           dataSource={tableData}
           columns={providersColumns}
+          onCellChange={handleCellChange}
         />
         <GenericTable
           dataSource={summaryData}

@@ -2,9 +2,6 @@ import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Table, Select, Pagination, Input } from 'antd';
 
-/* -----------------------------
-   InputCell Component
------------------------------ */
 const InputCell = memo(
   ({ value, type, prefix, disabled, onChange, onBlur, className, rowKey }) => {
     const [localValue, setLocalValue] = useState(value || '');
@@ -12,18 +9,15 @@ const InputCell = memo(
     const debouncedOnChange = useCallback(
       debounce((val) => {
         if (typeof onChange === 'function') onChange(val);
-      }, 300),
+      }, 500),
       [onChange]
     );
 
     const handleChange = (e) => {
       let newValue = e.target.value;
 
-      // Only allow numbers and at most 2 decimals if prefix exists
       if (prefix) {
-        // Remove invalid characters
         newValue = newValue.replace(/[^0-9.]/g, '');
-        // Allow only 2 decimal places
         const parts = newValue.split('.');
         if (parts[1]?.length > 2) {
           parts[1] = parts[1].slice(0, 2);
@@ -68,17 +62,14 @@ const InputCell = memo(
         prefix={prefix}
         value={localValue}
         disabled={disabled}
-        onChange={handleChange}
         onBlur={handleBlur}
         className={className}
+        onChange={handleChange}
       />
     );
   }
 );
 
-/* -----------------------------
-   SelectCell Component
------------------------------ */
 const SelectCell = memo(({ value, options, disabled, onChange, className }) => (
   <Select
     value={value}
@@ -89,9 +80,6 @@ const SelectCell = memo(({ value, options, disabled, onChange, className }) => (
   />
 ));
 
-/* -----------------------------
-   GenericTable Component
------------------------------ */
 function GenericTable({
   columns,
   loading,
@@ -158,11 +146,16 @@ function GenericTable({
       columns.map((col) => {
         if (!col.render && col.editable) {
           col.render = (text, record) => {
+            const isDisabled =
+              typeof col.disabled === 'function'
+                ? col.disabled(record)
+                : col.disabled;
+
             const cellContent =
               col.inputType === 'select' && col.selectOptions ? (
                 <SelectCell
                   value={text}
-                  disabled={col.disabled}
+                  disabled={isDisabled}
                   options={col.selectOptions}
                   onChange={(value) =>
                     typeof onCellChange === 'function' &&
@@ -178,7 +171,7 @@ function GenericTable({
                 <InputCell
                   value={text}
                   type="number"
-                  disabled={col.disabled}
+                  disabled={isDisabled}
                   rowKey={record[rowKey]}
                   prefix={col.prefix || ''}
                   onChange={(value) =>
@@ -197,7 +190,7 @@ function GenericTable({
                 <InputCell
                   value={text}
                   type={col.inputType}
-                  disabled={col.disabled}
+                  disabled={isDisabled}
                   rowKey={record[rowKey]}
                   prefix={col.prefix || ''}
                   onChange={(value) =>

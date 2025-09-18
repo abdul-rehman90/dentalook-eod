@@ -30,13 +30,13 @@ export default function List() {
       dataIndex: 'submission_month',
       render: (text) => dayjs(text).format('MMM DD, YYYY')
     },
-    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
     { title: 'Province', dataIndex: 'province_name', key: 'province_name' },
     {
       title: 'Regional Manager',
       key: 'regional_manager_name',
       dataIndex: 'regional_manager_name'
     },
+    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
     {
       key: 'status',
       title: 'Status',
@@ -64,14 +64,6 @@ export default function List() {
       title: 'Action',
       render: (_, record) => (
         <div className="flex items-center gap-2">
-          <Button
-            size="icon"
-            variant="destructive"
-            className="w-full m-auto"
-            href={`/review/eom/1/${record.eodsubmission_id}`}
-          >
-            <EyeOutlined />
-          </Button>
           <Button
             size="icon"
             variant="destructive"
@@ -167,18 +159,6 @@ export default function List() {
         <div className="flex flex-wrap gap-4 mt-3">
           <div className="flex flex-col gap-2 flex-1">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
-              Practice Name
-            </p>
-            <Select
-              options={clinics}
-              value={filters.clinic_id}
-              style={{ width: '100%' }}
-              placeholder="Select Practice"
-              onChange={(value) => handleFilterChange('clinic_id', value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Province
             </p>
             <Select
@@ -201,6 +181,18 @@ export default function List() {
               onChange={(value) =>
                 handleFilterChange('regional_manager', value)
               }
+            />
+          </div>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Practice Name
+            </p>
+            <Select
+              options={clinics}
+              value={filters.clinic_id}
+              style={{ width: '100%' }}
+              placeholder="Select Practice"
+              onChange={(value) => handleFilterChange('clinic_id', value)}
             />
           </div>
           <div className="flex flex-col gap-2 flex-1">
@@ -238,3 +230,12 @@ export default function List() {
     </React.Fragment>
   );
 }
+
+//  <Button
+//             size="icon"
+//             variant="destructive"
+//             className="w-full m-auto"
+//             href={`/review/eom/1/${record.eodsubmission_id}`}
+//           >
+//             <EyeOutlined />
+//           </Button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Checkbox } from 'antd';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
@@ -51,14 +51,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const clinicOpenTime = form.getFieldValue('clinic_open_time');
   const clinicCloseTime = form.getFieldValue('clinic_close_time');
 
-  console.log(tableData);
-
-  const timeOptions = useMemo(
-    () =>
-      generateTimeOptions(clinicOpenTime, clinicCloseTime)[
-        (clinicOpenTime, clinicCloseTime)
-      ]
-  );
+  const timeOptions = generateTimeOptions(clinicOpenTime, clinicCloseTime);
 
   const columns = [
     {
@@ -81,27 +74,21 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     { width: 50, key: 'type', title: 'Title', dataIndex: 'type' },
-    { width: 100, key: 'name', title: 'Provider Name', dataIndex: 'name' },
+    { width: 120, key: 'name', title: 'Provider Name', dataIndex: 'name' },
     {
-      width: 80,
-      editable: true,
+      width: 50,
       key: 'start_time',
       title: 'Start Time',
-      inputType: 'select',
       dataIndex: 'start_time',
-      selectOptions: timeOptions,
       render: (_, record) => {
-        // const timeOptions = generateTimeOptions(
-        //   clinicOpenTime,
-        //   clinicCloseTime
-        // );
-        console.log(timeOptions);
         return (
           <EditableCell
+            showSearch
             type="select"
             field="start_time"
             options={timeOptions}
             recordKey={record.key}
+            placeholder="Select Time"
             value={record.start_time}
             onCommit={handleCellCommit}
             disabled={!record.is_active}
@@ -110,18 +97,11 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       }
     },
     {
-      width: 80,
-      editable: true,
+      width: 50,
       key: 'end_time',
       title: 'End Time',
-      inputType: 'select',
       dataIndex: 'end_time',
-      selectOptions: timeOptions,
       render: (_, record) => {
-        // const timeOptions = generateTimeOptions(
-        //   clinicOpenTime,
-        //   clinicCloseTime
-        // );
         return (
           <EditableCell
             type="select"
@@ -129,6 +109,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
             options={timeOptions}
             recordKey={record.key}
             value={record.end_time}
+            placeholder="Select Time"
             onCommit={handleCellCommit}
             disabled={!record.is_active}
           />
@@ -137,78 +118,49 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     },
     {
       width: 80,
+      editable: true,
       title: 'Pt. Seen',
+      inputType: 'text',
       key: 'number_of_patients_seen',
-      render: (_, record) => (
-        <EditableCell
-          type="number"
-          recordKey={record.key}
-          onCommit={handleCellCommit}
-          disabled={!record.is_active}
-          field="number_of_patients_seen"
-          value={record.number_of_patients_seen}
-        />
-      )
+      dataIndex: 'number_of_patients_seen',
+      disabled: (record) => !record.is_active,
+      onCell: () => ({ className: 'divider-cell' })
     },
     {
       width: 80,
+      editable: true,
+      inputType: 'text',
       key: 'unfilled_spots',
       title: 'Unfilled (Units)',
-      render: (_, record) => (
-        <EditableCell
-          type="number"
-          field="unfilled_spots"
-          recordKey={record.key}
-          onCommit={handleCellCommit}
-          disabled={!record.is_active}
-          value={record.unfilled_spots}
-        />
-      )
+      dataIndex: 'unfilled_spots',
+      disabled: (record) => !record.is_active
     },
     {
       width: 80,
+      editable: true,
       key: 'no_shows',
+      inputType: 'text',
+      dataIndex: 'no_shows',
       title: 'No Shows (Units)',
-      render: (_, record) => (
-        <EditableCell
-          type="number"
-          field="no_shows"
-          recordKey={record.key}
-          value={record.no_shows}
-          onCommit={handleCellCommit}
-          disabled={!record.is_active}
-        />
-      )
+      disabled: (record) => !record.is_active
     },
     {
       width: 80,
+      editable: true,
+      inputType: 'text',
       title: 'Short Ntc (Units)',
       key: 'short_notice_cancellations',
-      render: (_, record) => (
-        <EditableCell
-          type="number"
-          recordKey={record.key}
-          onCommit={handleCellCommit}
-          disabled={!record.is_active}
-          field="short_notice_cancellations"
-          value={record.short_notice_cancellations}
-        />
-      )
+      dataIndex: 'short_notice_cancellations',
+      disabled: (record) => !record.is_active
     },
     {
       width: 80,
+      editable: true,
+      inputType: 'text',
       title: 'Failed (Units)',
       key: 'failed_appointments',
-      render: (_, record) => (
-        <EditableCell
-          type="number"
-          recordKey={record.key}
-          field="failed_appointments"
-          onCommit={handleCellCommit}
-          disabled={!record.is_active}
-          value={record.failed_appointments}
-        />
-      )
+      dataIndex: 'failed_appointments',
+      disabled: (record) => !record.is_active
     }
   ];
 
@@ -216,6 +168,14 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
     setTableData((prev) =>
       prev.map((item) =>
         item.key === recordKey ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
       )
     );
   };
@@ -339,6 +299,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           loading={loading}
           columns={columns}
           dataSource={tableData}
+          onCellChange={handleCellChange}
         />
       </div>
     </React.Fragment>

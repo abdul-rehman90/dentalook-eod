@@ -62,21 +62,15 @@ export default function BasicDetails() {
         }))
       }));
 
-      if (clinicId) {
-        const selectedClinic = clinics.find(
-          (clinic) => clinic.value === clinicId
-        );
-        setPractices(clinics);
-        setRegionalManagers(selectedClinic?.managers || []);
-      } else {
-        form.setFieldsValue({
-          province: provinceId,
-          clinic: clinics[0]?.value,
-          user: clinics[0]?.managers[0]?.value
-        });
-        setPractices(clinics);
-        setRegionalManagers(clinics[0]?.managers || []);
-      }
+      const selectedClinic =
+        (clinicId && clinics.find((c) => c.value === clinicId)) || clinics[0];
+      setPractices(clinics);
+      setRegionalManagers(selectedClinic?.managers || []);
+      form.setFieldsValue({
+        province: provinceId,
+        clinic: selectedClinic?.value,
+        user: selectedClinic?.managers?.[0]?.value
+      });
     } catch (error) {}
   };
 
@@ -247,13 +241,8 @@ export default function BasicDetails() {
     [form, tableData, id, addActiveProviders, setLoading, currentStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData, currentStepData, id, router, currentStep]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
@@ -305,12 +294,12 @@ export default function BasicDetails() {
   }, [clinicId, provinces]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

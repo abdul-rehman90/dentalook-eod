@@ -2,13 +2,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Input, Select } from 'antd';
 import { Icons } from '@/common/assets';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
@@ -58,80 +58,6 @@ export default function TeamAbsences({ onNext }) {
   const clinic_close_time = formatTimeForUI(clinicCloseTime);
   const timeOptions = generateTimeOptions(clinic_open_time, clinic_close_time);
 
-  const EditableCell = ({
-    value,
-    field,
-    options,
-    disabled,
-    recordKey,
-    type = 'text',
-    placeholder = ''
-  }) => {
-    const [localValue, setLocalValue] = useState(value ?? '');
-
-    useEffect(() => setLocalValue(value ?? ''), [value]);
-
-    if (type === 'select') {
-      return (
-        <Select
-          options={options}
-          value={localValue}
-          disabled={disabled}
-          onChange={(val) => handleCellCommit(recordKey, field, val)}
-        />
-      );
-    }
-
-    return (
-      <Input
-        value={localValue}
-        disabled={disabled}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={() => handleCellCommit(recordKey, field, localValue)}
-      />
-    );
-  };
-
-  const fetchStaffByPosition = async (position) => {
-    try {
-      const { data } = await EODReportService.getProviders(clinicId);
-      setStaffData((prev) => ({
-        ...prev,
-        [position]: data.providers
-          .filter((item) => item.user_type === position)
-          .map((item) => ({ value: item.id, label: item.name }))
-      }));
-    } catch (error) {}
-  };
-
-  const handleCellCommit = (recordKey, field, value) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === recordKey
-          ? {
-              ...item,
-              [field]: value,
-              ...(field === 'position' ? { name: '' } : {})
-            }
-          : item
-      )
-    );
-    if (field === 'position') fetchStaffByPosition(value);
-  };
-
-  const handleAddNew = () => {
-    const newRow = {
-      key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
-      name: '',
-      reason: '',
-      absence: '',
-      position: '',
-      end_time: null,
-      start_time: null
-    };
-    setTableData([...tableData, newRow]);
-  };
-
   const columns = [
     {
       width: 150,
@@ -145,7 +71,7 @@ export default function TeamAbsences({ onNext }) {
     {
       width: 150,
       key: 'name',
-      editable: true,
+      dataIndex: 'name',
       title: 'Provider Name',
       render: (_, record) => {
         if (['DDS', 'RDH', 'RDT'].includes(record.position)) {
@@ -155,6 +81,8 @@ export default function TeamAbsences({ onNext }) {
               type="select"
               value={record.name}
               recordKey={record.key}
+              onCommit={handleCellCommit}
+              placeholder="Select Provider"
               options={staffData[record.position] || []}
             />
           );
@@ -164,6 +92,7 @@ export default function TeamAbsences({ onNext }) {
             field="name"
             value={record.name}
             recordKey={record.key}
+            onCommit={handleCellCommit}
           />
         );
       }
@@ -180,50 +109,48 @@ export default function TeamAbsences({ onNext }) {
       width: 150,
       key: 'absence',
       editable: true,
+      inputType: 'select',
+      dataIndex: 'absence',
       title: 'Absent/Present',
-      render: (_, record) => (
-        <EditableCell
-          type="select"
-          field="absence"
-          value={record.absence}
-          recordKey={record.key}
-          options={[
-            { value: 'Full Day', label: 'Full Day' },
-            { value: 'Partial Day', label: 'Partial Day' }
-          ]}
-        />
-      )
+      selectOptions: [
+        { value: 'Full Day', label: 'Full Day' },
+        { value: 'Partial Day', label: 'Partial Day' }
+      ]
     },
     {
       width: 100,
-      editable: true,
       key: 'start_time',
       title: 'Start Time',
+      dataIndex: 'start_time',
       render: (_, record) => (
         <EditableCell
+          showSearch
           type="select"
           field="start_time"
           options={timeOptions}
           recordKey={record.key}
-          placeholder="Start Time"
+          placeholder="Select Time"
           value={record.start_time}
+          onCommit={handleCellCommit}
           disabled={record.absence !== 'Partial Day'}
         />
       )
     },
     {
       width: 100,
-      editable: true,
       key: 'end_time',
       title: 'End Time',
+      dataIndex: 'end_time',
       render: (_, record) => (
         <EditableCell
+          showSearch
           type="select"
           field="end_time"
           options={timeOptions}
-          placeholder="End Time"
           recordKey={record.key}
           value={record.end_time}
+          placeholder="Select Time"
+          onCommit={handleCellCommit}
           disabled={record.absence !== 'Partial Day'}
         />
       )
@@ -252,6 +179,61 @@ export default function TeamAbsences({ onNext }) {
         ]
       : [])
   ];
+
+  const handleCellCommit = (recordKey, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === recordKey
+          ? {
+              ...item,
+              [field]: value,
+              ...(field === 'position' ? { name: '' } : {})
+            }
+          : item
+      )
+    );
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    const newTeamMembers = tableData.map((item) => {
+      if (item.key === record.key) {
+        const updatedItem = { ...item, [dataIndex]: value };
+        if (dataIndex === 'position') {
+          updatedItem.name = '';
+          fetchStaffByPosition(value);
+        }
+
+        return updatedItem;
+      }
+      return item;
+    });
+    setTableData(newTeamMembers);
+  };
+
+  const fetchStaffByPosition = async (position) => {
+    try {
+      const { data } = await EODReportService.getProviders(clinicId);
+      setStaffData((prev) => ({
+        ...prev,
+        [position]: data.providers
+          .filter((item) => item.user_type === position)
+          .map((item) => ({ value: item.id, label: item.name }))
+      }));
+    } catch (error) {}
+  };
+
+  const handleAddNew = () => {
+    const newRow = {
+      key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
+      name: '',
+      reason: '',
+      absence: '',
+      position: '',
+      end_time: null,
+      start_time: null
+    };
+    setTableData([...tableData, newRow]);
+  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -356,11 +338,12 @@ export default function TeamAbsences({ onNext }) {
   }, [clinicId, currentStepData]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 
@@ -378,7 +361,11 @@ export default function TeamAbsences({ onNext }) {
             Add New Absence
           </Button>
         </div>
-        <GenericTable columns={columns} dataSource={tableData} />
+        <GenericTable
+          columns={columns}
+          dataSource={tableData}
+          onCellChange={handleCellChange}
+        />
       </div>
       <StepNavigation
         onSave={handleSave}
