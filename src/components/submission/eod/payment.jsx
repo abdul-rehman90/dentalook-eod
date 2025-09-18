@@ -38,78 +38,16 @@ export default function Payment({ onNext }) {
     updateStepData,
     getCurrentStepData
   } = useGlobalContext();
-
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
-
-  const handleTypeChange = (key, value) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === key
-          ? {
-              ...item,
-              type: value,
-              ...(value !== 'EFT PAYMENT' ? { insurance_company: '' } : {})
-            }
-          : item
-      )
-    );
-  };
-
-  const handleCellCommit = (key, field, value) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === key ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const handleAddNew = () => {
-    setTableData((prev) => [
-      ...prev,
-      {
-        key: `new-${Date.now()}-${Math.random()}`,
-        type: '',
-        amount: '',
-        remarks: '',
-        insurance_company: ''
-      }
-    ]);
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    const newPayments = tableData.map((item) =>
-      item.key === record.key ? { ...item, [dataIndex]: value } : item
-    );
-    setTableData(newPayments);
-  };
-
-  const footer = () => {
-    const totalAmount = tableData.reduce((sum, item) => {
-      const amount = parseFloat(item.amount) || 0;
-      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
-    }, 0);
-
-    return (
-      <Table.Summary.Row>
-        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
-        <Table.Summary.Cell index={1} colSpan={2}>
-          ${totalAmount.toFixed(2)}
-        </Table.Summary.Cell>
-      </Table.Summary.Row>
-    );
-  };
 
   const columns = [
     {
       width: 50,
       key: 'type',
-      editable: true,
       dataIndex: 'type',
-      inputType: 'select',
       title: 'Payment Type',
-      selectOptions: paymentOptions,
       render: (type, record) => {
         const showInsuranceInput =
           type === 'EFT PAYMENT' || type === 'INSURANCE CHEQUE';
@@ -121,9 +59,11 @@ export default function Payment({ onNext }) {
               type="select"
               recordKey={record.key}
               options={paymentOptions}
-              onCommit={handleTypeChange}
+              onCommit={handleCellCommit}
+              className={
+                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+              }
             />
-
             {showInsuranceInput && (
               <EditableCell
                 type="text"
@@ -156,6 +96,51 @@ export default function Payment({ onNext }) {
       dataIndex: 'remarks'
     }
   ];
+
+  const handleCellCommit = (key, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
+  const handleAddNew = () => {
+    setTableData((prev) => [
+      ...prev,
+      {
+        key: `new-${Date.now()}-${Math.random()}`,
+        type: '',
+        amount: '',
+        remarks: '',
+        insurance_company: ''
+      }
+    ]);
+  };
+
+  const footer = () => {
+    const totalAmount = tableData.reduce((sum, item) => {
+      const amount = parseFloat(item.amount) || 0;
+      return item.type === 'CC/DEBIT REFUND' ? sum - amount : sum + amount;
+    }, 0);
+
+    return (
+      <Table.Summary.Row>
+        <Table.Summary.Cell index={0}>Total Amount</Table.Summary.Cell>
+        <Table.Summary.Cell index={1} colSpan={2}>
+          ${totalAmount.toFixed(2)}
+        </Table.Summary.Cell>
+      </Table.Summary.Row>
+    );
+  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -271,21 +256,20 @@ export default function Payment({ onNext }) {
         };
       });
 
-      setNotes(storedNotes || '');
       setTableData(mergedData);
+      setNotes(storedNotes || '');
     }
-  }, [clinicId, currentStepData]);
+  }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
-
-  console.log(tableData);
 
   return (
     <React.Fragment>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -42,59 +41,6 @@ export default function AttritionTracking({ onNext }) {
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
-  const EditableCell = ({ value, field, disabled, recordKey }) => {
-    const [localValue, setLocalValue] = useState(value ?? '');
-
-    useEffect(() => setLocalValue(value ?? ''), [value]);
-
-    return (
-      <Input
-        value={localValue}
-        disabled={disabled}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={() => handleCellCommit(recordKey, field, localValue)}
-      />
-    );
-  };
-
-  const handleCellCommit = (recordKey, field, value) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === recordKey
-          ? {
-              ...item,
-              [field]: value
-            }
-          : item
-      )
-    );
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    setTableData([
-      ...tableData,
-      {
-        key: newKey,
-        reason: '',
-        comments: '',
-        other_reason: '',
-        patient_name: ''
-      }
-    ]);
-  };
-
   const columns = [
     {
       width: 150,
@@ -117,17 +63,11 @@ export default function AttritionTracking({ onNext }) {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_reason',
             title: 'Other Reason',
-            dataIndex: 'other_reason',
-            render: (_, record) => (
-              <EditableCell
-                field="other_reason"
-                recordKey={record.key}
-                value={record.other_reason}
-                disabled={record.reason !== 'Other'}
-              />
-            )
+            dataIndex: 'other_reason'
           }
         ]
       : []),
@@ -163,6 +103,31 @@ export default function AttritionTracking({ onNext }) {
         ]
       : [])
   ];
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
+  const handleAddNew = () => {
+    const newKey =
+      tableData.length > 0
+        ? Math.max(...tableData.map((item) => item.key)) + 1
+        : 1;
+    setTableData([
+      ...tableData,
+      {
+        key: newKey,
+        reason: '',
+        comments: '',
+        other_reason: '',
+        patient_name: ''
+      }
+    ]);
+  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -237,12 +202,12 @@ export default function AttritionTracking({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

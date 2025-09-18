@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -9,6 +8,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import { Col } from 'antd';
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
@@ -60,50 +60,6 @@ export default function PatientTracking({ onNext }) {
     ];
   }, [actual, target]);
 
-  const EditableCell = ({ value, field, disabled, recordKey }) => {
-    const [localValue, setLocalValue] = useState(value ?? '');
-
-    useEffect(() => setLocalValue(value ?? ''), [value]);
-
-    return (
-      <Input
-        value={localValue}
-        disabled={disabled}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={() => handleCellCommit(recordKey, field, localValue)}
-      />
-    );
-  };
-
-  const handleCellCommit = (recordKey, field, value) => {
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === recordKey
-          ? {
-              ...item,
-              [field]: value
-            }
-          : item
-      )
-    );
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
-  const handleAddNew = () => {
-    const newKey = tableData.length
-      ? Math.max(...tableData.map((item) => item.key)) + 1
-      : 1;
-    setActual((prev) => prev + 1);
-    setTableData([...tableData, { ...defaultRow, key: newKey }]);
-  };
-
   const newPatientColumns = [
     {
       title: '',
@@ -138,17 +94,11 @@ export default function PatientTracking({ onNext }) {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_source',
             title: 'Other Source',
-            dataIndex: 'other_source',
-            render: (_, record) => (
-              <EditableCell
-                field="other_source"
-                recordKey={record.key}
-                value={record.other_source}
-                disabled={record.source !== 'Other'}
-              />
-            )
+            dataIndex: 'other_source'
           }
         ]
       : []),
@@ -184,6 +134,22 @@ export default function PatientTracking({ onNext }) {
         ]
       : [])
   ];
+
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
+  const handleAddNew = () => {
+    const newKey = tableData.length
+      ? Math.max(...tableData.map((item) => item.key)) + 1
+      : 1;
+    setActual((prev) => prev + 1);
+    setTableData([...tableData, { ...defaultRow, key: newKey }]);
+  };
 
   const saveData = useCallback(
     async (navigate = false) => {
@@ -247,18 +213,20 @@ export default function PatientTracking({ onNext }) {
   }, [clinicId, currentStepData]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 
   return (
     <React.Fragment>
       <div className="flex flex-col gap-4 px-6">
-        <GenericTable dataSource={summaryData} columns={newPatientColumns} />
+        <Col span={10}>
+          <GenericTable dataSource={summaryData} columns={newPatientColumns} />
+        </Col>
         <div className="flex items-center justify-end">
           <Button
             size="lg"
