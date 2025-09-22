@@ -68,7 +68,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            href={`/submission/eom/1/${record.eodsubmission_id}`}
+            href={`/submission/eom/1/${record.eomsubmission_id}`}
           >
             <EditOutlined />
           </Button>
