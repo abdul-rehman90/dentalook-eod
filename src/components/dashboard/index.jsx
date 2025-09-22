@@ -248,7 +248,7 @@ export default function Dashboard() {
               <CardHeader className="mb-5">
                 <Skeleton.Input active style={{ width: 150, height: 20 }} />
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex items-center justify-between gap-2">
                 <Skeleton.Input active style={{ width: 100, height: 32 }} />
                 <Skeleton.Button active style={{ width: 80, height: 24 }} />
               </CardContent>
