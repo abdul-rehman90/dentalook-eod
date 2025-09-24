@@ -303,7 +303,12 @@
   border-color: var(--color-primary-400);
 }
 
-/* Calendar Checkbox */
+/* Calendar Styles */
+.rbc-month-view,
+.rbc-time-view {
+  border-radius: 12px;
+}
+
 .rbc-time-view {
   flex: none !important;
 }
@@ -325,6 +330,15 @@
 
 .rbc-time-header-content {
   border-left: 0 !important;
+}
+
+.rbc-off-range-bg {
+  background-color: transparent !important;
+}
+
+.rbc-time-view .rbc-row-content {
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 /* Other styles */
