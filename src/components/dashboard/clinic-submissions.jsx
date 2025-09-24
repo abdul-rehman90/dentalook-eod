@@ -32,16 +32,18 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
       key: 'status',
       title: 'Status',
       dataIndex: 'status',
-      render: (text) =>
-        text ? (
+      render: (status) =>
+        status ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              text === 'Submitted'
+              status === 'Submitted' || status === 'Completed'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
           >
-            {text}
+            {status === 'Submitted' || status === 'Completed'
+              ? 'Submitted'
+              : 'Draft'}
           </span>
         ) : (
           'N/A'
@@ -58,12 +60,9 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            href={`/submission/eod/1/${record.id}`}
+            href={`/submission/eom/1/${record.id}`}
           >
             <EditOutlined />
-          </Button>
-          <Button size="sm" variant="destructive">
-            <DeleteOutlined />
           </Button>
         </div>
       )
@@ -79,3 +78,7 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
     </div>
   );
 }
+
+//  <Button size="sm" variant="destructive">
+//           <DeleteOutlined />
+//         </Button>

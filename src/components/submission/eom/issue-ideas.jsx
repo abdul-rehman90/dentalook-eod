@@ -80,22 +80,6 @@ export default function IssuesIdeas() {
       : [])
   ];
 
-  const handleSubmitEOMReport = async () => {
-    try {
-      setLoading(true);
-      const response = await EOMReportService.submissionEOMReport({
-        eomsubmission_id: id
-      });
-      if (response.status === 200) {
-        toast.success('EOM submission is successfully submitted');
-        router.push('/review/list/eom');
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -115,6 +99,22 @@ export default function IssuesIdeas() {
       category: ''
     };
     setTableData([...tableData, newItem]);
+  };
+
+  const handleSubmitEOMReport = async () => {
+    try {
+      setLoading(true);
+      const response = await EOMReportService.submissionEOMReport({
+        eomsubmission_id: id
+      });
+      if (response.status === 200) {
+        toast.success('EOM submission is successfully submitted');
+        router.push('/review/list/eom');
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveData = useCallback(
@@ -149,13 +149,8 @@ export default function IssuesIdeas() {
     [tableData, id, handleSubmitEOMReport]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false);
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -169,8 +164,11 @@ export default function IssuesIdeas() {
   }, [clinicId]);
 
   useEffect(() => {
+    window.addEventListener('stepNavigationSave', handleSave);
     window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
+      window.removeEventListener('stepNavigationSave', handleSave);
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit]);
