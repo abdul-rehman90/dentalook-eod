@@ -303,6 +303,30 @@
   border-color: var(--color-primary-400);
 }
 
+/* Calendar Checkbox */
+.rbc-time-view {
+  flex: none !important;
+}
+
+.rbc-time-gutter,
+.rbc-time-content,
+.rbc-time-header-gutter {
+  display: none !important;
+}
+
+.rbc-event {
+  background-color: transparent !important;
+}
+
+.rbc-time-header {
+  margin: 0 !important;
+  border-right: 0 !important;
+}
+
+.rbc-time-header-content {
+  border-left: 0 !important;
+}
+
 /* Other styles */
 .add-provider-form > .ant-form-item {
   width: 100% !important;
