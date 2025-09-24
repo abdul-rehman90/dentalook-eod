@@ -18,7 +18,6 @@ export const EODReportService = {
     if (filters.submission_date)
       params.append('submission_date', filters.submission_date);
 
-    console.log(params);
     const response = await apiClient.get(
       `/eod-subission-report/?${params.toString()}`
     );
