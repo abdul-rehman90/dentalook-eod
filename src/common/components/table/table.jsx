@@ -1,47 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { CSS } from '@dnd-kit/utilities';
-import { Table, Input, Select, Pagination } from 'antd';
-import { useSortable } from '@dnd-kit/sortable';
+import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
+import { debounce } from 'lodash';
+import { Table, Select, Pagination, Input } from 'antd';
 
-const Row = ({ children, ...props }) => {
-  const {
-    listeners,
-    transform,
-    attributes,
-    setNodeRef,
-    transition,
-    isDragging
-  } = useSortable({
-    id: props['data-row-key']
-  });
+const InputCell = memo(
+  ({ value, type, prefix, disabled, onChange, onBlur, className, rowKey }) => {
+    const [localValue, setLocalValue] = useState(value || '');
 
-  const style = {
-    transition,
-    cursor: 'move',
-    ...props.style,
-    transform: CSS.Transform.toString(transform),
-    ...(isDragging ? { position: 'relative', zIndex: 9999 } : {})
-  };
+    const debouncedOnChange = useCallback(
+      debounce((val) => {
+        if (typeof onChange === 'function') onChange(val);
+      }, 500),
+      [onChange]
+    );
 
-  return (
-    <tr
-      {...props}
-      style={style}
-      {...listeners}
-      {...attributes}
-      ref={setNodeRef}
-    >
-      {children}
-    </tr>
-  );
-};
+    const handleChange = (e) => {
+      let newValue = e.target.value;
+
+      if (prefix) {
+        newValue = newValue.replace(/[^0-9.]/g, '');
+        const parts = newValue.split('.');
+        if (parts[1]?.length > 2) {
+          parts[1] = parts[1].slice(0, 2);
+          newValue = parts.join('.');
+        }
+      }
+
+      setLocalValue(newValue);
+
+      if (!onChange || typeof onChange !== 'function') return;
+
+      if (!prefix) {
+        if (type === 'number') {
+          onChange(newValue);
+        } else {
+          debouncedOnChange(newValue);
+        }
+      }
+    };
+
+    const handleBlur = () => {
+      if (prefix) {
+        let formattedValue = localValue;
+        if (!isNaN(localValue) && localValue.trim() !== '') {
+          formattedValue = parseFloat(localValue).toFixed(2);
+        }
+        setLocalValue(formattedValue);
+        if (typeof onBlur === 'function') onBlur(formattedValue);
+        else if (typeof onChange === 'function') onChange(formattedValue);
+      } else {
+        if (typeof onBlur === 'function') onBlur(localValue);
+      }
+    };
+
+    useEffect(() => {
+      setLocalValue(value || '');
+    }, [rowKey, value]);
+
+    return (
+      <Input
+        type={type}
+        prefix={prefix}
+        value={localValue}
+        disabled={disabled}
+        onBlur={handleBlur}
+        className={className}
+        onChange={handleChange}
+      />
+    );
+  }
+);
+
+const SelectCell = memo(({ value, options, disabled, onChange, className }) => (
+  <Select
+    value={value}
+    options={options}
+    disabled={disabled}
+    onChange={onChange}
+    className={className}
+  />
+));
 
 function GenericTable({
-  rowKey,
   columns,
   loading,
   onCellChange,
   footer = null,
+  rowKey = 'key',
   dataSource = [],
   bordered = true,
   showHeader = true,
@@ -60,81 +104,119 @@ function GenericTable({
     return AMOUNT_REGEX.test(value);
   };
 
-  const handleNumberChange = (record, dataIndex, value) => {
-    const v = String(value).trim();
-    if (!isValidAmountInput(v)) return;
-    onCellChange(record, dataIndex, v);
-  };
+  const handleNumberChange = useCallback(
+    (record, dataIndex, value) => {
+      const v = String(value).trim();
+      if (!isValidAmountInput(v)) return;
+      if (typeof onCellChange === 'function')
+        onCellChange(record, dataIndex, v);
+    },
+    [onCellChange]
+  );
 
-  const handleNumberBlur = (record, dataIndex, value) => {
-    if (value === '' || value === null || value === undefined) {
-      onCellChange(record, dataIndex, '');
-      return;
-    }
-
-    const num = parseFloat(value);
-    if (isNaN(num)) {
-      onCellChange(record, dataIndex, '');
-      return;
-    }
-
-    const formattedValue = num.toFixed(2);
-    onCellChange(record, dataIndex, formattedValue);
-  };
-
-  const transformedColumns = columns.map((col) => {
-    if (!col.render && col.editable) {
-      col.render = (text, record) => {
-        const cellContent =
-          col.inputType === 'select' && col.selectOptions ? (
-            <Select
-              value={text}
-              disabled={col.disabled}
-              style={{ width: '100%' }}
-              options={col.selectOptions}
-              onChange={(value) => onCellChange(record, col.dataIndex, value)}
-            />
-          ) : col.inputType === 'number' ? (
-            <Input
-              value={text}
-              prefix={'$'}
-              type="number"
-              controls={false}
-              disabled={col.disabled}
-              onChange={(e) =>
-                handleNumberChange(record, col.dataIndex, e.target.value)
-              }
-              onBlur={(e) =>
-                handleNumberBlur(record, col.dataIndex, e.target.value)
-              }
-            />
-          ) : (
-            <Input
-              value={text}
-              controls={false}
-              type={col.inputType}
-              disabled={col.disabled}
-              onChange={(e) =>
-                onCellChange(record, col.dataIndex, e.target.value)
-              }
-            />
-          );
-
-        return <div className="h-full">{cellContent}</div>;
-      };
-
-      col.onCell = () => ({ className: 'editable-cell' });
-    }
-    return col;
-  });
+  const handleNumberBlur = useCallback(
+    (record, dataIndex, value) => {
+      if (value === '' || value === null || value === undefined) {
+        if (typeof onCellChange === 'function')
+          onCellChange(record, dataIndex, '');
+        return;
+      }
+      const num = parseFloat(value);
+      if (isNaN(num)) {
+        if (typeof onCellChange === 'function')
+          onCellChange(record, dataIndex, '');
+        return;
+      }
+      const formattedValue = num.toFixed(2);
+      if (typeof onCellChange === 'function')
+        onCellChange(record, dataIndex, formattedValue);
+    },
+    [onCellChange]
+  );
 
   const handlePageChange = (page, newPageSize) => {
     setCurrentPage(page);
     setPageSize(newPageSize);
-    if (paginationOptions.onChange) {
+    if (paginationOptions.onChange)
       paginationOptions.onChange(page, newPageSize);
-    }
   };
+
+  const transformedColumns = useMemo(
+    () =>
+      columns.map((col) => {
+        if (!col.render && col.editable) {
+          col.render = (text, record) => {
+            const isDisabled =
+              typeof col.disabled === 'function'
+                ? col.disabled(record)
+                : col.disabled;
+
+            const cellContent =
+              col.inputType === 'select' && col.selectOptions ? (
+                <SelectCell
+                  value={text}
+                  disabled={isDisabled}
+                  options={col.selectOptions}
+                  onChange={(value) =>
+                    typeof onCellChange === 'function' &&
+                    onCellChange(record, col.dataIndex, value)
+                  }
+                  className={
+                    record.type === 'CC/DEBIT REFUND'
+                      ? 'refund-amount-cell'
+                      : ''
+                  }
+                />
+              ) : col.inputType === 'number' ? (
+                <InputCell
+                  value={text}
+                  type="number"
+                  disabled={isDisabled}
+                  rowKey={record[rowKey]}
+                  prefix={col.prefix || ''}
+                  onChange={(value) =>
+                    handleNumberChange(record, col.dataIndex, value)
+                  }
+                  onBlur={(value) =>
+                    handleNumberBlur(record, col.dataIndex, value)
+                  }
+                  className={
+                    record.type === 'CC/DEBIT REFUND'
+                      ? 'refund-amount-cell'
+                      : ''
+                  }
+                />
+              ) : (
+                <InputCell
+                  value={text}
+                  type={col.inputType}
+                  disabled={isDisabled}
+                  rowKey={record[rowKey]}
+                  prefix={col.prefix || ''}
+                  onChange={(value) =>
+                    typeof onCellChange === 'function' &&
+                    onCellChange(record, col.dataIndex, value)
+                  }
+                  onBlur={(value) =>
+                    typeof onCellChange === 'function' &&
+                    onCellChange(record, col.dataIndex, value)
+                  }
+                  className={
+                    record.type === 'CC/DEBIT REFUND'
+                      ? 'refund-amount-cell'
+                      : ''
+                  }
+                />
+              );
+
+            return <div className="h-full">{cellContent}</div>;
+          };
+          col.onCell = () => ({ className: 'editable-cell' });
+        }
+        return col;
+      }),
+    [columns, onCellChange, rowKey, handleNumberChange, handleNumberBlur]
+  );
 
   useEffect(() => {
     if (showPagination) {
@@ -158,7 +240,6 @@ function GenericTable({
         dataSource={paginatedData}
         columns={transformedColumns}
         summary={footer ? footer : null}
-        components={{ body: { row: Row } }}
       />
 
       {showPagination && (

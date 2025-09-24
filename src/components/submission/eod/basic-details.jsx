@@ -37,6 +37,8 @@ export default function BasicDetails() {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = currentStepData?.clinicDetails?.clinic;
+  const submissionId = currentStepData?.clinicDetails?.eodsubmission_id;
+  const eod_submission = submissionId || id;
 
   const initialValues = {
     user: null,
@@ -62,21 +64,15 @@ export default function BasicDetails() {
         }))
       }));
 
-      if (clinicId) {
-        const selectedClinic = clinics.find(
-          (clinic) => clinic.value === clinicId
-        );
-        setPractices(clinics);
-        setRegionalManagers(selectedClinic?.managers || []);
-      } else {
-        form.setFieldsValue({
-          province: provinceId,
-          clinic: clinics[0]?.value,
-          user: clinics[0]?.managers[0]?.value
-        });
-        setPractices(clinics);
-        setRegionalManagers(clinics[0]?.managers || []);
-      }
+      const selectedClinic =
+        (clinicId && clinics.find((c) => c.value === clinicId)) || clinics[0];
+      setPractices(clinics);
+      setRegionalManagers(selectedClinic?.managers || []);
+      form.setFieldsValue({
+        province: provinceId,
+        clinic: selectedClinic?.value,
+        user: selectedClinic?.managers?.[0]?.value
+      });
     } catch (error) {}
   };
 
@@ -101,8 +97,8 @@ export default function BasicDetails() {
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = []) => {
       updateStepData(currentStepId, {
-        clinicDetails: values,
-        activeProviders: activeProviders
+        activeProviders: activeProviders,
+        clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
       toast.success('Record is successfully saved');
       router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
@@ -120,6 +116,12 @@ export default function BasicDetails() {
       if (activeProviders.length === 0) {
         if (navigate) {
           moveRouter(submission_id, values);
+        } else {
+          updateStepData(currentStepId, {
+            activeProviders: activeProviders,
+            clinicDetails: { ...values, eodsubmission_id: submission_id }
+          });
+          toast.success('Record is successfully saved');
         }
         return;
       }
@@ -144,8 +146,8 @@ export default function BasicDetails() {
           } else {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
-              clinicDetails: values,
-              activeProviders: payload || []
+              activeProviders: payload || [],
+              clinicDetails: { ...values, eodsubmission_id: submission_id }
             });
           }
         }
@@ -205,6 +207,7 @@ export default function BasicDetails() {
         const values = await form.validateFields();
         const payload = {
           ...values,
+          ...(eod_submission && { eodsubmission_id: eod_submission }),
           submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
           clinic_open_time:
             values.status === 'open'
@@ -216,18 +219,18 @@ export default function BasicDetails() {
               : null
         };
 
-        if (
-          id ||
-          (currentStepData?.clinicDetails &&
-            Object.keys(currentStepData.clinicDetails).length > 0)
-        ) {
-          const submissionId =
-            id ||
-            currentStepData.clinicDetails.submission_id ||
-            currentStepData.activeProviders?.[0]?.eod_submission;
-          await addActiveProviders(payload, submissionId, navigate);
-          return;
-        }
+        // if (
+        //   id ||
+        //   (currentStepData?.clinicDetails &&
+        //     Object.keys(currentStepData.clinicDetails).length > 0)
+        // ) {
+        //   const submissionId =
+        //     id ||
+        //     currentStepData.clinicDetails.submission_id ||
+        //     currentStepData.activeProviders?.[0]?.eod_submission;
+        //   await addActiveProviders(payload, submissionId, navigate);
+        //   return;
+        // }
 
         setLoading(true);
         const response = await EODReportService.addBasicDetails(payload);
@@ -247,13 +250,8 @@ export default function BasicDetails() {
     [form, tableData, id, addActiveProviders, setLoading, currentStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData, currentStepData, id, router, currentStep]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
@@ -305,12 +303,12 @@ export default function BasicDetails() {
   }, [clinicId, provinces]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

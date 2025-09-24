@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -64,26 +63,11 @@ export default function AttritionTracking({ onNext }) {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_reason',
             title: 'Other Reason',
-            dataIndex: 'other_reason',
-            render: (_, record) => (
-              <Input
-                value={record.other_reason}
-                disabled={record.reason !== 'Other'}
-                onChange={(e) => {
-                  const updatedProviders = tableData.map((p) =>
-                    p.key === record.key
-                      ? {
-                          ...p,
-                          other_reason: e.target.value
-                        }
-                      : p
-                  );
-                  setTableData(updatedProviders);
-                }}
-              />
-            )
+            dataIndex: 'other_reason'
           }
         ]
       : []),
@@ -201,13 +185,8 @@ export default function AttritionTracking({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -223,12 +202,12 @@ export default function AttritionTracking({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

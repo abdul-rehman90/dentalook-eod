@@ -54,7 +54,7 @@ export default function SubmissionLayout({ children }) {
         {stepName}
         {id &&
           (type === 'eod'
-            ? ` - ${dayjs(submission_date).format('MMMM D, YYYY')}`
+            ? ` - ${dayjs(submission_date).format('ddd, MMMM D, YYYY')}`
             : ` - ${dayjs(submission_month).format('MMM YYYY')}`)}
       </h1>
       <div className="flex gap-2">

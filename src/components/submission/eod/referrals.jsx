@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -95,26 +94,11 @@ export default function Referrals() {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_specialty',
             title: 'Other Speciality',
-            dataIndex: 'other_specialty',
-            render: (_, record) => (
-              <Input
-                value={record.other_specialty}
-                disabled={record.specialty !== 'Other'}
-                onChange={(e) => {
-                  const updatedProviders = tableData.map((p) =>
-                    p.key === record.key
-                      ? {
-                          ...p,
-                          other_specialty: e.target.value
-                        }
-                      : p
-                  );
-                  setTableData(updatedProviders);
-                }}
-              />
-            )
+            dataIndex: 'other_specialty'
           }
         ]
       : []),
@@ -151,6 +135,14 @@ export default function Referrals() {
       : [])
   ];
 
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
   const handleSubmitEODReport = async () => {
     try {
       setLoading(true);
@@ -165,14 +157,6 @@ export default function Referrals() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
   };
 
   const handleAddNew = () => {
@@ -254,13 +238,8 @@ export default function Referrals() {
     [tableData, clinicId, id, setLoading]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false);
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const fetchActiveProviders = async () => {
     try {
@@ -290,11 +269,14 @@ export default function Referrals() {
   }, [clinicId]);
 
   useEffect(() => {
+    window.addEventListener('stepNavigationSave', handleSave);
     window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
+      window.removeEventListener('stepNavigationSave', handleSave);
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
-  }, [handleSubmit]);
+  }, [handleSubmit, handleSave]);
 
   return (
     <React.Fragment>
