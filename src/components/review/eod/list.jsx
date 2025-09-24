@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { DatePicker, Select } from 'antd';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
-import Link from 'next/link';
 
 export default function List() {
-  const router = useRouter();
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const { loading, setLoading } = useGlobalContext();

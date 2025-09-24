@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import enUS from 'date-fns/locale/en-US';
 import { DatePicker, Select } from 'antd';
+import { useRouter } from 'next/navigation';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { EODReportService } from '@/common/services/eod-report';
 import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
@@ -50,8 +51,9 @@ function CustomToolbar({ label, onView, view }) {
 function CustomEvent({ event }) {
   return (
     <div
-      className="text-white p-1 rounded"
       style={{ backgroundColor: event.color }}
+      title={`${event.title} (${event.clinic})`}
+      className="text-white text-sm px-3 py-1 rounded-lg font-semibold shadow-md truncate cursor-pointer"
     >
       {event.title}
     </div>
@@ -59,6 +61,7 @@ function CustomEvent({ event }) {
 }
 
 export default function MyCalendar() {
+  const router = useRouter();
   const [events, setEvents] = useState([]);
   const [clinics, setClinics] = useState([]);
   const [filters, setFilters] = useState({
@@ -132,6 +135,11 @@ export default function MyCalendar() {
     });
 
     return events;
+  };
+
+  const handleEventClick = (event) => {
+    if (event.id.toString().startsWith('missing')) return;
+    router.push(`/submission/eod/1/${event.id}`);
   };
 
   const fetchAllClinics = async () => {
@@ -211,20 +219,17 @@ export default function MyCalendar() {
         </div>
       </div>
 
-      <div className="h-[450px]">
+      <div className="h-[400px] md:h-[450px] w-full">
         <Calendar
           events={events}
           endAccessor="end"
           startAccessor="start"
           localizer={localizer}
-          onNavigate={() => {}}
-          style={{ height: 450 }}
+          style={{ height: '100%' }}
+          onSelectEvent={handleEventClick}
           views={[Views.MONTH, Views.WEEK, Views.DAY]}
           date={dayjs(filters.submission_date).toDate()}
-          components={{
-            event: CustomEvent,
-            toolbar: CustomToolbar
-          }}
+          components={{ event: CustomEvent, toolbar: CustomToolbar }}
         />
       </div>
     </div>
