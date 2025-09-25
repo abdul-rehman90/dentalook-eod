@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import { Select } from 'antd';
 import enUS from 'date-fns/locale/en-US';
-import { DatePicker, Select } from 'antd';
 import { useRouter } from 'next/navigation';
+import { useProgress } from '@bprogress/next';
+import { Button } from '@/common/components/button/button';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { EODReportService } from '@/common/services/eod-report';
-import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({
@@ -25,23 +27,41 @@ const statusColors = {
   'Not even started': '#ef4444'
 };
 
-function CustomToolbar({ label, onView, view }) {
+function CustomToolbar({ label, onView, view, onNavigate }) {
   return (
-    <div className="flex justify-between items-center py-3">
+    <div className="flex justify-between items-center py-4">
+      <div className="space-x-2">
+        <Button
+          size="sm"
+          onClick={() => onNavigate('PREV')}
+          className="py-1 !bg-gray-200 !text-gray-700"
+        >
+          Back
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => onNavigate('NEXT')}
+          className="py-1 !bg-gray-200 !text-gray-700"
+        >
+          Next
+        </Button>
+      </div>
+
       <span className="text-lg font-semibold">{label}</span>
       <div className="space-x-2">
         {['month', 'week'].map((v) => (
-          <button
+          <Button
             key={v}
+            size="sm"
             onClick={() => onView(v)}
-            className={`cursor-pointer px-3 py-1 rounded ${
+            className={`py-1 ${
               view === v
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700'
+                ? '!bg-blue-600 !text-white'
+                : '!bg-gray-200 !text-gray-700'
             }`}
           >
             {v.charAt(0).toUpperCase() + v.slice(1)}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -62,8 +82,12 @@ function CustomEvent({ event }) {
 
 export default function MyCalendar() {
   const router = useRouter();
+  const progress = useProgress();
   const [events, setEvents] = useState([]);
   const [clinics, setClinics] = useState([]);
+  const [currentDate, setCurrentDate] = useState(
+    dayjs().startOf('month').toDate()
+  );
   const [filters, setFilters] = useState({
     clinic_id: null,
     submission_date: dayjs().startOf('month').format('YYYY-MM-DD')
@@ -74,6 +98,27 @@ export default function MyCalendar() {
       ...prev,
       [key]: value
     }));
+  };
+
+  const handleEventClick = (event) => {
+    if (event.id.toString().startsWith('missing')) return;
+    progress.start();
+    router.push(`/submission/eod/1/${event.id}`);
+    // setTimeout(() => {
+    //   progress.finish();
+    // }, 300);
+  };
+
+  const handleNavigate = (newDate) => {
+    setCurrentDate(newDate);
+
+    const newMonth = dayjs(newDate).startOf('month').format('YYYY-MM-DD');
+    if (newMonth !== filters.submission_date) {
+      setFilters((prev) => ({
+        ...prev,
+        submission_date: newMonth
+      }));
+    }
   };
 
   const getDaysInMonth = (dateStr) => {
@@ -137,30 +182,24 @@ export default function MyCalendar() {
     return events;
   };
 
-  const handleEventClick = (event) => {
-    if (event.id.toString().startsWith('missing')) return;
-    router.push(`/submission/eod/1/${event.id}`);
-  };
-
-  const fetchAllClinics = async () => {
-    try {
-      const { data } = await EODReportService.getAllRegionalManagers();
-      const clinicsData = data.clinics.map((item) => ({
-        value: item.id,
-        label: item.name
-      }));
-      setClinics(clinicsData);
-
-      if (clinicsData.length > 0) {
-        setFilters((prev) => ({
-          ...prev,
-          clinic_id: clinicsData[0].value
-        }));
-      }
-    } catch (error) {}
-  };
-
   useEffect(() => {
+    const fetchAllClinics = async () => {
+      try {
+        const { data } = await EODReportService.getAllRegionalManagers();
+        const clinicsData = data.clinics.map((item) => ({
+          value: item.id,
+          label: item.name
+        }));
+        setClinics(clinicsData);
+
+        if (clinicsData.length > 0) {
+          setFilters((prev) => ({
+            ...prev,
+            clinic_id: clinicsData[0].value
+          }));
+        }
+      } catch (error) {}
+    };
     fetchAllClinics();
   }, []);
 
@@ -182,7 +221,7 @@ export default function MyCalendar() {
 
   return (
     <div className="p-5 bg-white mx-13 my-4">
-      <div className="w-full max-w-[400px] ml-auto flex items-center gap-2 mb-4">
+      <div className="w-full max-w-[250px] ml-auto flex items-center gap-2 mb-4">
         <div className="flex flex-col gap-2 flex-1">
           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
             Clinics
@@ -196,42 +235,42 @@ export default function MyCalendar() {
             onChange={(value) => handleFilterChange('clinic_id', value)}
           />
         </div>
-        <div className="flex flex-col gap-2 flex-1">
-          <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
-            Date
-          </p>
-          <DatePicker
-            picker="month"
-            format="MMM YYYY"
-            allowClear={false}
-            placeholder="Select date"
-            className="h-10 !rounded-xl"
-            value={
-              filters.submission_date ? dayjs(filters.submission_date) : null
-            }
-            onChange={(date) =>
-              handleFilterChange(
-                'submission_date',
-                dayjs(date).startOf('month').format('YYYY-MM-DD')
-              )
-            }
-          />
-        </div>
       </div>
-
       <div className="h-[400px] md:h-[450px] w-full">
         <Calendar
           events={events}
           endAccessor="end"
+          date={currentDate}
           startAccessor="start"
           localizer={localizer}
           style={{ height: '100%' }}
+          onNavigate={handleNavigate}
           onSelectEvent={handleEventClick}
-          views={[Views.MONTH, Views.WEEK, Views.DAY]}
-          date={dayjs(filters.submission_date).toDate()}
           components={{ event: CustomEvent, toolbar: CustomToolbar }}
         />
       </div>
     </div>
   );
 }
+
+// <div className="flex flex-col gap-2 flex-1">
+//           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+//             Date
+//           </p>
+//           <DatePicker
+//             picker="month"
+//             format="MMM YYYY"
+//             allowClear={false}
+//             placeholder="Select date"
+//             className="h-10 !rounded-xl"
+//             value={
+//               filters.submission_date ? dayjs(filters.submission_date) : null
+//             }
+//             onChange={(date) =>
+//               handleFilterChange(
+//                 'submission_date',
+//                 dayjs(date).startOf('month').format('YYYY-MM-DD')
+//               )
+//             }
+//           />
+//         </div>
