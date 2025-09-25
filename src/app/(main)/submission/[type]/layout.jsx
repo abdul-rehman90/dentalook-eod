@@ -45,9 +45,9 @@ export default function SubmissionLayout({ children }) {
       <h1 className="flex items-center text-[18px] font-semibold text-black mb-7">
         <Button
           size="icon"
-          className="mr-2"
           variant="destructive"
           onClick={() => router.back()}
+          className="mr-2 p-1 rounded-full hover:bg-gray-100"
         >
           <LeftOutlined />
         </Button>

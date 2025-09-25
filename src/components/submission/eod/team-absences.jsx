@@ -164,8 +164,8 @@ export default function TeamAbsences({ onNext }) {
             render: (_, record) => (
               <Button
                 size="icon"
-                className="ml-3"
                 variant="destructive"
+                className="p-1 ml-3 rounded-full hover:bg-gray-100"
                 onClick={() =>
                   setTableData((prev) =>
                     prev.filter((item) => item.key !== record.key)

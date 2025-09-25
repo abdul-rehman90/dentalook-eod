@@ -57,8 +57,8 @@ export default function List() {
           <Button
             size="icon"
             variant="destructive"
-            className="w-full m-auto"
             href={`/submission/eod/1/${record.eodsubmission_id}`}
+            className="p-1 w-full m-auto rounded-full hover:bg-gray-100"
           >
             <EditOutlined />
           </Button>

@@ -119,8 +119,8 @@ export default function Referrals() {
             render: (_, record) => (
               <Button
                 size="icon"
-                className="ml-3"
                 variant="destructive"
+                className="p-1 ml-3 rounded-full hover:bg-gray-100"
                 onClick={() =>
                   setTableData(
                     tableData.filter((item) => item.key !== record.key)

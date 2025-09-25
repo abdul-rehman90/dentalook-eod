@@ -59,8 +59,8 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
           <Button
             size="icon"
             variant="destructive"
-            className="w-full m-auto"
             href={`/submission/eom/1/${record.id}`}
+            className="p-1 w-full m-auto rounded-full hover:bg-gray-100"
           >
             <EditOutlined />
           </Button>
