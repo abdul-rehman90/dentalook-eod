@@ -2,14 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { Select } from 'antd';
 import enUS from 'date-fns/locale/en-US';
 import { useRouter } from 'next/navigation';
 import { useProgress } from '@bprogress/next';
+import { Card, Select, Statistic } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { EODReportService } from '@/common/services/eod-report';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({
@@ -22,33 +23,16 @@ const localizer = dateFnsLocalizer({
 
 const statusColors = {
   Draft: '#facc15',
-  Completed: '#10b981',
-  'Clinic closed': '#9ca3af',
-  'Not even started': '#ef4444'
+  Closed: '#9ca3af',
+  Submitted: '#10b981',
+  'Not started': '#ef4444'
 };
 
 function CustomToolbar({ label, onView, view, onNavigate }) {
   return (
     <div className="flex justify-between items-center py-4">
-      <div className="space-x-2">
-        <Button
-          size="sm"
-          onClick={() => onNavigate('PREV')}
-          className="py-1 !bg-gray-200 !text-gray-700"
-        >
-          Back
-        </Button>
-        <Button
-          size="sm"
-          onClick={() => onNavigate('NEXT')}
-          className="py-1 !bg-gray-200 !text-gray-700"
-        >
-          Next
-        </Button>
-      </div>
-
       <span className="text-lg font-semibold">{label}</span>
-      <div className="space-x-2">
+      <div className="flex items-center gap-2">
         {['month', 'week'].map((v) => (
           <Button
             key={v}
@@ -63,6 +47,21 @@ function CustomToolbar({ label, onView, view, onNavigate }) {
             {v.charAt(0).toUpperCase() + v.slice(1)}
           </Button>
         ))}
+
+        <Button
+          size="sm"
+          onClick={() => onNavigate('PREV')}
+          className="py-2 !bg-gray-200 !text-gray-700 flex items-center justify-center"
+        >
+          <LeftOutlined />
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => onNavigate('NEXT')}
+          className="py-2 !bg-gray-200 !text-gray-700 flex items-center justify-center"
+        >
+          <RightOutlined />
+        </Button>
       </div>
     </div>
   );
@@ -104,9 +103,6 @@ export default function MyCalendar() {
     if (event.id.toString().startsWith('missing')) return;
     progress.start();
     router.push(`/submission/eod/1/${event.id}`);
-    // setTimeout(() => {
-    //   progress.finish();
-    // }, 300);
   };
 
   const handleNavigate = (newDate) => {
@@ -136,6 +132,23 @@ export default function MyCalendar() {
     return days;
   };
 
+  const getStatusSummary = (events) => {
+    const counts = {
+      Draft: 0,
+      Closed: 0,
+      Submitted: 0,
+      'Not started': 0
+    };
+
+    events.forEach((ev) => {
+      if (counts[ev.title] !== undefined) {
+        counts[ev.title] += 1;
+      }
+    });
+
+    return counts;
+  };
+
   const mapReportsToEvents = (reports, monthDate) => {
     const events = [];
     const allDays = getDaysInMonth(monthDate);
@@ -146,6 +159,11 @@ export default function MyCalendar() {
 
     reports.forEach((report) => {
       const hasOpenClose = report.clinic_open_time && report.clinic_close_time;
+      let status = hasOpenClose ? report.submitted : 'Closed';
+
+      if (status === 'Completed') {
+        status = 'Submitted';
+      }
 
       const start = new Date(
         `${report.submission_date}T${report.clinic_open_time || '00:00:00'}`
@@ -159,9 +177,9 @@ export default function MyCalendar() {
         start,
         allDay: true,
         id: report.id,
+        title: status,
         clinic: report.clinic_name,
-        title: hasOpenClose ? report.submitted : 'Clinic closed',
-        color: hasOpenClose ? statusColors[report.submitted] : '#9ca3af'
+        color: statusColors[status] || '#9ca3af'
       });
     });
 
@@ -171,10 +189,10 @@ export default function MyCalendar() {
         events.push({
           allDay: true,
           id: `missing-${day}`,
-          title: 'Not even started',
+          title: 'Not started',
           end: new Date(`${day}T23:59:59`),
           start: new Date(`${day}T00:00:00`),
-          color: statusColors['Not even started']
+          color: statusColors['Not started']
         });
       }
     });
@@ -236,6 +254,32 @@ export default function MyCalendar() {
           />
         </div>
       </div>
+      {events.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {Object.entries(getStatusSummary(events)).map(([status, count]) => (
+            <Card
+              key={status}
+              bodyStyle={{ padding: '12px 16px' }}
+              className="!border !border-solid !border-[#ececec] !rounded-xl shadow-[0px_14px_20px_0px_#0000000A] cursor-pointer"
+            >
+              <Statistic
+                title={
+                  <span className="text-[#5D606D] font-semibold text-sm">
+                    {status}
+                  </span>
+                }
+                value={count}
+                valueStyle={{
+                  fontWeight: 600,
+                  color: '#1F1F1F',
+                  fontSize: '20px',
+                  marginTop: '10px'
+                }}
+              />
+            </Card>
+          ))}
+        </div>
+      )}
       <div className="h-[400px] md:h-[450px] w-full">
         <Calendar
           events={events}
@@ -252,25 +296,3 @@ export default function MyCalendar() {
     </div>
   );
 }
-
-// <div className="flex flex-col gap-2 flex-1">
-//           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
-//             Date
-//           </p>
-//           <DatePicker
-//             picker="month"
-//             format="MMM YYYY"
-//             allowClear={false}
-//             placeholder="Select date"
-//             className="h-10 !rounded-xl"
-//             value={
-//               filters.submission_date ? dayjs(filters.submission_date) : null
-//             }
-//             onChange={(date) =>
-//               handleFilterChange(
-//                 'submission_date',
-//                 dayjs(date).startOf('month').format('YYYY-MM-DD')
-//               )
-//             }
-//           />
-//         </div>

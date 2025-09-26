@@ -14,6 +14,7 @@ const items = [
   { key: '/submission/eom', label: 'Submit End of Month' },
   { key: '/review/list/eod', label: 'Review EOD Submissions' },
   { key: '/review/list/eom', label: 'Review EOM Submissions' },
+  { key: '/calendar', label: 'Submissioin Tracker' },
   { key: '/dashboard', label: 'Dashboard' }
 ];
 
@@ -36,6 +37,7 @@ export default function Header() {
       pathname.startsWith('/review/eom/')
     )
       return '/review/list/eom';
+    if (pathname.startsWith('/calendar')) return '/calendar';
     if (pathname.startsWith('/dashboard')) return '/dashboard';
     return '';
   };
