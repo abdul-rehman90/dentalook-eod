@@ -11,6 +11,19 @@ export const EODReportService = {
     return response;
   },
 
+  async getAllReports(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.clinic_id) params.append('clinic_id', filters.clinic_id);
+    if (filters.submission_date)
+      params.append('submission_date', filters.submission_date);
+
+    const response = await apiClient.get(
+      `/eod-subission-report/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getDataOfProvinceById(id) {
     const response = await apiClient.get(`/province-data/${id}`);
     return response;

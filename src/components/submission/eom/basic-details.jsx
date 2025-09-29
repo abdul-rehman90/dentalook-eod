@@ -88,8 +88,12 @@ export default function BasicDetails() {
 
   const saveData = useCallback(
     async (navigate = false) => {
-      if (id && navigate) {
-        router.push(`/submission/eom/${currentStep + 1}/${id}`);
+      if ((id && navigate) || Object.keys(currentStepData).length > 0) {
+        router.push(
+          `/submission/eom/${currentStep + 1}/${
+            id || currentStepData.submission_id
+          }`
+        );
         return;
       }
 
@@ -103,8 +107,9 @@ export default function BasicDetails() {
 
         const response = await EOMReportService.addBasicDetails(payload);
         if (response.status === 201) {
-          updateStepData(currentStepId, payload);
           const submission_id = response.data.id;
+          payload.submission_id = submission_id;
+          updateStepData(currentStepId, payload);
           toast.success('Record is successfully saved');
           if (navigate) {
             router.push(`/submission/eom/${currentStep + 1}/${submission_id}`);
@@ -118,16 +123,20 @@ export default function BasicDetails() {
         setLoading(false);
       }
     },
-    [id, form, router, setLoading, currentStep, currentStepId, updateStepData]
+    [
+      id,
+      form,
+      router,
+      setLoading,
+      currentStep,
+      currentStepId,
+      updateStepData,
+      currentStepData
+    ]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
@@ -168,12 +177,12 @@ export default function BasicDetails() {
   }, [clinicId, provinces]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

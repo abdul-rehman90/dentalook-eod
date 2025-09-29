@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { Input, Table } from 'antd';
+import { Table } from 'antd';
 import toast from 'react-hot-toast';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
@@ -15,7 +16,6 @@ const defaultRow = {
 };
 
 export default function Supplies({ onNext }) {
-  const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [editingId, setEditingId] = useState(null);
   const [editRowData, setEditRowData] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
@@ -51,6 +51,7 @@ export default function Supplies({ onNext }) {
     },
     {
       width: 50,
+      prefix: '$',
       editable: true,
       title: 'Actual',
       inputType: 'number',
@@ -82,37 +83,14 @@ export default function Supplies({ onNext }) {
       render: (text, record) => {
         if (editingId === record.id) {
           return (
-            <Input
-              prefix={'$'}
+            <EditableCell
+              prefix="$"
               type="number"
+              recordKey={record.key}
+              field="supplies_actual"
               value={editRowData.supplies_actual}
-              onChange={(e) => {
-                const value = e.target.value;
-                const v = String(value).trim();
-                if (!isValidAmountInput(v)) return;
-
-                setEditRowData({
-                  ...editRowData,
-                  supplies_actual: v
-                });
-              }}
-              onBlur={(e) => {
-                const value = e.target.value;
-                if (value === '') {
-                  setEditRowData({
-                    ...editRowData,
-                    supplies_actual: ''
-                  });
-                  return;
-                }
-                // Format to 2 decimal places on blur
-                const num = parseFloat(value);
-                if (!isNaN(num)) {
-                  setEditRowData({
-                    ...editRowData,
-                    supplies_actual: num.toFixed(2)
-                  });
-                }
+              onCommit={(key, field, val) => {
+                setEditRowData({ ...editRowData, [field]: val });
               }}
             />
           );
@@ -128,15 +106,13 @@ export default function Supplies({ onNext }) {
       render: (text, record) => {
         if (editingId === record.id) {
           return (
-            <Input
-              type="text"
-              value={editRowData.overage_reason}
-              onChange={(e) =>
-                setEditRowData({
-                  ...editRowData,
-                  overage_reason: e.target.value
-                })
-              }
+            <EditableCell
+              field="overage_reason"
+              recordKey={record.key}
+              value={record.overage_reason}
+              onCommit={(key, field, val) => {
+                setEditRowData({ ...editRowData, [field]: val });
+              }}
             />
           );
         }
@@ -190,9 +166,12 @@ export default function Supplies({ onNext }) {
     }
   ];
 
-  const isValidAmountInput = (value) => {
-    if (value === '' || value == null) return true;
-    return AMOUNT_REGEX.test(value);
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
   };
 
   const footer = () => {
@@ -221,50 +200,17 @@ export default function Supplies({ onNext }) {
     );
   };
 
-  // const footer = () => {
-  //   const totalActual = totalSupplies.reduce(
-  //     (sum, item) => sum + (Number(item.supplies_actual) || 0),
-  //     0
-  //   );
-  //   return (
-  //     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] p-2">
-  //       <div className="font-semibold">Total</div>
-  //       <div className="min-[1280px]:max-[1450px]:ml-[18px] min-[1451px]:max-[1700px]:ml-[24px] min-[1701px]:max-[2000px]:ml-[28px] min-[2001px]:max-[2200px]:ml-[36px] min-[2201px]:max-[2500px]:ml-[38px] min-[2501px]:ml-[46px]">
-  //         ${totalActual.toFixed(2)}
-  //       </div>
-  //       <div></div>
-  //       <div className="text-center ml-24">0</div>
-  //       <div
-  //         className="text-center min-[1280px]:max-[2200px]:ml-16 min-[1201px]:ml-12"
-  //         style={{
-  //           color: totalActual - 0 >= 0 ? 'green' : 'red'
-  //         }}
-  //       >
-  //         ${(totalActual - 0).toFixed(2)}
-  //       </div>
-  //       <div></div>
-  //     </div>
-  //   );
-  // };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
-
   const handleSaveEdit = async (record) => {
     try {
       setLoading(true);
       const payload = {
         ...editRowData,
         clinic: clinicId,
-        supplies_actual: parseFloat(editRowData.supplies_actual)
+        supplies_actual: editRowData.supplies_actual
       };
       const response = await EODReportService.addSupplies(record.id, payload);
       if (response.status === 200) {
+        updateStepData(currentStepId, editRowData);
         toast.success('Record updated successfully');
         const { data } = await EODReportService.getAllSupplies(
           clinicId,
@@ -320,13 +266,8 @@ export default function Supplies({ onNext }) {
     [tableData, clinicId, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && Object.entries(currentStepData).length > 0) {
@@ -339,7 +280,7 @@ export default function Supplies({ onNext }) {
       ];
       setTableData(transformedData);
     }
-  }, [clinicId]);
+  }, [clinicId, currentStepData]);
 
   useEffect(() => {
     const getAllSupplies = async () => {
@@ -364,12 +305,12 @@ export default function Supplies({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

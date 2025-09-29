@@ -42,6 +42,7 @@ export default function ClinicalUpgrade({ onNext }) {
     },
     {
       width: 150,
+      prefix: '$',
       key: 'cost',
       title: 'Cost',
       editable: true,
@@ -137,13 +138,8 @@ export default function ClinicalUpgrade({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -158,12 +154,12 @@ export default function ClinicalUpgrade({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 
