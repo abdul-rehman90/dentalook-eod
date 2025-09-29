@@ -54,7 +54,9 @@ export default function LoginForm() {
               <div>
                 <Image src={Icons.logo} alt="logo" />
               </div>
-              <h4 className="text-xl text-[#404856]">Login to Dentalook</h4>
+              <h4 className="text-xl text-[#404856]">
+                Clinics Reporting Login
+              </h4>
             </div>
             <Form
               form={form}

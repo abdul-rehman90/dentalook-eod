@@ -62,6 +62,7 @@ export default function DatePickerField({
       <DatePicker
         picker={picker}
         format={format}
+        allowClear={false}
         disabled={disabled}
         style={{ width: '100%' }}
         placeholder={placeholder}

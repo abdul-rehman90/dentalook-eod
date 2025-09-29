@@ -52,27 +52,6 @@ export default function GoogleReviews({ onNext }) {
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
-    if (dataIndex === 'google_review_score') {
-      const numericValue = parseFloat(value);
-      if (numericValue > 5) {
-        toast.error('Google review score cannot be greater than 5');
-        return;
-      }
-
-      if (numericValue < 0) {
-        toast.error('Google review score cannot be negative');
-        return;
-      }
-    }
-
-    if (dataIndex === 'google_review_count') {
-      const numericValue = parseInt(value);
-      if (numericValue < 0) {
-        toast.error('Review count cannot be negative');
-        return;
-      }
-    }
-
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -85,11 +64,29 @@ export default function GoogleReviews({ onNext }) {
       try {
         const rowData = tableData[0];
 
+        if (rowData.google_review_score) {
+          const numericValue = parseFloat(rowData.google_review_score);
+          if (numericValue > 5) {
+            toast.error('Google review score cannot be greater than 5');
+            return;
+          }
+          if (numericValue < 0) {
+            toast.error('Google review score cannot be negative');
+            return;
+          }
+        }
+
+        if (rowData.google_review_count) {
+          const numericValue = parseInt(rowData.google_review_count, 10);
+          if (numericValue < 0) {
+            toast.error('Review count cannot be negative');
+            return;
+          }
+        }
+
         if (rowData.google_review_count && rowData.google_review_score) {
           setLoading(true);
-          const payload = {
-            ...rowData
-          };
+          const payload = { ...rowData };
           const response = await EOMReportService.addSuppliesAndGoogleReviews(
             id,
             payload
@@ -115,13 +112,8 @@ export default function GoogleReviews({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && Object.entries(currentStepData).length > 0) {
@@ -137,12 +129,12 @@ export default function GoogleReviews({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

@@ -44,6 +44,7 @@ export default function EquipmentRepairs({ onNext }) {
         <div className="h-full">
           <DatePicker
             disabled
+            allowClear={false}
             format="ddd, MMM D, YYYY"
             placeholder="Select Date"
             value={record.last_maintenance_date}

@@ -66,6 +66,7 @@ export default function EquipmentRepairs({ onNext }) {
       render: (_, record) => (
         <div className="h-full">
           <DatePicker
+            allowClear={false}
             format="ddd, MMM D, YYYY"
             placeholder="Select Date"
             value={record.last_maintenance_date}
@@ -79,6 +80,7 @@ export default function EquipmentRepairs({ onNext }) {
     {
       width: 50,
       key: 'cost',
+      prefix: '$',
       title: 'Cost',
       editable: true,
       dataIndex: 'cost',
@@ -194,13 +196,8 @@ export default function EquipmentRepairs({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -219,12 +216,12 @@ export default function EquipmentRepairs({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

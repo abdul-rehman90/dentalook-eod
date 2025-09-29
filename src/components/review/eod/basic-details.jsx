@@ -49,8 +49,7 @@ export default function BasicDetails({ onNext }) {
         open_from: formatTimeForUI(
           currentStepData.clinicDetails.clinic_open_time
         ),
-        clinic:
-          currentStepData.clinicDetails.status === 'opened' ? 'open' : 'close'
+        clinic: currentStepData.clinicDetails.status.toLowerCase() || 'close'
       };
 
       form.setFieldsValue(formValues);

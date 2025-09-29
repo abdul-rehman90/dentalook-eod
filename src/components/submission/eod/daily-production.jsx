@@ -139,18 +139,17 @@ export default function DailyProduction({ onNext }) {
       width: 145,
       key: 'type',
       title: 'Title',
-      dataIndex: 'type',
-      render: (type) => type || 'N/A'
+      dataIndex: 'type'
     },
     {
       key: 'name',
       dataIndex: 'name',
       title: 'Provider Name',
-      width: hasRDT ? 350 : 240,
-      render: (name) => name || 'N/A'
+      width: hasRDT ? 350 : 240
     },
     {
       width: 50,
+      prefix: '$',
       editable: true,
       inputType: 'number',
       title: 'Production',
@@ -169,12 +168,7 @@ export default function DailyProduction({ onNext }) {
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
-        item.key === record.key
-          ? {
-              ...item,
-              [dataIndex]: dataIndex === 'production' ? Number(value) : value
-            }
-          : item
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
       )
     );
   };
@@ -218,13 +212,8 @@ export default function DailyProduction({ onNext }) {
     [tableData, id, currentStepId, setLoading, updateStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const fetchTargetGoal = async () => {
     try {
@@ -284,12 +273,12 @@ export default function DailyProduction({ onNext }) {
   }, [clinicId]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

@@ -32,20 +32,31 @@ export default function Payment({ onNext }) {
       dataIndex: 'type',
       title: 'Payment Type',
       render: (type, record) => {
+        const showInsuranceInput =
+          type === 'EFT PAYMENT' || type === 'INSURANCE CHEQUE';
         return (
-          <Select
-            value={type}
-            disabled={true}
-            className={
-              record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
-            }
-          >
-            {paymentOptions.map((option) => (
-              <Select.Option key={option.value} value={option.value}>
-                {option.label}
-              </Select.Option>
-            ))}
-          </Select>
+          <div className="flex flex-col gap-1">
+            <Select
+              value={type}
+              disabled={true}
+              className={
+                record.type === 'CC/DEBIT REFUND' ? 'refund-amount-cell' : ''
+              }
+            >
+              {paymentOptions.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+            {showInsuranceInput && (
+              <Input
+                disabled={true}
+                placeholder="Insurance Company"
+                value={record.insurance_company || ''}
+              />
+            )}
+          </div>
         );
       }
     },
@@ -106,7 +117,8 @@ export default function Payment({ onNext }) {
         remarks: item.remarks,
         type: item.payment_type,
         key: item.id.toString(),
-        amount: item.payment_amount
+        amount: item.payment_amount,
+        insurance_company: item.insurance_company
       }));
       setTableData(transformedData);
       setNotes(storedNotes);

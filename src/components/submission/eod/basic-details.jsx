@@ -15,8 +15,8 @@ import {
 } from '@/common/utils/time-handling';
 
 const options = [
-  { label: 'Open', value: 'opened' },
-  { label: 'Close', value: 'closed' }
+  { label: 'Open', value: 'open' },
+  { label: 'Close', value: 'close' }
 ];
 
 export default function BasicDetails() {
@@ -37,12 +37,14 @@ export default function BasicDetails() {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = currentStepData?.clinicDetails?.clinic;
+  const submissionId = currentStepData?.clinicDetails?.eodsubmission_id;
+  const eod_submission = submissionId || id;
 
   const initialValues = {
     user: null,
     clinic: null,
     province: null,
-    status: 'closed',
+    status: 'close',
     clinic_open_time: null,
     clinic_close_time: null,
     submission_date: dayjs()
@@ -62,21 +64,15 @@ export default function BasicDetails() {
         }))
       }));
 
-      if (clinicId) {
-        const selectedClinic = clinics.find(
-          (clinic) => clinic.value === clinicId
-        );
-        setPractices(clinics);
-        setRegionalManagers(selectedClinic?.managers || []);
-      } else {
-        form.setFieldsValue({
-          province: provinceId,
-          clinic: clinics[0]?.value,
-          user: clinics[0]?.managers[0]?.value
-        });
-        setPractices(clinics);
-        setRegionalManagers(clinics[0]?.managers || []);
-      }
+      const selectedClinic =
+        (clinicId && clinics.find((c) => c.value === clinicId)) || clinics[0];
+      setPractices(clinics);
+      setRegionalManagers(selectedClinic?.managers || []);
+      form.setFieldsValue({
+        province: provinceId,
+        clinic: selectedClinic?.value,
+        user: selectedClinic?.managers?.[0]?.value
+      });
     } catch (error) {}
   };
 
@@ -101,9 +97,10 @@ export default function BasicDetails() {
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = []) => {
       updateStepData(currentStepId, {
-        clinicDetails: values,
-        activeProviders: activeProviders
+        activeProviders: activeProviders,
+        clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
+      toast.success('Record is successfully saved');
       router.push(`/submission/eod/${currentStep + 1}/${submission_id}`);
     },
     [currentStep, currentStepId, router, updateStepData]
@@ -119,6 +116,12 @@ export default function BasicDetails() {
       if (activeProviders.length === 0) {
         if (navigate) {
           moveRouter(submission_id, values);
+        } else {
+          updateStepData(currentStepId, {
+            activeProviders: activeProviders,
+            clinicDetails: { ...values, eodsubmission_id: submission_id }
+          });
+          toast.success('Record is successfully saved');
         }
         return;
       }
@@ -138,9 +141,14 @@ export default function BasicDetails() {
 
         const response = await EODReportService.addActiveProviders(payload);
         if (response.status === 201) {
-          toast.success('Record is successfully saved');
           if (navigate) {
             moveRouter(submission_id, values, payload);
+          } else {
+            toast.success('Record is successfully saved');
+            updateStepData(currentStepId, {
+              activeProviders: payload || [],
+              clinicDetails: { ...values, eodsubmission_id: submission_id }
+            });
           }
         }
       } catch (error) {}
@@ -199,21 +207,30 @@ export default function BasicDetails() {
         const values = await form.validateFields();
         const payload = {
           ...values,
+          ...(eod_submission && { eodsubmission_id: eod_submission }),
           submission_date: dayjs(values.submission_date).format('YYYY-MM-DD'),
           clinic_open_time:
-            values.status === 'opened'
+            values.status === 'open'
               ? dayjs(values.clinic_open_time, 'h:mm a').format('HH:mm:ss')
               : null,
           clinic_close_time:
-            values.status === 'opened'
+            values.status === 'open'
               ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
               : null
         };
 
-        if (id) {
-          await addActiveProviders(payload, id, navigate);
-          return;
-        }
+        // if (
+        //   id ||
+        //   (currentStepData?.clinicDetails &&
+        //     Object.keys(currentStepData.clinicDetails).length > 0)
+        // ) {
+        //   const submissionId =
+        //     id ||
+        //     currentStepData.clinicDetails.submission_id ||
+        //     currentStepData.activeProviders?.[0]?.eod_submission;
+        //   await addActiveProviders(payload, submissionId, navigate);
+        //   return;
+        // }
 
         setLoading(true);
         const response = await EODReportService.addBasicDetails(payload);
@@ -230,21 +247,16 @@ export default function BasicDetails() {
         setLoading(false);
       }
     },
-    [form, tableData, id, addActiveProviders, setLoading]
+    [form, tableData, id, addActiveProviders, setLoading, currentStepData]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const initializeForm = async () => {
     form.setFieldsValue({
       clinic: currentStepData.clinicDetails.clinic,
-      status: currentStepData.clinicDetails.status || 'closed',
+      status: currentStepData.clinicDetails.status.toLowerCase() || 'close',
       province:
         currentStepData.clinicDetails.province_id ||
         currentStepData.clinicDetails.province,
@@ -291,12 +303,12 @@ export default function BasicDetails() {
   }, [clinicId, provinces]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
+    window.addEventListener('stepNavigationNext', handleSubmit);
 
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 
@@ -359,7 +371,7 @@ export default function BasicDetails() {
           {({ getFieldValue }) => {
             const openTime = getFieldValue('clinic_open_time');
             const closeTime = getFieldValue('clinic_close_time');
-            const isOpened = getFieldValue('status') === 'opened';
+            const isOpened = getFieldValue('status') === 'open';
             const shouldShowProviders = isOpened && openTime && closeTime;
             return (
               <React.Fragment>

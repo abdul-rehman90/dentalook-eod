@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Col, Input } from 'antd';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
 import { PlusOutlined } from '@ant-design/icons';
@@ -9,6 +8,7 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
+import { Col } from 'antd';
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
@@ -48,7 +48,6 @@ export default function PatientTracking({ onNext }) {
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
-  // Calculate summary data
   const summaryData = useMemo(() => {
     const difference = actual - target;
     return [
@@ -68,21 +67,9 @@ export default function PatientTracking({ onNext }) {
       dataIndex: 'summary',
       render: () => 'This Week'
     },
-    {
-      key: 'actual',
-      title: 'Actual',
-      dataIndex: 'actual'
-    },
-    {
-      key: 'target',
-      title: 'Target',
-      dataIndex: 'target'
-    },
-    {
-      key: '+/-',
-      title: '+/-',
-      dataIndex: '+/-'
-    }
+    { key: 'actual', title: 'Actual', dataIndex: 'actual' },
+    { key: 'target', title: 'Target', dataIndex: 'target' },
+    { key: '+/-', title: '+/-', dataIndex: '+/-' }
   ];
 
   const patientSourceColumns = [
@@ -107,26 +94,11 @@ export default function PatientTracking({ onNext }) {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_source',
             title: 'Other Source',
-            dataIndex: 'other_source',
-            render: (_, record) => (
-              <Input
-                value={record.other_source}
-                disabled={record.source !== 'Other'}
-                onChange={(e) => {
-                  const updatedProviders = tableData.map((p) =>
-                    p.key === record.key
-                      ? {
-                          ...p,
-                          other_source: e.target.value
-                        }
-                      : p
-                  );
-                  setTableData(updatedProviders);
-                }}
-              />
-            )
+            dataIndex: 'other_source'
           }
         ]
       : []),
@@ -150,8 +122,8 @@ export default function PatientTracking({ onNext }) {
                 className="ml-3"
                 variant="destructive"
                 onClick={() =>
-                  setTableData(
-                    tableData.filter((item) => item.key !== record.key)
+                  setTableData((prev) =>
+                    prev.filter((item) => item.key !== record.key)
                   )
                 }
               >
@@ -172,21 +144,11 @@ export default function PatientTracking({ onNext }) {
   };
 
   const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    setTableData([
-      ...tableData,
-      {
-        key: newKey,
-        source: '',
-        comments: '',
-        other_source: '',
-        patient_name: ''
-      }
-    ]);
+    const newKey = tableData.length
+      ? Math.max(...tableData.map((item) => item.key)) + 1
+      : 1;
     setActual((prev) => prev + 1);
+    setTableData([...tableData, { ...defaultRow, key: newKey }]);
   };
 
   const saveData = useCallback(
@@ -195,7 +157,6 @@ export default function PatientTracking({ onNext }) {
         const rowsWithPatientButNoSource = tableData.filter(
           (item) => item.patient_name && !item.source
         );
-
         const rowsWithMissingOtherSource = tableData.filter(
           (item) => item.source === 'Other' && !item.other_source
         );
@@ -206,7 +167,6 @@ export default function PatientTracking({ onNext }) {
           );
           return;
         }
-
         if (rowsWithMissingOtherSource.length > 0) {
           toast.error(
             'Please specify the "Other Source" for all rows where source is "Other"'
@@ -216,10 +176,7 @@ export default function PatientTracking({ onNext }) {
 
         const payload = tableData
           .filter((item) => item.patient_name && item.source)
-          .map((item) => ({
-            ...item,
-            eodsubmission: Number(id)
-          }));
+          .map((item) => ({ ...item, eodsubmission: Number(id) }));
 
         if (payload.length > 0) {
           setLoading(true);
@@ -227,53 +184,40 @@ export default function PatientTracking({ onNext }) {
           if (response.status === 201) {
             updateStepData(currentStepId, tableData);
             toast.success('Record is successfully saved');
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
           }
         } else {
           updateStepData(currentStepId, tableData);
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext]
   );
 
-  const handleSubmit = useCallback(async () => {
-    await saveData(true); // Save and navigate
-  }, [saveData]);
-
-  const handleSave = useCallback(async () => {
-    await saveData(false); // Save without navigation
-  }, [saveData]);
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
       setActual(currentStepData.length);
       const transformedData = currentStepData.map((item) => ({
-        source: item.source,
-        comments: item.comments,
-        other_source: item.other_source,
-        patient_name: item.patient_name,
+        ...item,
         key: item.id?.toString() || item.key?.toString()
       }));
       setTableData(transformedData);
     }
-  }, [clinicId]);
+  }, [clinicId, currentStepData]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationNext', handleSubmit);
     window.addEventListener('stepNavigationSave', handleSave);
-
+    window.addEventListener('stepNavigationNext', handleSubmit);
     return () => {
-      window.removeEventListener('stepNavigationNext', handleSubmit);
       window.removeEventListener('stepNavigationSave', handleSave);
+      window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
 

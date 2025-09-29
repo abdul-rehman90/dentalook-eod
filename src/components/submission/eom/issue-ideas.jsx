@@ -24,9 +24,18 @@ const defaultRow = {
 export default function IssuesIdeas() {
   const router = useRouter();
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
-  const clinicId = reportData?.eom?.basic?.clinic;
+  const {
+    id,
+    steps,
+    reportData,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
+  const clinicId = reportData?.eom?.basic?.clinic;
 
   const columns = [
     {
@@ -71,22 +80,6 @@ export default function IssuesIdeas() {
       : [])
   ];
 
-  const handleSubmitEOMReport = async () => {
-    try {
-      setLoading(true);
-      const response = await EOMReportService.submissionEOMReport({
-        eomsubmission_id: id
-      });
-      if (response.status === 200) {
-        toast.success('EOM submission is successfully submitted');
-        router.push('/review/list/eom');
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
       tableData.map((item) =>
@@ -108,29 +101,56 @@ export default function IssuesIdeas() {
     setTableData([...tableData, newItem]);
   };
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmitEOMReport = async () => {
     try {
-      const payload = tableData
-        .filter((item) => item.category && item.details)
-        .map((item) => ({
-          ...item,
-          submission: id
-        }));
-
-      if (payload.length > 0) {
-        const response = await EOMReportService.addIssueIdeas(payload);
-        if (response.status === 201) {
-          await handleSubmitEOMReport();
-        }
-        return;
-      } else {
-        await handleSubmitEOMReport();
+      setLoading(true);
+      const response = await EOMReportService.submissionEOMReport({
+        eomsubmission_id: id
+      });
+      if (response.status === 200) {
+        toast.success('EOM submission is successfully submitted');
+        router.push('/review/list/eom');
       }
     } catch (error) {
-      toast.error('Failed to save issues/ideas data');
-      return Promise.reject(error);
+    } finally {
+      setLoading(false);
     }
-  }, [tableData, id, handleSubmitEOMReport]);
+  };
+
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        const payload = tableData
+          .filter((item) => item.category && item.details)
+          .map((item) => ({
+            ...item,
+            submission: id
+          }));
+
+        if (payload.length > 0) {
+          const response = await EOMReportService.addIssueIdeas(payload);
+          if (response.status === 201) {
+            if (navigate) {
+              await handleSubmitEOMReport();
+            } else {
+              updateStepData(currentStepId, tableData);
+              toast.success('Record is successfully saved');
+            }
+          }
+        } else {
+          if (navigate) {
+            await handleSubmitEOMReport();
+          }
+        }
+      } catch (error) {
+        toast.error('Failed to save issues/ideas data');
+      }
+    },
+    [tableData, id, handleSubmitEOMReport]
+  );
+
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   useEffect(() => {
     if (clinicId && currentStepData.length > 0) {
@@ -144,8 +164,11 @@ export default function IssuesIdeas() {
   }, [clinicId]);
 
   useEffect(() => {
+    window.addEventListener('stepNavigationSave', handleSave);
     window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
+      window.removeEventListener('stepNavigationSave', handleSave);
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit]);
@@ -171,6 +194,7 @@ export default function IssuesIdeas() {
         />
       </div>
       <StepNavigation
+        onSave={handleSave}
         onNext={handleSubmit}
         className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />

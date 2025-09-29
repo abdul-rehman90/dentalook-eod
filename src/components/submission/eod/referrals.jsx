@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Input } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -51,8 +50,17 @@ export default function Referrals() {
   const router = useRouter();
   const [providers, setProviders] = useState([]);
   const [tableData, setTableData] = useState([defaultRow]);
-  const { id, reportData, setLoading, getCurrentStepData } = useGlobalContext();
+  const {
+    id,
+    steps,
+    reportData,
+    setLoading,
+    currentStep,
+    updateStepData,
+    getCurrentStepData
+  } = useGlobalContext();
   const currentStepData = getCurrentStepData();
+  const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
 
   const columns = [
@@ -86,26 +94,11 @@ export default function Referrals() {
       ? [
           {
             width: 250,
+            editable: true,
+            inputType: 'text',
             key: 'other_specialty',
             title: 'Other Speciality',
-            dataIndex: 'other_specialty',
-            render: (_, record) => (
-              <Input
-                value={record.other_specialty}
-                disabled={record.specialty !== 'Other'}
-                onChange={(e) => {
-                  const updatedProviders = tableData.map((p) =>
-                    p.key === record.key
-                      ? {
-                          ...p,
-                          other_specialty: e.target.value
-                        }
-                      : p
-                  );
-                  setTableData(updatedProviders);
-                }}
-              />
-            )
+            dataIndex: 'other_specialty'
           }
         ]
       : []),
@@ -142,6 +135,14 @@ export default function Referrals() {
       : [])
   ];
 
+  const handleCellChange = (record, dataIndex, value) => {
+    setTableData(
+      tableData.map((item) =>
+        item.key === record.key ? { ...item, [dataIndex]: value } : item
+      )
+    );
+  };
+
   const handleSubmitEODReport = async () => {
     try {
       setLoading(true);
@@ -156,14 +157,6 @@ export default function Referrals() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCellChange = (record, dataIndex, value) => {
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
   };
 
   const handleAddNew = () => {
@@ -184,50 +177,69 @@ export default function Referrals() {
     ]);
   };
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      const rowsWithMissingData = tableData.filter(
-        (item) => item.patient_name && (!item.provider_name || !item.specialty)
-      );
+  const saveData = useCallback(
+    async (navigate = false) => {
+      try {
+        setLoading(true);
 
-      const rowsWithMissingOtherSpeciality = tableData.filter(
-        (item) => item.specialty === 'Other' && !item.other_specialty
-      );
-
-      if (rowsWithMissingData.length > 0) {
-        toast.error(
-          'Please specify both Provider and Specialty for all patients with names'
+        const rowsWithMissingData = tableData.filter(
+          (item) =>
+            item.patient_name && (!item.provider_name || !item.specialty)
         );
-        return;
-      }
 
-      if (rowsWithMissingOtherSpeciality.length > 0) {
-        toast.error(
-          'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+        const rowsWithMissingOtherSpeciality = tableData.filter(
+          (item) => item.specialty === 'Other' && !item.other_specialty
         );
-        return;
-      }
 
-      const payload = tableData
-        .filter(
-          (item) => item.patient_name && item.provider_name && item.specialty
-        )
-        .map((item) => ({
-          ...item,
-          user: item.provider_name,
-          eodsubmission: Number(id)
-        }));
-
-      if (payload.length > 0) {
-        const response = await EODReportService.addRefferal(payload);
-        if (response.status === 201) {
-          await handleSubmitEODReport();
+        if (rowsWithMissingData.length > 0) {
+          toast.error(
+            'Please specify both Provider and Specialty for all patients with names'
+          );
+          return;
         }
-      } else {
-        await handleSubmitEODReport();
+
+        if (rowsWithMissingOtherSpeciality.length > 0) {
+          toast.error(
+            'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+          );
+          return;
+        }
+
+        const payload = tableData
+          .filter(
+            (item) => item.patient_name && item.provider_name && item.specialty
+          )
+          .map(({ key, ...item }) => ({
+            ...item,
+            user: item.provider_name,
+            eodsubmission: Number(id)
+          }));
+
+        if (payload.length > 0) {
+          const response = await EODReportService.addRefferal(payload);
+          if (response.status === 201) {
+            if (navigate) {
+              await handleSubmitEODReport();
+            } else {
+              updateStepData(currentStepId, tableData);
+              toast.success('Record is successfully saved');
+            }
+          }
+        } else {
+          if (navigate) {
+            await handleSubmitEODReport();
+          }
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {}
-  }, [tableData, id, handleSubmitEODReport]);
+    },
+    [tableData, clinicId, id, setLoading]
+  );
+
+  const handleSave = useCallback(async () => saveData(false), [saveData]);
+  const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
   const fetchActiveProviders = async () => {
     try {
@@ -247,21 +259,24 @@ export default function Referrals() {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         specialty: item.specialty,
-        provider_name: item.user?.id,
         patient_name: item.patient_name,
         other_specialty: item.other_specialty,
-        key: item.id?.toString() || item.key?.toString()
+        key: item.id?.toString() || item.key?.toString(),
+        provider_name: item.user?.id || item.provider_name
       }));
       setTableData(transformedData);
     }
   }, [clinicId]);
 
   useEffect(() => {
+    window.addEventListener('stepNavigationSave', handleSave);
     window.addEventListener('stepNavigationNext', handleSubmit);
+
     return () => {
+      window.removeEventListener('stepNavigationSave', handleSave);
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
-  }, [handleSubmit]);
+  }, [handleSubmit, handleSave]);
 
   return (
     <React.Fragment>
@@ -284,6 +299,7 @@ export default function Referrals() {
         />
       </div>
       <StepNavigation
+        onSave={handleSave}
         onNext={handleSubmit}
         className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { DatePicker, Select } from 'antd';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
@@ -8,7 +7,6 @@ import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 
 export default function List() {
-  const router = useRouter();
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const { loading, setLoading } = useGlobalContext();
@@ -24,27 +22,27 @@ export default function List() {
 
   const columns = [
     { title: 'Date', dataIndex: 'submission_date', key: 'submission_date' },
-    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
     { title: 'Province', dataIndex: 'province_name', key: 'province_name' },
     {
       title: 'Regional Manager',
       key: 'regional_manager_name',
       dataIndex: 'regional_manager_name'
     },
+    { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
     {
       title: 'Status',
       key: 'submitted',
       dataIndex: 'submitted',
-      render: (text) =>
-        text ? (
+      render: (status) =>
+        status ? (
           <span
             className={`px-2 py-1 rounded-full text-sm font-semibold ${
-              text === 'Completed'
+              status === 'Completed'
                 ? 'bg-[#E9F7EE] text-primary-400'
                 : 'bg-[#FFF4ED] text-[#FF8A4E]'
             }`}
           >
-            {text}
+            {status === 'Completed' ? 'Submitted' : status}
           </span>
         ) : (
           'N/A'
@@ -60,20 +58,7 @@ export default function List() {
             size="icon"
             variant="destructive"
             className="w-full m-auto"
-            onClick={() =>
-              router.push(`/review/eod/1/${record.eodsubmission_id}`)
-            }
-          >
-            <EyeOutlined />
-          </Button>
-          <Button
-            size="icon"
-            variant="destructive"
-            className="w-full m-auto"
-            // disabled={record.submitted === 'Completed'}
-            onClick={() =>
-              router.push(`/submission/eod/1/${record.eodsubmission_id}`)
-            }
+            href={`/submission/eod/1/${record.eodsubmission_id}`}
           >
             <EditOutlined />
           </Button>
@@ -165,18 +150,6 @@ export default function List() {
         <div className="flex flex-wrap gap-4 mt-3">
           <div className="flex flex-col gap-2 flex-1">
             <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
-              Practice Name
-            </p>
-            <Select
-              options={clinics}
-              value={filters.clinic_id}
-              style={{ width: '100%' }}
-              placeholder="Select Practice"
-              onChange={(value) => handleFilterChange('clinic_id', value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
               Province
             </p>
             <Select
@@ -203,9 +176,22 @@ export default function List() {
           </div>
           <div className="flex flex-col gap-2 flex-1">
             <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+              Practice Name
+            </p>
+            <Select
+              options={clinics}
+              value={filters.clinic_id}
+              style={{ width: '100%' }}
+              placeholder="Select Practice"
+              onChange={(value) => handleFilterChange('clinic_id', value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
               From
             </p>
             <DatePicker
+              allowClear={false}
               format="MM/DD/YYYY"
               placeholder="Select date"
               style={{ width: '100%' }}
@@ -218,6 +204,7 @@ export default function List() {
               To
             </p>
             <DatePicker
+              allowClear={false}
               format="MM/DD/YYYY"
               value={filters.end_date}
               placeholder="Select date"
@@ -232,6 +219,7 @@ export default function List() {
           Clinic Submissions
         </p>
         <GenericTable
+          showPagination
           loading={loading}
           columns={columns}
           dataSource={submissions}
@@ -240,3 +228,12 @@ export default function List() {
     </React.Fragment>
   );
 }
+
+// <Button
+//             size="icon"
+//             variant="destructive"
+//             className="w-full m-auto"
+//             href={`/review/eod/1/${record.eodsubmission_id}`}
+//           >
+//             <EyeOutlined />
+//           </Button>
