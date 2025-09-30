@@ -251,11 +251,17 @@
   display: none;
 }
 
+.ant-tabs .ant-tabs-nav-list {
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
 .ant-tabs .ant-tabs-tab {
   font-weight: 500;
-  padding: 6px 0 !important;
+  margin: 0 !important;
+  padding: 3px 0 !important;
   color: var(--color-black);
-  margin-left: 20px !important;
+  /* margin-left: 20px !important; */
 }
 
 .ant-tabs .ant-tabs-tab-active {
@@ -359,7 +365,7 @@
 .dentalook-bg {
   width: 100%;
   height: 100%;
-  background: url('../common/assets/images/dentalook.png') center / 100% 100%;
+  background: url('../common/assets/images/login-bg.png') center / 100% 100%;
 }
 
 .step::before {
