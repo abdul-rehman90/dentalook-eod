@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -9,9 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Input, Card, Row, Col, Form } from 'antd';
 import { AuthService } from '@/common/services/auth';
 import { Button } from '@/common/components/button/button';
-import { setUserAndToken } from '@/common/utils/auth-user';
 
-export default function LoginForm() {
+export default function ForgotPasswordForm() {
   const router = useRouter();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -19,15 +17,19 @@ export default function LoginForm() {
   const onFinish = async (values) => {
     try {
       setLoading(true);
-      const response = await AuthService.login(values);
+      const response = await AuthService.forgotPassword({
+        email: values.email
+      });
       if (response.status === 200) {
-        setUserAndToken(response.data.access);
-        router.push('/clinics-reporting');
-        toast.success('Login successful!');
+        toast.success(
+          'Password reset instructions have been sent to your email.'
+        );
+        sessionStorage.setItem('email', values.email);
+        router.push('/reset-password');
       }
     } catch (error) {
       let errorMessage =
-        error?.response?.data?.detail ??
+        error?.response?.data?.message ??
         'Something went wrong. Please try again.';
       toast.error(errorMessage);
     } finally {
@@ -43,7 +45,7 @@ export default function LoginForm() {
           <div className="dentalook-bg"></div>
         </Col>
 
-        {/* Right side with login form */}
+        {/* Right side with forgot password form */}
         <Col
           xs={24}
           sm={24}
@@ -55,17 +57,19 @@ export default function LoginForm() {
               <div>
                 <Image src={Icons.logo} alt="logo" />
               </div>
-              <h4 className="text-xl text-[#404856]">
-                Clinics Reporting Login
-              </h4>
+              <h4 className="text-xl text-[#404856]">Forgot Password</h4>
+              <p className="text-sm text-gray-500 text-center">
+                Enter your email and we’ll send you a link to reset your
+                password.
+              </p>
             </div>
+
             <Form
               form={form}
-              name="login"
               layout="vertical"
               autoComplete="off"
               onFinish={onFinish}
-              initialValues={{ remember: true }}
+              name="forgot-password"
             >
               <Form.Item
                 name="email"
@@ -74,16 +78,6 @@ export default function LoginForm() {
               >
                 <Input
                   placeholder="Enter email"
-                  className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
-                />
-              </Form.Item>
-              <Form.Item
-                name="password"
-                label="Password"
-                rules={[{ required: true, message: 'Password is required' }]}
-              >
-                <Input.Password
-                  placeholder="Enter password"
                   className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
                 />
               </Form.Item>
@@ -96,9 +90,19 @@ export default function LoginForm() {
                   isLoading={loading}
                   className="w-full h-9 !shadow-none text-black !rounded-lg"
                 >
-                  Login
+                  Send Reset Link
                 </Button>
               </Form.Item>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => router.push('/login')}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Back to Login
+                </button>
+              </div>
             </Form>
           </Card>
         </Col>
@@ -106,12 +110,3 @@ export default function LoginForm() {
     </div>
   );
 }
-
-// <div className="flex justify-end mb-4">
-//               <Link
-//                 href="/forgot-password"
-//                 className="text-sm text-blue-600 hover:underline"
-//               >
-//                 Forgot Password?
-//               </Link>
-//             </div>
