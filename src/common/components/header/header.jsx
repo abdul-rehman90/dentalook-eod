@@ -14,7 +14,7 @@ const items = [
   { key: '/submission/eom', label: 'Submit End of Month' },
   { key: '/review/list/eod', label: 'Review EOD Submissions' },
   { key: '/review/list/eom', label: 'Review EOM Submissions' },
-  { key: '/calendar', label: 'Submissioin Tracker' },
+  { key: '/calendar', label: 'Submission Tracker' },
   { key: '/dashboard', label: 'Dashboard' }
 ];
 
