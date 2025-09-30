@@ -51,8 +51,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-13 py-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-8">
+      <div className="flex gap-2 justify-between">
+        <div className="flex gap-8">
           <Link
             href="/clinics-reporting"
             className="cursor-pointer inline-block"
@@ -61,8 +61,8 @@ export default function Header() {
           </Link>
           {!isMainRoute && (
             <Tabs
-              activeKey={activeKey}
               type="line"
+              activeKey={activeKey}
               className="[&_.ant-tabs-nav]:!mb-0"
               items={items.map((item) => ({
                 key: item.key,
@@ -81,9 +81,10 @@ export default function Header() {
             />
           )}
         </div>
-
-        <div className="flex items-center gap-8">
-          <p className="text-xs text-black font-medium">{currentTime}</p>
+        <div className="flex items-center h-fit gap-4 2xl:gap-8">
+          <p className="text-xs text-black font-medium text-nowrap">
+            {currentTime}
+          </p>
           <Dropdown
             menu={{
               items: [
