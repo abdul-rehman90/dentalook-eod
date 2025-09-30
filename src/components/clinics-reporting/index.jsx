@@ -9,27 +9,39 @@ export default function ClinicsReporting() {
   const cardsData = [
     {
       id: '1',
+      route: '/submission/eod/1',
       title: 'Submit End Of Day',
-      description: "Record today's clinic operations",
-      route: '/submission/eod/1'
+      description: "Record today's clinic operations"
     },
     {
       id: '2',
+      route: '/submission/eom/1',
       title: 'Submit End of Month',
-      description: 'Submit monthly performance summary',
-      route: '/submission/eom/1'
+      description: 'Submit monthly performance summary'
     },
     {
       id: '3',
+      route: '/review/list/eod',
       title: 'Review EOD Submissions',
-      description: 'Access your EOD recorded reports here',
-      route: '/review/list/eod'
+      description: 'Access your EOD recorded reports here'
     },
     {
       id: '4',
+      route: '/review/list/eom',
       title: 'Review EOM Submissions',
-      description: 'Access your EOM recorded reports here',
-      route: '/review/list/eom'
+      description: 'Access your EOM recorded reports here'
+    },
+    {
+      id: '5',
+      route: '/calendar',
+      title: 'Submission Tracker',
+      description: 'Track and monitor submission timelines easily'
+    },
+    {
+      id: '6',
+      title: 'Dashboard',
+      route: '/dashboard',
+      description: 'Get a quick overview of clinic performance'
     }
   ];
 
@@ -47,7 +59,7 @@ export default function ClinicsReporting() {
           records, and maintain compliance, all in one place.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         {cardsData.map((card) => (
           <Link
             tabIndex={0}
