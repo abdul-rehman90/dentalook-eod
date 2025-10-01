@@ -59,7 +59,7 @@ export default function ClinicsReporting() {
           records, and maintain compliance, all in one place.
         </p>
       </div>
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 gap-6">
         {cardsData.map((card) => (
           <Link
             tabIndex={0}
