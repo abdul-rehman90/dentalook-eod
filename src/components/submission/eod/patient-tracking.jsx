@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Col } from 'antd';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Icons } from '@/common/assets';
@@ -7,8 +8,8 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
-import { Col } from 'antd';
 
 const sourceOptions = [
   { value: 'Word Of Mouth', label: 'Word Of Mouth' },
@@ -98,7 +99,20 @@ export default function PatientTracking({ onNext }) {
             inputType: 'text',
             key: 'other_source',
             title: 'Other Source',
-            dataIndex: 'other_source'
+            dataIndex: 'other_source',
+            render: (_, record) => {
+              if (record.source === 'Other') {
+                return (
+                  <EditableCell
+                    field="other_source"
+                    recordKey={record.key}
+                    value={record.other_source}
+                    onCommit={handleCellCommit}
+                  />
+                );
+              }
+              return null;
+            }
           }
         ]
       : []),
@@ -134,6 +148,14 @@ export default function PatientTracking({ onNext }) {
         ]
       : [])
   ];
+
+  const handleCellCommit = (key, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: value } : item
+      )
+    );
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(

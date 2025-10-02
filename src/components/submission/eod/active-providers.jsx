@@ -65,10 +65,22 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           className="custom-checkbox"
           disabled={status === 'closed'}
           onChange={(e) => {
-            const updatedProviders = tableData.map((p) =>
-              p.key === record.key ? { ...p, is_active: e.target.checked } : p
+            const checked = e.target.checked;
+            setTableData((prev) =>
+              prev.map((p) =>
+                p.key === record.key
+                  ? {
+                      ...p,
+                      is_active: checked,
+                      number_of_patients_seen: checked ? 0 : null,
+                      unfilled_spots: checked ? 0 : null,
+                      no_shows: checked ? 0 : null,
+                      short_notice_cancellations: checked ? 0 : null,
+                      failed_appointments: checked ? 0 : null
+                    }
+                  : p
+              )
             );
-            setTableData(updatedProviders);
           }}
         />
       )

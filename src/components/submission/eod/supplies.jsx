@@ -141,14 +141,14 @@ export default function Supplies({ onNext }) {
             <div className="flex gap-4">
               <SaveOutlined
                 onClick={() => handleSaveEdit(record)}
-                className="text-blue-500 cursor-pointer"
+                className="text-lg !text-gray-800 cursor-pointer"
               />
               <CloseOutlined
                 onClick={() => {
                   setEditingId(null);
                   setEditRowData(null);
                 }}
-                className="text-red-500 cursor-pointer"
+                className="text-lg !text-red-500 cursor-pointer"
               />
             </div>
           );
@@ -159,7 +159,7 @@ export default function Supplies({ onNext }) {
               setEditingId(record.id);
               setEditRowData({ ...record });
             }}
-            className="text-blue-500 cursor-pointer"
+            className="text-lg !text-gray-800 cursor-pointer"
           />
         );
       }
@@ -212,18 +212,9 @@ export default function Supplies({ onNext }) {
       if (response.status === 200) {
         updateStepData(currentStepId, editRowData);
         toast.success('Record updated successfully');
-        const { data } = await EODReportService.getAllSupplies(
-          clinicId,
-          submission_month
-        );
-        setTotalSupplies(
-          data.map((item) => ({
-            ...item,
-            key: item.id
-          }))
-        );
         setEditingId(null);
         setEditRowData(null);
+        await fetchSupplies();
       }
     } catch (error) {
     } finally {
@@ -248,6 +239,7 @@ export default function Supplies({ onNext }) {
           if (response.status === 200) {
             updateStepData(currentStepId, rowData);
             toast.success('Record is successfully saved');
+            await fetchSupplies();
             if (navigate) {
               onNext();
             }
@@ -269,6 +261,25 @@ export default function Supplies({ onNext }) {
   const handleSave = useCallback(async () => saveData(false), [saveData]);
   const handleSubmit = useCallback(async () => saveData(true), [saveData]);
 
+  const fetchSupplies = useCallback(async () => {
+    try {
+      setDataLoading(true);
+      const { data } = await EODReportService.getAllSupplies(
+        clinicId,
+        submission_month
+      );
+      setTotalSupplies(
+        data.map((item) => ({
+          ...item,
+          key: item.id
+        }))
+      );
+    } catch {
+    } finally {
+      setDataLoading(false);
+    }
+  }, [clinicId]);
+
   useEffect(() => {
     if (clinicId && Object.entries(currentStepData).length > 0) {
       const transformedData = [
@@ -283,26 +294,10 @@ export default function Supplies({ onNext }) {
   }, [clinicId, currentStepData]);
 
   useEffect(() => {
-    const getAllSupplies = async () => {
-      try {
-        setDataLoading(true);
-        const { data } = await EODReportService.getAllSupplies(
-          clinicId,
-          submission_month
-        );
-        setTotalSupplies(
-          data.map((item) => ({
-            ...item,
-            key: item.id
-          }))
-        );
-      } catch (error) {
-      } finally {
-        setDataLoading(false);
-      }
-    };
-    clinicId && getAllSupplies();
-  }, [clinicId]);
+    if (clinicId) {
+      fetchSupplies();
+    }
+  }, [clinicId, fetchSupplies]);
 
   useEffect(() => {
     window.addEventListener('stepNavigationSave', handleSave);
