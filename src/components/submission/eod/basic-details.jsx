@@ -165,24 +165,24 @@ export default function BasicDetails() {
             const errors = [];
             if (!provider.start_time) errors.push('start time');
             if (!provider.end_time) errors.push('end time');
-            if (!provider.number_of_patients_seen) errors.push('patients seen');
-            if (
-              provider.unfilled_spots === undefined ||
-              provider.unfilled_spots === null
-            )
-              errors.push('Unfilled');
-            if (provider.no_shows === undefined || provider.no_shows === null)
-              errors.push('No Shows');
-            if (
-              provider.short_notice_cancellations === undefined ||
-              provider.short_notice_cancellations === null
-            )
-              errors.push('Short Notice');
-            if (
-              provider.failed_appointments === undefined ||
-              provider.failed_appointments === null
-            )
-              errors.push('Failed appts');
+            // if (!provider.number_of_patients_seen) errors.push('patients seen');
+            // if (
+            //   provider.unfilled_spots === undefined ||
+            //   provider.unfilled_spots === null
+            // )
+            //   errors.push('Unfilled');
+            // if (provider.no_shows === undefined || provider.no_shows === null)
+            //   errors.push('No Shows');
+            // if (
+            //   provider.short_notice_cancellations === undefined ||
+            //   provider.short_notice_cancellations === null
+            // )
+            //   errors.push('Short Notice');
+            // if (
+            //   provider.failed_appointments === undefined ||
+            //   provider.failed_appointments === null
+            // )
+            //   errors.push('Failed appts');
             return {
               provider,
               errors
@@ -218,19 +218,6 @@ export default function BasicDetails() {
               ? dayjs(values.clinic_close_time, 'h:mm a').format('HH:mm:ss')
               : null
         };
-
-        // if (
-        //   id ||
-        //   (currentStepData?.clinicDetails &&
-        //     Object.keys(currentStepData.clinicDetails).length > 0)
-        // ) {
-        //   const submissionId =
-        //     id ||
-        //     currentStepData.clinicDetails.submission_id ||
-        //     currentStepData.activeProviders?.[0]?.eod_submission;
-        //   await addActiveProviders(payload, submissionId, navigate);
-        //   return;
-        // }
 
         setLoading(true);
         const response = await EODReportService.addBasicDetails(payload);
