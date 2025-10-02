@@ -8,6 +8,7 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const specialityOptions = [
@@ -98,7 +99,20 @@ export default function Referrals() {
             inputType: 'text',
             key: 'other_specialty',
             title: 'Other Speciality',
-            dataIndex: 'other_specialty'
+            dataIndex: 'other_specialty',
+            render: (_, record) => {
+              if (record.specialty === 'Other') {
+                return (
+                  <EditableCell
+                    recordKey={record.key}
+                    field="other_specialty"
+                    onCommit={handleCellCommit}
+                    value={record.other_specialty}
+                  />
+                );
+              }
+              return null;
+            }
           }
         ]
       : []),
@@ -134,6 +148,14 @@ export default function Referrals() {
         ]
       : [])
   ];
+
+  const handleCellCommit = (key, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: value } : item
+      )
+    );
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
