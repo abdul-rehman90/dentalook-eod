@@ -273,6 +273,17 @@ export default function Payment({ onNext }) {
   return (
     <React.Fragment>
       <div className="px-6">
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={handleAddNew}
+            className="!px-0 text-[15px] font-semibold text-[#339D5C]"
+          >
+            <PlusOutlined />
+            Add New Payment
+          </Button>
+        </div>
         <Row gutter={16}>
           <Col span={12}>
             <div className="payment-table">
