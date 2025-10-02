@@ -4,14 +4,23 @@ import { Table, Select, Pagination, Input } from 'antd';
 
 const InputCell = memo(
   ({ value, type, prefix, disabled, onChange, onBlur, className, rowKey }) => {
-    const [localValue, setLocalValue] = useState(value || '');
+    const [localValue, setLocalValue] = useState(
+      value === undefined || value === null ? '' : String(value)
+    );
 
-    const debouncedOnChange = useCallback(
-      debounce((val) => {
-        if (typeof onChange === 'function') onChange(val);
-      }, 500),
+    const debouncedOnChange = useMemo(
+      () =>
+        debounce((val) => {
+          if (typeof onChange === 'function') onChange(val);
+        }, 500),
       [onChange]
     );
+
+    useEffect(() => {
+      return () => {
+        debouncedOnChange.cancel();
+      };
+    }, [debouncedOnChange]);
 
     const handleChange = (e) => {
       let newValue = e.target.value;
@@ -53,7 +62,7 @@ const InputCell = memo(
     };
 
     useEffect(() => {
-      setLocalValue(value || '');
+      setLocalValue(value === undefined || value === null ? '' : String(value));
     }, [rowKey, value]);
 
     return (

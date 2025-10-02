@@ -7,6 +7,7 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import EditableCell from '@/common/components/editable-cell/editable-cell';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
 const reasonOptions = [
@@ -67,7 +68,20 @@ export default function AttritionTracking({ onNext }) {
             inputType: 'text',
             key: 'other_reason',
             title: 'Other Reason',
-            dataIndex: 'other_reason'
+            dataIndex: 'other_reason',
+            render: (_, record) => {
+              if (record.reason === 'Other') {
+                return (
+                  <EditableCell
+                    field="other_reason"
+                    recordKey={record.key}
+                    value={record.other_reason}
+                    onCommit={handleCellCommit}
+                  />
+                );
+              }
+              return null;
+            }
           }
         ]
       : []),
@@ -103,6 +117,14 @@ export default function AttritionTracking({ onNext }) {
         ]
       : [])
   ];
+
+  const handleCellCommit = (key, field, value) => {
+    setTableData((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, [field]: value } : item
+      )
+    );
+  };
 
   const handleCellChange = (record, dataIndex, value) => {
     setTableData(
