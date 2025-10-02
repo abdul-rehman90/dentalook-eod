@@ -141,14 +141,14 @@ export default function Supplies({ onNext }) {
             <div className="flex gap-4">
               <SaveOutlined
                 onClick={() => handleSaveEdit(record)}
-                className="text-blue-500 cursor-pointer"
+                className="text-lg !text-gray-800 cursor-pointer"
               />
               <CloseOutlined
                 onClick={() => {
                   setEditingId(null);
                   setEditRowData(null);
                 }}
-                className="text-red-500 cursor-pointer"
+                className="text-lg !text-red-500 cursor-pointer"
               />
             </div>
           );
@@ -159,7 +159,7 @@ export default function Supplies({ onNext }) {
               setEditingId(record.id);
               setEditRowData({ ...record });
             }}
-            className="text-blue-500 cursor-pointer"
+            className="text-lg !text-gray-800 cursor-pointer"
           />
         );
       }
