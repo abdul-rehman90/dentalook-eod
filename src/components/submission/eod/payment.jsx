@@ -66,7 +66,6 @@ export default function Payment({ onNext }) {
             />
             {showInsuranceInput && (
               <EditableCell
-                type="text"
                 recordKey={record.key}
                 field="insurance_company"
                 onCommit={handleCellCommit}
