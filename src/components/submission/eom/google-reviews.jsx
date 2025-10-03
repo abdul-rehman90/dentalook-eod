@@ -16,11 +16,14 @@ export default function GoogleReviews({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     reportData,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const clinicId = reportData?.eom?.basic?.clinic;
@@ -52,6 +55,7 @@ export default function GoogleReviews({ onNext }) {
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -68,11 +72,11 @@ export default function GoogleReviews({ onNext }) {
           const numericValue = parseFloat(rowData.google_review_score);
           if (numericValue > 5) {
             toast.error('Google review score cannot be greater than 5');
-            return;
+            return false;
           }
           if (numericValue < 0) {
             toast.error('Google review score cannot be negative');
-            return;
+            return false;
           }
         }
 
@@ -80,7 +84,7 @@ export default function GoogleReviews({ onNext }) {
           const numericValue = parseInt(rowData.google_review_count, 10);
           if (numericValue < 0) {
             toast.error('Review count cannot be negative');
-            return;
+            return false;
           }
         }
 
@@ -92,24 +96,23 @@ export default function GoogleReviews({ onNext }) {
             payload
           );
           if (response.status === 200) {
+            setDirty(false);
             updateStepData(currentStepId, rowData);
             toast.success('Record is successfully saved');
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, rowData);
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -137,6 +140,20 @@ export default function GoogleReviews({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>
