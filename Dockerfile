@@ -9,9 +9,6 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Generate next js build
-RUN npm run build
-
 # Copy the rest of the app
 COPY . .
 
@@ -19,6 +16,9 @@ COPY . .
 COPY service-entry.sh /app/service-entry.sh
 RUN chmod +x /app/service-entry.sh
 
+
+# Generate next js build
+RUN npm run build
 
 ENV PORT=3000
 
