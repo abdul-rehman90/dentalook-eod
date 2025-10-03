@@ -44,11 +44,14 @@ export default function HiringTraining({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     reportData,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const clinicId = reportData?.eom?.basic?.clinic;
@@ -158,6 +161,7 @@ export default function HiringTraining({ onNext }) {
   ];
 
   const handleHiringCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setHiringData(
       hiringData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -166,6 +170,7 @@ export default function HiringTraining({ onNext }) {
   };
 
   const handleTrainingCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTrainingData(
       trainingData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -226,7 +231,7 @@ export default function HiringTraining({ onNext }) {
           }
 
           toast.error(errorMessage);
-          return;
+          return false;
         }
 
         const apiCalls = [];
@@ -259,30 +264,38 @@ export default function HiringTraining({ onNext }) {
             (response) => response.status === 201
           );
           if (allSuccess) {
+            setDirty(false);
             updateStepData(currentStepId, {
               hiring: hiringData,
               training: trainingData
             });
             toast.success('Record is successfully saved');
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, {
             hiring: hiringData,
             training: trainingData
           });
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [hiringData, trainingData, id, currentStepId, setLoading, updateStepData]
+    [
+      id,
+      onNext,
+      setDirty,
+      hiringData,
+      setLoading,
+      trainingData,
+      currentStepId,
+      updateStepData
+    ]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -318,6 +331,20 @@ export default function HiringTraining({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

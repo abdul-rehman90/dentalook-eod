@@ -32,11 +32,14 @@ export default function AttritionTracking({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     reportData,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -119,6 +122,7 @@ export default function AttritionTracking({ onNext }) {
   ];
 
   const handleCellCommit = (key, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === key ? { ...item, [field]: value } : item
@@ -127,6 +131,7 @@ export default function AttritionTracking({ onNext }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -166,14 +171,14 @@ export default function AttritionTracking({ onNext }) {
           toast.error(
             'Please specify the "Reason" for all patients with names'
           );
-          return;
+          return false;
         }
 
         if (rowsWithMissingOtherReason.length > 0) {
           toast.error(
             'Please specify the "Other Reason" for all rows where reason is "Other"'
           );
-          return;
+          return false;
         }
 
         const payload = tableData
@@ -187,24 +192,23 @@ export default function AttritionTracking({ onNext }) {
           setLoading(true);
           const response = await EODReportService.addAttritionTracking(payload);
           if (response.status === 201) {
+            setDirty(false);
             updateStepData(currentStepId, tableData);
             toast.success('Record is successfully saved');
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, tableData);
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -232,6 +236,20 @@ export default function AttritionTracking({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>
