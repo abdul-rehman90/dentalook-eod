@@ -5,4 +5,4 @@ set -e
 # npm run build
 
 echo "Starting Next.js on port 3000..."
-exec npm run dev
+exec npm start
