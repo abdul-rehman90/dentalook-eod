@@ -230,6 +230,7 @@ export default function TeamAbsences({ onNext }) {
   const handleAddNew = () => {
     const newRow = {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
+      id: null,
       name: '',
       reason: '',
       absence: '',
@@ -328,6 +329,7 @@ export default function TeamAbsences({ onNext }) {
       ];
       positions.forEach((pos) => fetchStaffByPosition(pos));
       const transformedData = currentStepData.map((item) => ({
+        id: item.id,
         reason: item.reason,
         absence: item.absence,
         position: item.position,
