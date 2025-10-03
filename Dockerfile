@@ -21,5 +21,7 @@ ENV PORT=3000
 
 EXPOSE 3000
 
+RUN npm run build
+
 # Run the app through entry script
 ENTRYPOINT ["sh", "/app/service-entry.sh"]
