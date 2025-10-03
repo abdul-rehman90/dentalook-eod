@@ -39,11 +39,14 @@ export default function PatientTracking({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     reportData,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -150,6 +153,7 @@ export default function PatientTracking({ onNext }) {
   ];
 
   const handleCellCommit = (key, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === key ? { ...item, [field]: value } : item
@@ -158,6 +162,7 @@ export default function PatientTracking({ onNext }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -187,13 +192,13 @@ export default function PatientTracking({ onNext }) {
           toast.error(
             'Please specify the "Source" for all patients with names'
           );
-          return;
+          return false;
         }
         if (rowsWithMissingOtherSource.length > 0) {
           toast.error(
             'Please specify the "Other Source" for all rows where source is "Other"'
           );
-          return;
+          return false;
         }
 
         const payload = tableData
@@ -204,11 +209,14 @@ export default function PatientTracking({ onNext }) {
           setLoading(true);
           const response = await EODReportService.addPatientTracking(payload);
           if (response.status === 201) {
+            setDirty(false);
             updateStepData(currentStepId, tableData);
             toast.success('Record is successfully saved');
             if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, tableData);
           if (navigate) onNext();
         }
@@ -217,7 +225,7 @@ export default function PatientTracking({ onNext }) {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData, onNext]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -242,6 +250,20 @@ export default function PatientTracking({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

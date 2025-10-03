@@ -29,10 +29,13 @@ export default function BasicDetails() {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -66,6 +69,7 @@ export default function BasicDetails() {
 
       const selectedClinic =
         (clinicId && clinics.find((c) => c.value === clinicId)) || clinics[0];
+      // setDirty(true);
       setPractices(clinics);
       setRegionalManagers(selectedClinic?.managers || []);
       form.setFieldsValue({
@@ -83,6 +87,7 @@ export default function BasicDetails() {
       (clinic) => clinic.value === clinicId
     );
 
+    // setDirty(true);
     if (selectedClinic?.managers?.length) {
       setRegionalManagers(selectedClinic.managers);
       form.setFieldsValue({
@@ -114,6 +119,7 @@ export default function BasicDetails() {
 
       // If no active providers, just go to next step
       if (activeProviders.length === 0) {
+        setDirty(false);
         if (navigate) {
           moveRouter(submission_id, values);
         } else {
@@ -141,6 +147,7 @@ export default function BasicDetails() {
 
         const response = await EODReportService.addActiveProviders(payload);
         if (response.status === 201) {
+          setDirty(false);
           if (navigate) {
             moveRouter(submission_id, values, payload);
           } else {
@@ -201,7 +208,7 @@ export default function BasicDetails() {
             `Please complete the following fields for active providers: ${errorMessage}`,
             { duration: 10000 }
           );
-          return;
+          return false;
         }
 
         const values = await form.validateFields();
@@ -224,7 +231,7 @@ export default function BasicDetails() {
         if (response.status === 201) {
           const submission_id = response.data.data.id;
           await addActiveProviders(payload, submission_id, navigate);
-          return;
+          return true;
         }
       } catch (error) {
         toast.error(
@@ -234,7 +241,15 @@ export default function BasicDetails() {
         setLoading(false);
       }
     },
-    [form, tableData, id, addActiveProviders, setLoading, currentStepData]
+    [
+      id,
+      form,
+      setDirty,
+      tableData,
+      setLoading,
+      currentStepData,
+      addActiveProviders
+    ]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -298,6 +313,20 @@ export default function BasicDetails() {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

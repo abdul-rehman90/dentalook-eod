@@ -42,7 +42,7 @@ const GetModalContent = () => {
 };
 
 export default function ActiveProviders({ form, tableData, setTableData }) {
-  const { getCurrentStepData } = useGlobalContext();
+  const { setDirty, getCurrentStepData } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const status = form.getFieldValue('status');
   const [loading, setLoading] = useState(false);
@@ -66,6 +66,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           disabled={status === 'closed'}
           onChange={(e) => {
             const checked = e.target.checked;
+            setDirty(true);
             setTableData((prev) =>
               prev.map((p) =>
                 p.key === record.key
@@ -177,6 +178,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   ];
 
   const handleCellCommit = (recordKey, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === recordKey ? { ...item, [field]: value } : item
@@ -185,6 +187,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item

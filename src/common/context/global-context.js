@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { EODReportService } from '../services/eod-report';
 import { EOMReportService } from '../services/eom-report';
 import {
+  useRef,
   useMemo,
   useState,
   useEffect,
@@ -40,6 +41,8 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const { type, step, id } = useParams();
   const currentStep = parseInt(step);
+  const saveHandlersRef = useRef({});
+  const [isDirty, setDirty] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState({
     eod: {},
@@ -47,6 +50,26 @@ export const AppProvider = ({ children }) => {
   });
   const steps = useMemo(() => stepConfig[type] || [], [type]);
   const totalSteps = steps.length;
+
+  const registerStepSaveHandler = useCallback((stepNumber, handler) => {
+    if (!stepNumber) return;
+    saveHandlersRef.current[stepNumber] = handler;
+  }, []);
+
+  const unregisterStepSaveHandler = useCallback((stepNumber) => {
+    if (saveHandlersRef.current[stepNumber]) {
+      delete saveHandlersRef.current[stepNumber];
+    }
+  }, []);
+
+  const callSaveHandlerForStep = useCallback(
+    async (stepNumber, navigate = false) => {
+      const handler = saveHandlersRef.current[stepNumber];
+      if (!handler) return null;
+      return handler(navigate);
+    },
+    []
+  );
 
   const updateStepData = useCallback(
     (stepId, data) => {
@@ -153,24 +176,34 @@ export const AppProvider = ({ children }) => {
       type,
       steps,
       loading,
+      isDirty,
+      setDirty,
       totalSteps,
       reportData,
       setLoading,
       currentStep,
       updateStepData,
-      getCurrentStepData
+      getCurrentStepData,
+      callSaveHandlerForStep,
+      registerStepSaveHandler,
+      unregisterStepSaveHandler
     }),
     [
       id,
       type,
       steps,
       loading,
+      isDirty,
+      setDirty,
       totalSteps,
       reportData,
       setLoading,
       currentStep,
       updateStepData,
-      getCurrentStepData
+      getCurrentStepData,
+      callSaveHandlerForStep,
+      registerStepSaveHandler,
+      unregisterStepSaveHandler
     ]
   );
 

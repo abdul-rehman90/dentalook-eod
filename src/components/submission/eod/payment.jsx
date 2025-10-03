@@ -32,11 +32,14 @@ export default function Payment({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     reportData,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -97,6 +100,7 @@ export default function Payment({ onNext }) {
   ];
 
   const handleCellCommit = (key, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === key ? { ...item, [field]: value } : item
@@ -105,6 +109,7 @@ export default function Payment({ onNext }) {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -164,7 +169,7 @@ export default function Payment({ onNext }) {
           toast.error(
             `Duplicate payment type "${duplicateType}" is not allowed`
           );
-          return;
+          return false;
         }
 
         const invalidInsurance = tableData.find(
@@ -178,7 +183,7 @@ export default function Payment({ onNext }) {
           toast.error(
             `Insurance Company is required for ${invalidInsurance.type}`
           );
-          return;
+          return false;
         }
 
         const validPayments = tableData.filter(
@@ -199,21 +204,32 @@ export default function Payment({ onNext }) {
           setLoading(true);
           const response = await EODReportService.addPayment(payload);
           if (response.status === 201) {
+            setDirty(false);
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, { notes, payments: tableData });
             if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, { notes: '', payments: tableData });
           if (navigate) onNext();
         }
-      } catch (error) {
-        console.error(error);
+      } catch {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, notes, id, setLoading, currentStepId, updateStepData, onNext]
+    [
+      id,
+      notes,
+      onNext,
+      setDirty,
+      tableData,
+      setLoading,
+      currentStepId,
+      updateStepData
+    ]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -270,6 +286,20 @@ export default function Payment({ onNext }) {
     };
   }, [handleSubmit, handleSave]);
 
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
+
   return (
     <React.Fragment>
       <div className="px-6">
@@ -306,7 +336,10 @@ export default function Payment({ onNext }) {
                 rows={4}
                 value={notes}
                 placeholder="Enter note here..."
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setDirty(true);
+                  setNotes(e.target.value);
+                }}
                 style={{
                   width: '100%',
                   border: 'none',

@@ -27,11 +27,14 @@ export default function IssuesIdeas() {
   const {
     id,
     steps,
+    setDirty,
     reportData,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -81,6 +84,7 @@ export default function IssuesIdeas() {
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -130,14 +134,17 @@ export default function IssuesIdeas() {
         if (payload.length > 0) {
           const response = await EOMReportService.addIssueIdeas(payload);
           if (response.status === 201) {
+            setDirty(false);
             if (navigate) {
               await handleSubmitEOMReport();
             } else {
               updateStepData(currentStepId, tableData);
               toast.success('Record is successfully saved');
             }
+            return true;
           }
         } else {
+          setDirty(false);
           if (navigate) {
             await handleSubmitEOMReport();
           }
@@ -172,6 +179,20 @@ export default function IssuesIdeas() {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

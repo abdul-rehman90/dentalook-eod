@@ -24,11 +24,14 @@ export default function Supplies({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     reportData,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -167,6 +170,7 @@ export default function Supplies({ onNext }) {
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -237,25 +241,33 @@ export default function Supplies({ onNext }) {
 
           const response = await EODReportService.addSupplies(id, payload);
           if (response.status === 200) {
+            setDirty(false);
             updateStepData(currentStepId, rowData);
             toast.success('Record is successfully saved');
             await fetchSupplies();
-            if (navigate) {
-              onNext();
-            }
+            if (navigate) onNext();
+            return true;
           }
         } else {
+          setDirty(false);
           updateStepData(currentStepId, rowData);
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, clinicId, id, currentStepId, setLoading, updateStepData]
+    [
+      id,
+      onNext,
+      clinicId,
+      setDirty,
+      tableData,
+      setLoading,
+      currentStepId,
+      updateStepData
+    ]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -308,6 +320,20 @@ export default function Supplies({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

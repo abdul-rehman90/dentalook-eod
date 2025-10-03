@@ -9,11 +9,14 @@ export default function AccountReceivable({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     setLoading,
     reportData,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -89,6 +92,7 @@ export default function AccountReceivable({ onNext }) {
   ];
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -137,18 +141,18 @@ export default function AccountReceivable({ onNext }) {
 
         const response = await EOMReportService.addAccountReceivable([payload]);
         if (response.status === 201) {
+          setDirty(false);
           updateStepData(currentStepId, [payload]);
           toast.success('Record is successfully saved');
-          if (navigate) {
-            onNext();
-          }
+          if (navigate) onNext();
+          return true;
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -189,6 +193,20 @@ export default function AccountReceivable({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

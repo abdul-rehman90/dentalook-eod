@@ -41,11 +41,14 @@ export default function TeamAbsences({ onNext }) {
   const {
     id,
     steps,
+    setDirty,
     reportData,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -181,6 +184,7 @@ export default function TeamAbsences({ onNext }) {
   ];
 
   const handleCellCommit = (recordKey, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === recordKey
@@ -207,6 +211,7 @@ export default function TeamAbsences({ onNext }) {
       }
       return item;
     });
+    setDirty(true);
     setTableData(newTeamMembers);
   };
 
@@ -225,6 +230,7 @@ export default function TeamAbsences({ onNext }) {
   const handleAddNew = () => {
     const newRow = {
       key: tableData.length ? Math.max(...tableData.map((p) => p.key)) + 1 : 1,
+      id: null,
       name: '',
       reason: '',
       absence: '',
@@ -252,7 +258,7 @@ export default function TeamAbsences({ onNext }) {
         );
         if (rowsWithMissingData.length > 0) {
           toast.error('Please complete all required fields for each absence.');
-          return;
+          return false;
         }
 
         const rowsWithInvalidTimes = tableData.filter(
@@ -264,7 +270,7 @@ export default function TeamAbsences({ onNext }) {
           toast.error(
             'Please provide start and end times for Partial Day absences.'
           );
-          return;
+          return false;
         }
 
         const seen = new Set();
@@ -272,7 +278,7 @@ export default function TeamAbsences({ onNext }) {
           const key = `${row.position}-${row.name}`;
           if (seen.has(key)) {
             toast.error('Duplicate entry is not allowed');
-            return;
+            return false;
           }
           seen.add(key);
         }
@@ -299,16 +305,18 @@ export default function TeamAbsences({ onNext }) {
         setLoading(true);
         const response = await EODReportService.addTeamAbsence(payload);
         if (response.status === 201) {
+          setDirty(false);
           updateStepData(currentStepId, tableData);
           toast.success('Record is successfully saved');
           if (navigate) onNext();
+          return true;
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, id, currentStepId, setLoading, updateStepData]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -321,6 +329,7 @@ export default function TeamAbsences({ onNext }) {
       ];
       positions.forEach((pos) => fetchStaffByPosition(pos));
       const transformedData = currentStepData.map((item) => ({
+        id: item.id,
         reason: item.reason,
         absence: item.absence,
         position: item.position,
@@ -346,6 +355,20 @@ export default function TeamAbsences({ onNext }) {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>
