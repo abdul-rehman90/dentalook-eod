@@ -54,11 +54,14 @@ export default function Referrals() {
   const {
     id,
     steps,
+    setDirty,
     reportData,
     setLoading,
     currentStep,
     updateStepData,
-    getCurrentStepData
+    getCurrentStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
   } = useGlobalContext();
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
@@ -150,6 +153,7 @@ export default function Referrals() {
   ];
 
   const handleCellCommit = (key, field, value) => {
+    setDirty(true);
     setTableData((prev) =>
       prev.map((item) =>
         item.key === key ? { ...item, [field]: value } : item
@@ -158,6 +162,7 @@ export default function Referrals() {
   };
 
   const handleCellChange = (record, dataIndex, value) => {
+    setDirty(true);
     setTableData(
       tableData.map((item) =>
         item.key === record.key ? { ...item, [dataIndex]: value } : item
@@ -217,14 +222,14 @@ export default function Referrals() {
           toast.error(
             'Please specify both Provider and Specialty for all patients with names'
           );
-          return;
+          return false;
         }
 
         if (rowsWithMissingOtherSpeciality.length > 0) {
           toast.error(
             'Please specify the "Other Speciality" for all rows where specialty is "Other"'
           );
-          return;
+          return false;
         }
 
         const payload = tableData
@@ -240,24 +245,25 @@ export default function Referrals() {
         if (payload.length > 0) {
           const response = await EODReportService.addRefferal(payload);
           if (response.status === 201) {
+            setDirty(false);
             if (navigate) {
               await handleSubmitEODReport();
             } else {
               updateStepData(currentStepId, tableData);
               toast.success('Record is successfully saved');
             }
+            return true;
           }
         } else {
-          if (navigate) {
-            await handleSubmitEODReport();
-          }
+          setDirty(false);
+          if (navigate) await handleSubmitEODReport();
         }
       } catch (error) {
       } finally {
         setLoading(false);
       }
     },
-    [tableData, clinicId, id, setLoading]
+    [tableData, clinicId, id, setLoading, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -299,6 +305,20 @@ export default function Referrals() {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>
