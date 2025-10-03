@@ -4,7 +4,7 @@ import { Icons } from '@/common/assets';
 import { usePathname, useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
-function Stepper({ className }) {
+function Stepper({ className = '', onStepClick }) {
   const router = useRouter();
   const pathname = usePathname();
   const isReviewPath = pathname.includes('/review');
@@ -17,6 +17,12 @@ function Stepper({ className }) {
   );
 
   const handleStepClick = (stepNumber) => {
+    if (onStepClick) {
+      if (id) onStepClick(stepNumber);
+      return;
+    }
+
+    // fallback behavior: original route push
     if (id && isReviewPath) {
       router.push(`/review/${type}/${stepNumber}/${id}`);
     } else if (id && isSubmissionPath) {
