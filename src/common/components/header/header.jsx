@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Dropdown, Tabs } from 'antd';
 import { Icons } from '@/common/assets';
 import { usePathname, useRouter } from 'next/navigation';
 import { removeUserAndToken } from '@/common/utils/auth-user';
+import { useGlobalContext } from '@/common/context/global-context';
 import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
+import Link from 'next/link';
 
 const items = [
   { key: '/submission/eod', label: 'Submit End Of Day' },
@@ -21,8 +22,24 @@ const items = [
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [currentTime, setCurrentTime] = useState(getCanadianTimeFormatted());
+  const { isDirty } = useGlobalContext();
+  const [currentTime] = useState(getCanadianTimeFormatted());
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
+
+  const guardedPush = (url) => {
+    if (isDirty && url !== pathname) {
+      window.dispatchEvent(
+        new CustomEvent('guard:navigate', { detail: { url } })
+      );
+    } else {
+      router.push(url);
+    }
+  };
+
+  function handleSignOut() {
+    removeUserAndToken();
+    guardedPush('/login');
+  }
 
   const getActiveKey = () => {
     if (pathname.startsWith('/submission/eod')) return '/submission/eod';
@@ -44,55 +61,54 @@ export default function Header() {
 
   const activeKey = getActiveKey();
 
-  function handleSignOut() {
-    removeUserAndToken();
-    router.push('/login');
-  }
-
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-13 py-5">
       <div className="flex gap-2 justify-between">
         <div className="flex gap-8">
-          <Link
-            href="/clinics-reporting"
+          <div
+            onClick={() => guardedPush('/clinics-reporting')}
             className="cursor-pointer inline-block"
           >
             <Image src={Icons.logo2} alt="logo" />
-          </Link>
+          </div>
+
           {!isMainRoute && (
             <Tabs
               type="line"
               activeKey={activeKey}
               className="[&_.ant-tabs-nav]:!mb-0"
-              items={items.map((item) => ({
-                key: item.key,
-                label: (
-                  <Link
-                    href={
-                      item.key.startsWith('/submission')
-                        ? `${item.key}/1`
-                        : item.key
-                    }
-                  >
-                    {item.label}
-                  </Link>
-                )
-              }))}
+              items={items.map((item) => {
+                const href = item.key.startsWith('/submission')
+                  ? `${item.key}/1`
+                  : item.key;
+
+                return {
+                  key: item.key,
+                  label: (
+                    <Link
+                      href={href}
+                      prefetch={false}
+                      onClick={(e) => {
+                        e.preventDefault(); // stop Link’s default push
+                        guardedPush(href); // use guarded navigation
+                      }}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                };
+              })}
             />
           )}
         </div>
+
         <div className="flex items-center h-fit gap-4 2xl:gap-8">
           <p className="text-xs text-black font-medium text-nowrap">
             {currentTime}
           </p>
           <Dropdown
             menu={{
-              items: [
-                {
-                  key: 'sign-out',
-                  label: 'Sign Out'
-                }
-              ],
+              items: [{ key: 'sign-out', label: 'Sign Out' }],
               onClick: (e) => {
                 if (e.key === 'sign-out') handleSignOut();
               }
