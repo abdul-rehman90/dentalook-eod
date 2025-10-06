@@ -16,6 +16,12 @@ COPY . .
 COPY service-entry.sh /app/service-entry.sh
 RUN chmod +x /app/service-entry.sh
 
+# Generate next js build
+RUN npm run build
+
+RUN npm ls
+
+COPY . .
 
 ENV PORT=3000
 
