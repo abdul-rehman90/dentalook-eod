@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Modal } from 'antd';
 import { LeftOutlined } from '@ant-design/icons';
-import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
 import { useGlobalContext } from '@/common/context/global-context';
+import { redirect, usePathname, useRouter } from 'next/navigation';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   Card,
@@ -18,7 +18,10 @@ import {
 
 export default function SubmissionLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [saving, setSaving] = useState(false);
   const [pendingStep, setPendingStep] = useState(null);
+  const [pendingPath, setPendingPath] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const {
     id,
@@ -35,8 +38,6 @@ export default function SubmissionLayout({ children }) {
     reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
   const stepName = steps[currentStep - 1]?.name;
-  const pathname =
-    typeof window !== 'undefined' ? window.location.pathname : '';
   const isReviewPath = pathname.includes('/review');
 
   if (currentStep > 1 && !id) {
@@ -75,28 +76,78 @@ export default function SubmissionLayout({ children }) {
   };
 
   const handleSaveAndContinue = async () => {
-    setModalVisible(false);
-
+    setSaving(true);
     try {
       const success = await callSaveHandlerForStep(currentStep, false);
       if (success) {
         setDirty(false);
-        setPendingStep(null);
-        setModalVisible(false);
         if (pendingStep) navigateToStep(pendingStep);
+        else if (pendingPath) router.push(pendingPath);
       }
-    } catch {
     } finally {
+      setSaving(false);
       setPendingStep(null);
+      setPendingPath(null);
+      setModalVisible(false);
     }
   };
 
   const handleDiscardAndContinue = () => {
     setDirty(false);
-    setPendingStep(null);
     setModalVisible(false);
+
     if (pendingStep) navigateToStep(pendingStep);
+    else if (pendingPath) router.push(pendingPath);
+
+    setPendingStep(null);
+    setPendingPath(null);
   };
+
+  useEffect(() => {
+    const onGuardNavigate = (e) => {
+      const url = e?.detail?.url;
+      if (!url) return;
+      setPendingPath(url);
+      setModalVisible(true);
+    };
+    window.addEventListener('guard:navigate', onGuardNavigate);
+    return () => {
+      window.removeEventListener('guard:navigate', onGuardNavigate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onDocumentClick = (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+        return;
+
+      let el = e.target;
+      while (el && el.tagName !== 'A') el = el.parentElement;
+      if (!el) return;
+
+      const href = el.getAttribute('href');
+      if (!href) return;
+
+      // Skip external links (starts with http or mailto or tel) or hash anchors
+      if (href.startsWith('http') && !href.startsWith(window.location.origin)) {
+        return;
+      }
+      if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if (href.startsWith('#')) return;
+
+      // If it's the same pathname, ignore
+      if (href === window.location.pathname) return;
+
+      if (isDirty) {
+        e.preventDefault();
+        setPendingPath(href);
+        setModalVisible(true);
+      }
+    };
+
+    document.addEventListener('click', onDocumentClick, true); // capture phase
+    return () => document.removeEventListener('click', onDocumentClick, true);
+  }, [isDirty, pathname]);
 
   return (
     <div className="px-13 py-6 bg-[#FAFAFB] min-h-screen">
@@ -115,10 +166,12 @@ export default function SubmissionLayout({ children }) {
             ? ` - ${dayjs(submission_date).format('ddd, MMMM D, YYYY')}`
             : ` - ${dayjs(submission_month).format('MMM YYYY')}`)}
       </h1>
+
       <div className="flex gap-2">
         <div className="w-full max-w-[250px]">
           <Stepper onStepClick={onStepperClick} />
         </div>
+
         <div className="flex-1">
           <Card className="border !border-[#F7F7F7] bg-white !shadow-none !gap-4">
             <CardHeader className="!border-b-0">
@@ -134,10 +187,12 @@ export default function SubmissionLayout({ children }) {
                 <StepNavigation onNext={handleNext} onSave={handleSave} />
               </div>
             </CardHeader>
+
             {children}
           </Card>
         </div>
       </div>
+
       <Modal
         centered
         width={550}
@@ -151,8 +206,12 @@ export default function SubmissionLayout({ children }) {
           </div>
         }
         footer={[
-          <div className="flex items-center gap-4 justify-end px-6 py-4">
+          <div
+            className="flex items-center gap-4 justify-end px-6 py-4"
+            key="footer"
+          >
             <Button
+              disabled={saving}
               variant="outline"
               onClick={handleDiscardAndContinue}
               className="h-10 !shadow-none text-black !rounded-lg"
@@ -160,8 +219,10 @@ export default function SubmissionLayout({ children }) {
               Discard & Continue
             </Button>
             <Button
+              disabled={saving}
+              isLoading={saving}
               onClick={handleSaveAndContinue}
-              className="h-10 !shadow-none text-black !rounded-lg"
+              className="h-10 !shadow-none text-black !rounded-lg min-w-42"
             >
               Save & Continue
             </Button>
@@ -169,8 +230,7 @@ export default function SubmissionLayout({ children }) {
         ]}
       >
         <p className="text-gray-900 text-base">
-          You have unsaved changes on this step. Would you like to save before
-          moving?
+          You have unsaved changes. Would you like to save before moving?
         </p>
       </Modal>
     </div>
