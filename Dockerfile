@@ -19,6 +19,8 @@ RUN chmod +x /app/service-entry.sh
 # Generate next js build
 RUN npm run build
 
+RUN npm ls
+
 COPY .next /app/.next
 
 ENV PORT=3000
