@@ -21,7 +21,7 @@ RUN npm run build
 
 RUN npm ls
 
-COPY .next /app/.next
+COPY . .
 
 ENV PORT=3000
 
