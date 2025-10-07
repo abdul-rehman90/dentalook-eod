@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import WeeklySchedule from './weekly-schedule';
 import ActiveProviders from './active-providers';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
@@ -22,10 +23,15 @@ const options = [
 export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
+  const status = Form.useWatch('status', form);
   const [tableData, setTableData] = useState([]);
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [regionalManagers, setRegionalManagers] = useState([]);
+  const submissionDate = Form.useWatch('submission_date', form);
+  const [selectedDays, setSelectedDays] = useState(
+    new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+  );
   const {
     id,
     steps,
@@ -42,12 +48,27 @@ export default function BasicDetails() {
   const clinicId = currentStepData?.clinicDetails?.clinic;
   const submissionId = currentStepData?.clinicDetails?.eodsubmission_id;
   const eod_submission = submissionId || id;
+  // console.log(currentStepData);
+
+  const weeklyPayload = {
+    clinic: form.getFieldValue('clinic'),
+    created_at: dayjs(form.getFieldValue('submission_date')).format(
+      'YYYY-MM-DD'
+    ),
+    monday: selectedDays.has('monday'),
+    tuesday: selectedDays.has('tuesday'),
+    wednesday: selectedDays.has('wednesday'),
+    thursday: selectedDays.has('thursday'),
+    friday: selectedDays.has('friday'),
+    saturday: selectedDays.has('saturday'),
+    sunday: selectedDays.has('sunday')
+  };
 
   const initialValues = {
     user: null,
+    status: null,
     clinic: null,
     province: null,
-    status: 'close',
     clinic_open_time: null,
     clinic_close_time: null,
     submission_date: dayjs()
@@ -99,9 +120,39 @@ export default function BasicDetails() {
     }
   };
 
+  const handleSubmitEODReport = async (submission_id) => {
+    try {
+      setLoading(true);
+      const response = await EODReportService.submissionEODReport({
+        eodsubmission_id: submission_id
+      });
+      if (response.status === 200) {
+        toast.success('EOD submission is successfully submitted');
+        router.push('/review/list/eod');
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addWeeklySchedule = async (weeklyPayloadParam) => {
+    try {
+      const response = await EODReportService.addWeeklySchedule(
+        weeklyPayloadParam
+      );
+      if (response.status === 201) {
+        toast.success('Weekly schedule saved successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to save weekly schedule');
+    }
+  };
+
   const moveRouter = useCallback(
-    (submission_id, values, activeProviders = []) => {
+    (submission_id, values, activeProviders = [], weeklySchedule = null) => {
       updateStepData(currentStepId, {
+        weeklySchedule: weeklySchedule,
         activeProviders: activeProviders,
         clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
@@ -112,7 +163,7 @@ export default function BasicDetails() {
   );
 
   const addActiveProviders = useCallback(
-    async (values, submission_id, navigate) => {
+    async (values, submission_id, navigate, weeklySchedule = null) => {
       const activeProviders = tableData.filter(
         (provider) => provider.is_active
       );
@@ -121,9 +172,10 @@ export default function BasicDetails() {
       if (activeProviders.length === 0) {
         setDirty(false);
         if (navigate) {
-          moveRouter(submission_id, values);
+          moveRouter(submission_id, values, [], weeklySchedule);
         } else {
           updateStepData(currentStepId, {
+            weeklySchedule: weeklySchedule,
             activeProviders: activeProviders,
             clinicDetails: { ...values, eodsubmission_id: submission_id }
           });
@@ -149,10 +201,11 @@ export default function BasicDetails() {
         if (response.status === 201) {
           setDirty(false);
           if (navigate) {
-            moveRouter(submission_id, values, payload);
+            moveRouter(submission_id, values, payload, weeklySchedule);
           } else {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
+              weeklySchedule: weeklySchedule,
               activeProviders: payload || [],
               clinicDetails: { ...values, eodsubmission_id: submission_id }
             });
@@ -172,24 +225,6 @@ export default function BasicDetails() {
             const errors = [];
             if (!provider.start_time) errors.push('start time');
             if (!provider.end_time) errors.push('end time');
-            // if (!provider.number_of_patients_seen) errors.push('patients seen');
-            // if (
-            //   provider.unfilled_spots === undefined ||
-            //   provider.unfilled_spots === null
-            // )
-            //   errors.push('Unfilled');
-            // if (provider.no_shows === undefined || provider.no_shows === null)
-            //   errors.push('No Shows');
-            // if (
-            //   provider.short_notice_cancellations === undefined ||
-            //   provider.short_notice_cancellations === null
-            // )
-            //   errors.push('Short Notice');
-            // if (
-            //   provider.failed_appointments === undefined ||
-            //   provider.failed_appointments === null
-            // )
-            //   errors.push('Failed appts');
             return {
               provider,
               errors
@@ -230,7 +265,29 @@ export default function BasicDetails() {
         const response = await EODReportService.addBasicDetails(payload);
         if (response.status === 201) {
           const submission_id = response.data.data.id;
-          await addActiveProviders(payload, submission_id, navigate);
+          const weeklyPayloadLocal = {
+            clinic: values.clinic,
+            created_at: dayjs(values.submission_date).format('YYYY-MM-DD'),
+            monday: selectedDays.has('monday'),
+            tuesday: selectedDays.has('tuesday'),
+            wednesday: selectedDays.has('wednesday'),
+            thursday: selectedDays.has('thursday'),
+            friday: selectedDays.has('friday'),
+            saturday: selectedDays.has('saturday'),
+            sunday: selectedDays.has('sunday')
+          };
+          if (values.status === 'close') {
+            await handleSubmitEODReport(submission_id);
+          } else {
+            await addWeeklySchedule(weeklyPayloadLocal);
+            await addActiveProviders(
+              payload,
+              submission_id,
+              navigate,
+              weeklyPayloadLocal
+            );
+          }
+
           return true;
         }
       } catch (error) {
@@ -247,6 +304,7 @@ export default function BasicDetails() {
       setDirty,
       tableData,
       setLoading,
+      selectedDays,
       currentStepData,
       addActiveProviders
     ]
@@ -299,6 +357,14 @@ export default function BasicDetails() {
           currentStepData?.clinicDetails?.province
       );
       initializeForm();
+      const savedSchedule = currentStepData?.weeklySchedule;
+      if (savedSchedule) {
+        const activeDays = Object.entries(savedSchedule)
+          .filter(([key, value]) => value === true && key !== 'clinic')
+          .map(([key]) => key);
+
+        setSelectedDays(new Set(activeDays));
+      }
     } else if (!id) {
       handleProvinceChange(provinces[0].value);
     }
@@ -414,6 +480,13 @@ export default function BasicDetails() {
                   />
                 </Row>
                 {shouldShowProviders && (
+                  <WeeklySchedule
+                    selectedDays={selectedDays}
+                    submissionDate={submissionDate}
+                    setSelectedDays={setSelectedDays}
+                  />
+                )}
+                {shouldShowProviders && (
                   <ActiveProviders
                     form={form}
                     tableData={tableData}
@@ -428,6 +501,7 @@ export default function BasicDetails() {
       <StepNavigation
         onSave={handleSave}
         onNext={handleSubmit}
+        isClinicClosed={status === 'close'}
         className="border-t-1 border-t-[#F3F3F5] mt-6 pt-6 px-6"
       />
     </React.Fragment>
