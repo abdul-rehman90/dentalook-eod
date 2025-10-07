@@ -214,7 +214,7 @@ export default function SubmissionLayout({ children }) {
               disabled={saving}
               variant="outline"
               onClick={handleDiscardAndContinue}
-              className="h-10 !shadow-none text-black !rounded-lg"
+              className="h-10 !bg-red-500 !shadow-none !text-white !rounded-lg"
             >
               Discard & Continue
             </Button>
@@ -222,7 +222,7 @@ export default function SubmissionLayout({ children }) {
               disabled={saving}
               isLoading={saving}
               onClick={handleSaveAndContinue}
-              className="h-10 !shadow-none text-black !rounded-lg min-w-42"
+              className="h-10 !shadow-none !rounded-lg min-w-42"
             >
               Save & Continue
             </Button>

@@ -94,9 +94,9 @@ export const METRICS_MODAL_COLUMNS = {
       render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
     },
     {
-      title: 'Hours Work',
-      key: 'provider_hours',
-      dataIndex: 'provider_hours',
+      title: 'Production / Hour',
+      key: 'production_per_hour',
+      dataIndex: 'production_per_hour',
       render: (value, record) => {
         if (record.rowType === 'provider') {
           return <span className="font-semibold text-gray-800">{value}</span>;
@@ -105,9 +105,9 @@ export const METRICS_MODAL_COLUMNS = {
       }
     },
     {
-      title: 'Production / Hour',
-      key: 'production_per_hour',
-      dataIndex: 'production_per_hour',
+      title: 'Hours Work',
+      key: 'provider_hours',
+      dataIndex: 'provider_hours',
       render: (value, record) => {
         if (record.rowType === 'provider') {
           return <span className="font-semibold text-gray-800">{value}</span>;

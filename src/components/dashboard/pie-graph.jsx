@@ -35,8 +35,10 @@ const prepareProductionData = (submissions) => {
         provider_hours: 0,
         rowType: 'provider',
         total_production: 0,
+        submission_count: 0,
         production_per_hour: 0,
-        key: `provider-${provider_id}`
+        key: `provider-${provider_id}`,
+        total_production_per_hour_sum: 0
       };
     }
 
@@ -51,14 +53,23 @@ const prepareProductionData = (submissions) => {
 
     grouped[provider_id].provider_hours += provider_hours || 0;
     grouped[provider_id].total_production += total_production || 0;
-    grouped[provider_id].production_per_hour += production_per_hour || 0;
+    grouped[provider_id].total_production_per_hour_sum +=
+      production_per_hour || 0;
+    grouped[provider_id].submission_count += 1;
   });
 
-  return Object.values(grouped).map((p) => ({
-    ...p,
-    total_production: `$${p.total_production.toFixed(2)}`,
-    production_per_hour: `$${p.production_per_hour.toFixed(2)}`
-  }));
+  return Object.values(grouped).map((p) => {
+    const avgProductionPerHour =
+      p.submission_count > 0
+        ? p.total_production_per_hour_sum / p.submission_count
+        : 0;
+
+    return {
+      ...p,
+      total_production: `$${p.total_production.toFixed(2)}`,
+      production_per_hour: `$${avgProductionPerHour.toFixed(2)}`
+    };
+  });
 };
 
 // Group Missed Opportunities by Provider
