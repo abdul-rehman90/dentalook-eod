@@ -118,7 +118,9 @@ export const AppProvider = ({ children }) => {
             basic:
               {
                 clinicDetails: response.data.basic_detail,
-                activeProviders: response.data.active_providers
+                activeProviders: response.data.active_providers,
+                weeklySchedule:
+                  response.data.basic_detail.clinic_weekly_schedule || {}
               } || {}
           };
           setReportData((prev) => ({
