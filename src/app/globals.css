@@ -99,6 +99,12 @@
   border: 1px solid #f0f0f0;
 }
 
+.sticky-header-table thead > tr {
+  top: 75px;
+  z-index: 2;
+  position: sticky;
+}
+
 .ant-table-thead > tr > th {
   font-size: 15px;
   border: none !important;

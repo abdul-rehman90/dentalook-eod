@@ -30,7 +30,14 @@ export default function BasicDetails() {
   const [regionalManagers, setRegionalManagers] = useState([]);
   const submissionDate = Form.useWatch('submission_date', form);
   const [selectedDays, setSelectedDays] = useState(
-    new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+    new Set([
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday'
+    ])
   );
   const {
     id,
@@ -48,21 +55,6 @@ export default function BasicDetails() {
   const clinicId = currentStepData?.clinicDetails?.clinic;
   const submissionId = currentStepData?.clinicDetails?.eodsubmission_id;
   const eod_submission = submissionId || id;
-  // console.log(currentStepData);
-
-  const weeklyPayload = {
-    clinic: form.getFieldValue('clinic'),
-    created_at: dayjs(form.getFieldValue('submission_date')).format(
-      'YYYY-MM-DD'
-    ),
-    monday: selectedDays.has('monday'),
-    tuesday: selectedDays.has('tuesday'),
-    wednesday: selectedDays.has('wednesday'),
-    thursday: selectedDays.has('thursday'),
-    friday: selectedDays.has('friday'),
-    saturday: selectedDays.has('saturday'),
-    sunday: selectedDays.has('sunday')
-  };
 
   const initialValues = {
     user: null,
@@ -379,6 +371,12 @@ export default function BasicDetails() {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('formStatusChange', {
+      detail: { status }
+    }));
+  }, [status]);
 
   useEffect(() => {
     registerStepSaveHandler(currentStep, async (navigate = false) => {

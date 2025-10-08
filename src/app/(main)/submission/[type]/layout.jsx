@@ -3,9 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { Modal } from 'antd';
+import toast from 'react-hot-toast';
 import { LeftOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
 import { Stepper } from '@/common/components/stepper/stepper';
+import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import { redirect, usePathname, useRouter } from 'next/navigation';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
@@ -20,6 +22,7 @@ export default function SubmissionLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [saving, setSaving] = useState(false);
+  const [formStatus, setFormStatus] = useState(null);
   const [pendingStep, setPendingStep] = useState(null);
   const [pendingPath, setPendingPath] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,6 +32,7 @@ export default function SubmissionLayout({ children }) {
     steps,
     isDirty,
     setDirty,
+    setLoading,
     reportData,
     totalSteps,
     currentStep,
@@ -37,6 +41,9 @@ export default function SubmissionLayout({ children }) {
   const submission_date =
     reportData?.eod?.basic?.clinicDetails?.submission_date;
   const submission_month = reportData?.eom?.basic?.submission_month;
+  const isClosed = reportData?.eod?.basic?.clinicDetails?.status === 'close';
+  const reportStatus = reportData?.eod?.basic?.clinicDetails?.status;
+  const status = formStatus || reportStatus;
   const stepName = steps[currentStep - 1]?.name;
   const isReviewPath = pathname.includes('/review');
 
@@ -45,7 +52,7 @@ export default function SubmissionLayout({ children }) {
   }
 
   const navigateToStep = (stepNumber) => {
-    if (!id) return;
+    if (!id || isClosed) return;
     if (isReviewPath) {
       router.push(`/review/${type}/${stepNumber}/${id}`);
     } else {
@@ -63,9 +70,33 @@ export default function SubmissionLayout({ children }) {
     navigateToStep(stepNumber);
   };
 
+  const handleSubmitEODReport = async (submission_id) => {
+    try {
+      setLoading(true);
+      const response = await EODReportService.submissionEODReport({
+        eodsubmission_id: submission_id
+      });
+      if (response.status === 200) {
+        toast.success('EOD submission is successfully submitted');
+        router.push('/review/list/eod');
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNext = async () => {
     try {
-      window.dispatchEvent(new CustomEvent('stepNavigationNext'));
+      if (status === 'close' && (id || formStatus === 'close')) {
+        if (id) {
+          await handleSubmitEODReport(id);
+        } else {
+          window.dispatchEvent(new CustomEvent('stepNavigationNext'));
+        }
+      } else {
+        window.dispatchEvent(new CustomEvent('stepNavigationNext'));
+      }
     } catch (error) {}
   };
 
@@ -113,6 +144,17 @@ export default function SubmissionLayout({ children }) {
     window.addEventListener('guard:navigate', onGuardNavigate);
     return () => {
       window.removeEventListener('guard:navigate', onGuardNavigate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleFormStatusChange = (e) => {
+      setFormStatus(e.detail.status);
+    };
+
+    window.addEventListener('formStatusChange', handleFormStatusChange);
+    return () => {
+      window.removeEventListener('formStatusChange', handleFormStatusChange);
     };
   }, []);
 
@@ -184,10 +226,13 @@ export default function SubmissionLayout({ children }) {
                     {steps[currentStep - 1].name}
                   </CardDescription>
                 </div>
-                <StepNavigation onNext={handleNext} onSave={handleSave} />
+                <StepNavigation
+                  onNext={handleNext}
+                  onSave={handleSave}
+                  isClinicClosed={status === 'close'}
+                />
               </div>
             </CardHeader>
-
             {children}
           </Card>
         </div>

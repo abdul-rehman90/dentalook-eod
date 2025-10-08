@@ -1,15 +1,12 @@
 import React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
-import { usePathname, useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
 function Stepper({ className = '', onStepClick }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const isReviewPath = pathname.includes('/review');
-  const isSubmissionPath = pathname.includes('/submission/');
-  const { id, type, steps, currentStep } = useGlobalContext();
+  const { id, steps, currentStep, getCurrentStepData } = useGlobalContext();
+  const currentStepData = getCurrentStepData();
+  const isClosed = currentStepData?.clinicDetails?.status === 'close';
 
   const normalizedCurrentStep = Math.max(
     1,
@@ -20,13 +17,6 @@ function Stepper({ className = '', onStepClick }) {
     if (onStepClick) {
       if (id) onStepClick(stepNumber);
       return;
-    }
-
-    // fallback behavior: original route push
-    if (id && isReviewPath) {
-      router.push(`/review/${type}/${stepNumber}/${id}`);
-    } else if (id && isSubmissionPath) {
-      router.push(`/submission/${type}/${stepNumber}/${id}`);
     }
   };
 
@@ -45,7 +35,9 @@ function Stepper({ className = '', onStepClick }) {
             key={index}
             onClick={() => handleStepClick(stepNumber)}
             className={`flex items-center gap-2 transition-colors ${
-              id ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+              id && !isClosed
+                ? 'cursor-pointer hover:opacity-80'
+                : 'cursor-default'
             }`}
           >
             <div

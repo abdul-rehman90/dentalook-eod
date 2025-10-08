@@ -98,9 +98,11 @@ function GenericTable({
   dataSource = [],
   bordered = true,
   showHeader = true,
+  stickyHeader = false,
   showPagination = false,
   paginationOptions = { pageSize: 10, current: 1, showSizeChanger: true }
 }) {
+  const tableClass = stickyHeader ? 'sticky-header-table' : '';
   const AMOUNT_REGEX = /^(\d+)(\.\d{0,2})?$/;
   const [currentPage, setCurrentPage] = useState(
     paginationOptions.current || 1
@@ -245,6 +247,7 @@ function GenericTable({
         loading={loading}
         pagination={false}
         bordered={bordered}
+        className={tableClass}
         showHeader={showHeader}
         dataSource={paginatedData}
         columns={transformedColumns}
