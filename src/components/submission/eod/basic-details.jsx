@@ -30,7 +30,14 @@ export default function BasicDetails() {
   const [regionalManagers, setRegionalManagers] = useState([]);
   const submissionDate = Form.useWatch('submission_date', form);
   const [selectedDays, setSelectedDays] = useState(
-    new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+    new Set([
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday'
+    ])
   );
   const {
     id,
@@ -48,21 +55,6 @@ export default function BasicDetails() {
   const clinicId = currentStepData?.clinicDetails?.clinic;
   const submissionId = currentStepData?.clinicDetails?.eodsubmission_id;
   const eod_submission = submissionId || id;
-  // console.log(currentStepData);
-
-  const weeklyPayload = {
-    clinic: form.getFieldValue('clinic'),
-    created_at: dayjs(form.getFieldValue('submission_date')).format(
-      'YYYY-MM-DD'
-    ),
-    monday: selectedDays.has('monday'),
-    tuesday: selectedDays.has('tuesday'),
-    wednesday: selectedDays.has('wednesday'),
-    thursday: selectedDays.has('thursday'),
-    friday: selectedDays.has('friday'),
-    saturday: selectedDays.has('saturday'),
-    sunday: selectedDays.has('sunday')
-  };
 
   const initialValues = {
     user: null,
@@ -152,7 +144,7 @@ export default function BasicDetails() {
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = [], weeklySchedule = null) => {
       updateStepData(currentStepId, {
-        weeklySchedule: weeklySchedule,
+        // weeklySchedule: weeklySchedule,
         activeProviders: activeProviders,
         clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
@@ -175,7 +167,7 @@ export default function BasicDetails() {
           moveRouter(submission_id, values, [], weeklySchedule);
         } else {
           updateStepData(currentStepId, {
-            weeklySchedule: weeklySchedule,
+            // weeklySchedule: weeklySchedule,
             activeProviders: activeProviders,
             clinicDetails: { ...values, eodsubmission_id: submission_id }
           });
@@ -205,7 +197,7 @@ export default function BasicDetails() {
           } else {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
-              weeklySchedule: weeklySchedule,
+              // weeklySchedule: weeklySchedule,
               activeProviders: payload || [],
               clinicDetails: { ...values, eodsubmission_id: submission_id }
             });
@@ -279,7 +271,7 @@ export default function BasicDetails() {
           if (values.status === 'close') {
             await handleSubmitEODReport(submission_id);
           } else {
-            await addWeeklySchedule(weeklyPayloadLocal);
+            // await addWeeklySchedule(weeklyPayloadLocal);
             await addActiveProviders(
               payload,
               submission_id,
@@ -357,14 +349,14 @@ export default function BasicDetails() {
           currentStepData?.clinicDetails?.province
       );
       initializeForm();
-      const savedSchedule = currentStepData?.weeklySchedule;
-      if (savedSchedule) {
-        const activeDays = Object.entries(savedSchedule)
-          .filter(([key, value]) => value === true && key !== 'clinic')
-          .map(([key]) => key);
+      // const savedSchedule = currentStepData?.weeklySchedule;
+      // if (savedSchedule) {
+      //   const activeDays = Object.entries(savedSchedule)
+      //     .filter(([key, value]) => value === true && key !== 'clinic')
+      //     .map(([key]) => key);
 
-        setSelectedDays(new Set(activeDays));
-      }
+      //   setSelectedDays(new Set(activeDays));
+      // }
     } else if (!id) {
       handleProvinceChange(provinces[0].value);
     }
@@ -379,6 +371,14 @@ export default function BasicDetails() {
       window.removeEventListener('stepNavigationNext', handleSubmit);
     };
   }, [handleSubmit, handleSave]);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('formStatusChange', {
+        detail: { status }
+      })
+    );
+  }, [status]);
 
   useEffect(() => {
     registerStepSaveHandler(currentStep, async (navigate = false) => {
@@ -479,7 +479,7 @@ export default function BasicDetails() {
                     options={generateTimeSlots(7, 22, 30)}
                   />
                 </Row>
-                {shouldShowProviders && (
+                {false && (
                   <WeeklySchedule
                     selectedDays={selectedDays}
                     submissionDate={submissionDate}
