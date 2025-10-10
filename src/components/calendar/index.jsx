@@ -5,12 +5,12 @@ import dayjs from 'dayjs';
 import enUS from 'date-fns/locale/en-US';
 import { useRouter } from 'next/navigation';
 import { useProgress } from '@bprogress/next';
-import { Card, Select, Statistic } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { EODReportService } from '@/common/services/eod-report';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Card, Select, Statistic, Tabs, Table, DatePicker } from 'antd';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({
@@ -79,17 +79,23 @@ function CustomEvent({ event }) {
   );
 }
 
+const renderTab = (label) => (
+  <div className="text-center font-medium text-sm">{label}</div>
+);
+
 export default function MyCalendar() {
   const router = useRouter();
   const progress = useProgress();
   const [events, setEvents] = useState([]);
   const [clinics, setClinics] = useState([]);
+  const [activeTab, setActiveTab] = useState('All');
+  const [tableData, setTableData] = useState([]);
   const [currentDate, setCurrentDate] = useState(
     dayjs().startOf('month').toDate()
   );
   const [filters, setFilters] = useState({
     clinic_id: null,
-    submission_date: dayjs().startOf('month').format('YYYY-MM-DD')
+    submission_date: dayjs().format('YYYY-MM-DD')
   });
 
   const handleFilterChange = (key, value) => {
@@ -108,11 +114,11 @@ export default function MyCalendar() {
   const handleNavigate = (newDate) => {
     setCurrentDate(newDate);
 
-    const newMonth = dayjs(newDate).startOf('month').format('YYYY-MM-DD');
-    if (newMonth !== filters.submission_date) {
+    const newDate_formatted = dayjs(newDate).format('YYYY-MM-DD');
+    if (newDate_formatted !== filters.submission_date) {
       setFilters((prev) => ({
         ...prev,
-        submission_date: newMonth
+        submission_date: newDate_formatted
       }));
     }
   };
@@ -149,9 +155,56 @@ export default function MyCalendar() {
     return counts;
   };
 
+  const getFilteredTableData = () => {
+    if (activeTab === 'All') return tableData;
+    return tableData.filter((item) => item.status === activeTab);
+  };
+
+  const tableColumns = [
+    {
+      title: 'Clinic Name',
+      dataIndex: 'clinic_name',
+      key: 'clinic_name'
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <span
+          style={{
+            color: statusColors[status] || '#9ca3af',
+            fontWeight: '500'
+          }}
+        >
+          {status}
+        </span>
+      )
+    },
+    {
+      title: 'Submission Date',
+      dataIndex: 'submission_date',
+      key: 'submission_date',
+      render: (date) => dayjs(date).format('MMM DD, YYYY')
+    },
+    {
+      title: 'Open Time',
+      dataIndex: 'clinic_open_time',
+      key: 'clinic_open_time',
+      render: (time) => time || '-'
+    },
+    {
+      title: 'Close Time',
+      dataIndex: 'clinic_close_time',
+      key: 'clinic_close_time',
+      render: (time) => time || '-'
+    }
+  ];
+
   const mapReportsToEvents = (reports, monthDate) => {
     const events = [];
     const allDays = getDaysInMonth(monthDate);
+    const tableRows = [];
 
     const reportedDays = new Set(
       reports.map((r) => dayjs(r.submission_date).format('YYYY-MM-DD'))
@@ -181,6 +234,16 @@ export default function MyCalendar() {
         clinic: report.clinic_name,
         color: statusColors[status] || '#9ca3af'
       });
+
+      tableRows.push({
+        key: report.id,
+        id: report.id,
+        status: status,
+        clinic_name: report.clinic_name,
+        submission_date: report.submission_date,
+        clinic_open_time: report.clinic_open_time,
+        clinic_close_time: report.clinic_close_time
+      });
     });
 
     // Fill missing days with "Not even started"
@@ -197,6 +260,7 @@ export default function MyCalendar() {
       }
     });
 
+    setTableData(tableRows);
     return events;
   };
 
@@ -239,8 +303,8 @@ export default function MyCalendar() {
 
   return (
     <div className="p-5 bg-white mx-13 my-4">
-      <div className="w-full max-w-[250px] ml-auto flex items-center gap-2 mb-4">
-        <div className="flex flex-col gap-2 flex-1">
+      <div className="flex justify-end items-end mb-4">
+        <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
             Clinics
           </p>
@@ -280,7 +344,7 @@ export default function MyCalendar() {
           ))}
         </div>
       )}
-      <div className="h-[400px] md:h-[450px] w-full">
+      <div className="h-[400px] md:h-[450px] w-full mb-6">
         <Calendar
           events={events}
           endAccessor="end"
@@ -296,3 +360,48 @@ export default function MyCalendar() {
     </div>
   );
 }
+
+//  <div className="flex justify-end my-6">
+//       <DatePicker
+//         size="large"
+//         allowClear={false}
+//         value={dayjs(filters.submission_date)}
+//         onChange={(date) =>
+//           handleFilterChange('submission_date', date.format('YYYY-MM-DD'))
+//         }
+//       />
+//     </div>
+
+//     <div>
+//       <Tabs
+//         size="large"
+//         tabBarGutter={0}
+//         activeKey={activeTab}
+//         onChange={setActiveTab}
+//         className="custom-status-tabs w-full"
+//         items={[
+//           { key: 'All', label: renderTab('All') },
+//           { key: 'Draft', label: renderTab('Draft') },
+//           { key: 'Closed', label: renderTab('Closed') },
+//           { key: 'Submitted', label: renderTab('Submitted') },
+//           { key: 'Not started', label: renderTab('Not started') }
+//         ]}
+//       />
+
+//       <Table
+//         size="small"
+//         className="mt-6"
+//         pagination={false}
+//         columns={tableColumns}
+//         dataSource={getFilteredTableData()}
+//         onRow={(record) => ({
+//           onClick: () => {
+//             if (!record.id.toString().startsWith('missing')) {
+//               progress.start();
+//               router.push(`/submission/eod/1/${record.id}`);
+//             }
+//           },
+//           style: { cursor: 'pointer' }
+//         })}
+//       />
+//     </div>

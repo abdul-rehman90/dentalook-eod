@@ -310,12 +310,15 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
             Add New Provider
           </Button>
         </div>
-        <GenericTable
-          loading={loading}
-          columns={columns}
-          dataSource={tableData}
-          onCellChange={handleCellChange}
-        />
+        <div>
+          <GenericTable
+            stickyHeader
+            loading={loading}
+            columns={columns}
+            dataSource={tableData}
+            onCellChange={handleCellChange}
+          />
+        </div>
       </div>
     </React.Fragment>
   );

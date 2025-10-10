@@ -3,7 +3,12 @@ import { Button } from '../button/button';
 import { usePathname, useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/common/context/global-context';
 
-export default function StepNavigation({ onNext, onSave, className = '' }) {
+export default function StepNavigation({
+  onNext,
+  onSave,
+  className = '',
+  isClinicClosed
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { id, type, loading, currentStep, totalSteps } = useGlobalContext();
@@ -19,9 +24,8 @@ export default function StepNavigation({ onNext, onSave, className = '' }) {
   };
 
   const getNextButtonText = () => {
-    if (isReviewPath && isLastStep) {
-      return 'Close';
-    }
+    if (isClinicClosed) return 'Submit';
+    if (isReviewPath && isLastStep) return 'Close';
     return isLastStep ? 'Submit' : 'Next';
   };
 
