@@ -6,11 +6,19 @@ import enUS from 'date-fns/locale/en-US';
 import { useRouter } from 'next/navigation';
 import { useProgress } from '@bprogress/next';
 import { Button } from '@/common/components/button/button';
+import { Card, Select, Statistic, Tabs, Table } from 'antd';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { EODReportService } from '@/common/services/eod-report';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Card, Select, Statistic, Tabs, Table, DatePicker } from 'antd';
+import DateRangePicker from '@/common/components/date-range/date-range';
+
+const formatLocalDate = (date) => date.toISOString().split('T')[0];
+const now = new Date();
+const firstDay = formatLocalDate(
+  new Date(now.getFullYear(), now.getMonth(), 2)
+);
+const lastDay = formatLocalDate(now);
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({
@@ -79,23 +87,46 @@ function CustomEvent({ event }) {
   );
 }
 
-const renderTab = (label) => (
-  <div className="text-center font-medium text-sm">{label}</div>
-);
+const renderTab = (label, count, status) => {
+  const getBadgeColor = () => {
+    if (status === 'All') return '#3b82f6';
+    return statusColors[status] || '#3b82f6';
+  };
+
+  return (
+    <div className="text-center font-medium text-sm flex items-center justify-center gap-2">
+      {label}
+      {count > 0 && (
+        <span
+          className="text-white text-xs px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center"
+          style={{ backgroundColor: getBadgeColor() }}
+        >
+          {count}
+        </span>
+      )}
+    </div>
+  );
+};
 
 export default function MyCalendar() {
   const router = useRouter();
   const progress = useProgress();
   const [events, setEvents] = useState([]);
   const [clinics, setClinics] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // const [tableData, setTableData] = useState([]);
   const [activeTab, setActiveTab] = useState('All');
-  const [tableData, setTableData] = useState([]);
+  const [submissionData, setSubmissionData] = useState([]);
   const [currentDate, setCurrentDate] = useState(
     dayjs().startOf('month').toDate()
   );
   const [filters, setFilters] = useState({
     clinic_id: null,
     submission_date: dayjs().format('YYYY-MM-DD')
+  });
+  const [dateRange, setDateRange] = useState({
+    start_date: firstDay,
+    end_date: lastDay
   });
 
   const handleFilterChange = (key, value) => {
@@ -156,25 +187,46 @@ export default function MyCalendar() {
   };
 
   const getFilteredTableData = () => {
-    if (activeTab === 'All') return tableData;
-    return tableData.filter((item) => item.status === activeTab);
+    if (activeTab === 'All') return submissionData;
+    return submissionData.filter((item) => item.status === activeTab);
+  };
+
+  const getStatusCounts = () => {
+    const counts = {
+      All: submissionData.length,
+      Draft: submissionData.filter((item) => item.status === 'Draft').length,
+      Closed: submissionData.filter((item) => item.status === 'Closed').length,
+      Submitted: submissionData.filter((item) => item.status === 'Submitted')
+        .length
+    };
+    return counts;
   };
 
   const tableColumns = [
     {
+      key: 'clinic_name',
       title: 'Clinic Name',
-      dataIndex: 'clinic_name',
-      key: 'clinic_name'
+      dataIndex: 'clinic_name'
     },
     {
+      title: 'Regional Manager',
+      key: 'regional_manager_name',
+      dataIndex: 'regional_manager_name'
+    },
+    {
+      title: 'Province',
+      key: 'province_name',
+      dataIndex: 'province_name'
+    },
+    {
+      key: 'status',
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
       render: (status) => (
         <span
+          className="px-3 py-1 rounded-full text-white text-sm font-medium"
           style={{
-            color: statusColors[status] || '#9ca3af',
-            fontWeight: '500'
+            backgroundColor: statusColors[status] || '#9ca3af'
           }}
         >
           {status}
@@ -182,29 +234,17 @@ export default function MyCalendar() {
       )
     },
     {
+      key: 'submission_date',
       title: 'Submission Date',
       dataIndex: 'submission_date',
-      key: 'submission_date',
       render: (date) => dayjs(date).format('MMM DD, YYYY')
-    },
-    {
-      title: 'Open Time',
-      dataIndex: 'clinic_open_time',
-      key: 'clinic_open_time',
-      render: (time) => time || '-'
-    },
-    {
-      title: 'Close Time',
-      dataIndex: 'clinic_close_time',
-      key: 'clinic_close_time',
-      render: (time) => time || '-'
     }
   ];
 
   const mapReportsToEvents = (reports, monthDate) => {
     const events = [];
-    const allDays = getDaysInMonth(monthDate);
     const tableRows = [];
+    const allDays = getDaysInMonth(monthDate);
 
     const reportedDays = new Set(
       reports.map((r) => dayjs(r.submission_date).format('YYYY-MM-DD'))
@@ -236,8 +276,8 @@ export default function MyCalendar() {
       });
 
       tableRows.push({
-        key: report.id,
         id: report.id,
+        key: report.id,
         status: status,
         clinic_name: report.clinic_name,
         submission_date: report.submission_date,
@@ -260,7 +300,7 @@ export default function MyCalendar() {
       }
     });
 
-    setTableData(tableRows);
+    // setTableData(tableRows);
     return events;
   };
 
@@ -300,6 +340,41 @@ export default function MyCalendar() {
 
     fetchData();
   }, [filters]);
+
+  useEffect(() => {
+    const fetchSubmissionList = async () => {
+      try {
+        setLoading(true);
+        const { data } = await EODReportService.getAllSubmissionList({
+          start_date: dayjs(dateRange.start_date),
+          end_date: dayjs(dateRange.end_date)
+        });
+
+        const mappedData = data.map((item) => ({
+          id: item.eodsubmission_id,
+          key: item.eodsubmission_id,
+          clinic_name: item.clinic_name,
+          province_name: item.province_name,
+          submission_date: item.submission_date,
+          regional_manager_name: item.regional_manager_name,
+          status:
+            item.status === 'close'
+              ? 'Closed'
+              : item.submitted === 'Completed'
+              ? 'Submitted'
+              : 'Draft'
+        }));
+
+        setSubmissionData(mappedData);
+      } catch (error) {
+        console.error('Error fetching submission list:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubmissionList();
+  }, [dateRange]);
 
   return (
     <div className="p-5 bg-white mx-13 my-4">
@@ -357,51 +432,49 @@ export default function MyCalendar() {
           components={{ event: CustomEvent, toolbar: CustomToolbar }}
         />
       </div>
+      <div className="relative flex justify-between items-center my-6">
+        <h2 className="text-lg font-semibold">Clinic Submissions Tracker</h2>
+        <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
+      </div>
+      <div>
+        <Tabs
+          size="large"
+          tabBarGutter={0}
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          className="custom-status-tabs w-full"
+          items={[
+            {
+              key: 'All',
+              label: renderTab('All', getStatusCounts().All, 'All')
+            },
+            {
+              key: 'Draft',
+              label: renderTab('Draft', getStatusCounts().Draft, 'Draft')
+            },
+            {
+              key: 'Closed',
+              label: renderTab('Closed', getStatusCounts().Closed, 'Closed')
+            },
+            {
+              key: 'Submitted',
+              label: renderTab(
+                'Submitted',
+                getStatusCounts().Submitted,
+                'Submitted'
+              )
+            }
+          ]}
+        />
+        <Table
+          size="small"
+          className="mt-6"
+          loading={loading}
+          pagination={false}
+          columns={tableColumns}
+          dataSource={getFilteredTableData()}
+        />
+      </div>
     </div>
   );
 }
-
-//  <div className="flex justify-end my-6">
-//       <DatePicker
-//         size="large"
-//         allowClear={false}
-//         value={dayjs(filters.submission_date)}
-//         onChange={(date) =>
-//           handleFilterChange('submission_date', date.format('YYYY-MM-DD'))
-//         }
-//       />
-//     </div>
-
-//     <div>
-//       <Tabs
-//         size="large"
-//         tabBarGutter={0}
-//         activeKey={activeTab}
-//         onChange={setActiveTab}
-//         className="custom-status-tabs w-full"
-//         items={[
-//           { key: 'All', label: renderTab('All') },
-//           { key: 'Draft', label: renderTab('Draft') },
-//           { key: 'Closed', label: renderTab('Closed') },
-//           { key: 'Submitted', label: renderTab('Submitted') },
-//           { key: 'Not started', label: renderTab('Not started') }
-//         ]}
-//       />
-
-//       <Table
-//         size="small"
-//         className="mt-6"
-//         pagination={false}
-//         columns={tableColumns}
-//         dataSource={getFilteredTableData()}
-//         onRow={(record) => ({
-//           onClick: () => {
-//             if (!record.id.toString().startsWith('missing')) {
-//               progress.start();
-//               router.push(`/submission/eod/1/${record.id}`);
-//             }
-//           },
-//           style: { cursor: 'pointer' }
-//         })}
-//       />
-//     </div>

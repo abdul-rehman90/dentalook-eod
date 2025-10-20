@@ -448,6 +448,74 @@
   border-bottom-right-radius: 8px !important;
 }
 
+/* Date Range Picker UI Enhancements */
+.rdrDateRangePickerWrapper {
+  border-bottom: 1px solid #eff2f7;
+}
+
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper {
+  width: 170px;
+  overflow-y: auto;
+  max-height: 360px;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}
+
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: #d1d5db;
+}
+
+.rdrDateRangePickerWrapper .rdrDateDisplayWrapper {
+  display: none;
+}
+
+.rdrDateRangePickerWrapper .rdrMonthAndYearWrapper {
+  padding: 0;
+  height: auto;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRanges {
+  gap: 4px;
+  padding: 6px;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRange {
+  padding: 6px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #414651;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRange:hover {
+  background-color: #f1f5f9;
+}
+
+.rdrDateRangePickerWrapper .rdrInputRanges {
+  display: none;
+}
+
+.rdrMonths .rdrMonth {
+  width: 23em;
+  padding: 10px;
+}
+
+.rdrWeekDays .rdrWeekDay,
+.rdrDays .rdrDayNumber {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rdrDays .rdrDayNumber > span:after {
+  display: none;
+}
+
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
   display: none !important;
 }
