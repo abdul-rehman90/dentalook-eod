@@ -41,14 +41,13 @@ export default function WeeklySchedule({
   }, [submissionDate]);
 
   return (
-    <Row className="my-3">
+    <Row className="my-3 border-t-1 border-t-secondary-50 pt-6">
       <Col span={24}>
         <div className="mb-4">
           <label className="text-xl font-medium mb-4 block">
             Weekly Schedule
             <span className="text-sm text-gray-500 ml-2">
-              (Select the days you want to include in this week’s schedule. You
-              can toggle days on or off as needed.)
+              (Select the days which are closed this week)
             </span>
           </label>
 

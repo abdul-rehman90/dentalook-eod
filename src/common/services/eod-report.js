@@ -131,6 +131,20 @@ export const EODReportService = {
     return response;
   },
 
+  async getAllSubmissionTrackerTable(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.start_date)
+      params.append('start_date', filters.start_date.format('YYYY-MM-DD'));
+    if (filters.end_date)
+      params.append('end_date', filters.end_date.format('YYYY-MM-DD'));
+
+    const response = await apiClient.get(
+      `/review-eod-submission-table/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getAllSubmissionList(filters = {}) {
     const params = new URLSearchParams();
 
