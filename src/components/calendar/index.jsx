@@ -108,13 +108,17 @@ const renderTab = (label, count, status) => {
   );
 };
 
+const generateUniqueId = (() => {
+  let counter = 1;
+  return () => Date.now() + counter++;
+})();
+
 export default function MyCalendar() {
   const router = useRouter();
   const progress = useProgress();
   const [events, setEvents] = useState([]);
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const [tableData, setTableData] = useState([]);
   const [activeTab, setActiveTab] = useState('All');
   const [submissionData, setSubmissionData] = useState([]);
   const [currentDate, setCurrentDate] = useState(
@@ -194,15 +198,28 @@ export default function MyCalendar() {
   const getStatusCounts = () => {
     const counts = {
       All: submissionData.length,
-      Draft: submissionData.filter((item) => item.status === 'Draft').length,
-      Closed: submissionData.filter((item) => item.status === 'Closed').length,
-      Submitted: submissionData.filter((item) => item.status === 'Submitted')
-        .length
+      Draft: 0,
+      Closed: 0,
+      Submitted: 0,
+      'Not started': 0
     };
+
+    submissionData.forEach((item) => {
+      const status =
+        item.status === 'Not Started' ? 'Not started' : item.status;
+      if (counts[status] !== undefined) counts[status]++;
+    });
+
     return counts;
   };
 
   const tableColumns = [
+    {
+      key: 'submission_date',
+      title: 'Submission Date',
+      dataIndex: 'submission_date',
+      render: (date) => dayjs(date).format('MMM DD, YYYY')
+    },
     {
       key: 'clinic_name',
       title: 'Clinic Name',
@@ -232,12 +249,6 @@ export default function MyCalendar() {
           {status}
         </span>
       )
-    },
-    {
-      key: 'submission_date',
-      title: 'Submission Date',
-      dataIndex: 'submission_date',
-      render: (date) => dayjs(date).format('MMM DD, YYYY')
     }
   ];
 
@@ -345,25 +356,33 @@ export default function MyCalendar() {
     const fetchSubmissionList = async () => {
       try {
         setLoading(true);
-        const { data } = await EODReportService.getAllSubmissionList({
+        const { data } = await EODReportService.getAllSubmissionTrackerTable({
           start_date: dayjs(dateRange.start_date),
           end_date: dayjs(dateRange.end_date)
         });
 
-        const mappedData = data.map((item) => ({
-          id: item.eodsubmission_id,
-          key: item.eodsubmission_id,
-          clinic_name: item.clinic_name,
-          province_name: item.province_name,
-          submission_date: item.submission_date,
-          regional_manager_name: item.regional_manager_name,
-          status:
-            item.status === 'close'
-              ? 'Closed'
-              : item.submitted === 'Completed'
-              ? 'Submitted'
-              : 'Draft'
-        }));
+        const mappedData = data.map((item) => {
+          let status;
+          if (item.status === 'close') status = 'Closed';
+          else if (item.submitted === 'Completed') status = 'Submitted';
+          else if (item.status === 'Not Started') status = 'Not started';
+          else status = 'Draft';
+
+          const id =
+            item.eodsubmission_id !== null
+              ? item.eodsubmission_id
+              : generateUniqueId();
+
+          return {
+            id,
+            status,
+            key: id,
+            clinic_name: item.clinic_name,
+            province_name: item.province_name,
+            submission_date: item.submission_date,
+            regional_manager_name: item.regional_manager_name
+          };
+        });
 
         setSubmissionData(mappedData);
       } catch (error) {
@@ -449,6 +468,14 @@ export default function MyCalendar() {
               label: renderTab('All', getStatusCounts().All, 'All')
             },
             {
+              key: 'Submitted',
+              label: renderTab(
+                'Submitted',
+                getStatusCounts().Submitted,
+                'Submitted'
+              )
+            },
+            {
               key: 'Draft',
               label: renderTab('Draft', getStatusCounts().Draft, 'Draft')
             },
@@ -457,11 +484,11 @@ export default function MyCalendar() {
               label: renderTab('Closed', getStatusCounts().Closed, 'Closed')
             },
             {
-              key: 'Submitted',
+              key: 'Not started',
               label: renderTab(
-                'Submitted',
-                getStatusCounts().Submitted,
-                'Submitted'
+                'Not Started',
+                getStatusCounts()['Not started'],
+                'Not started'
               )
             }
           ]}

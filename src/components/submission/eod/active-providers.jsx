@@ -294,11 +294,12 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       >
         <GetModalContent />
       </AddModal>
-      <div className="pr-6">
+      <div className="pr-6 border-t-1 border-t-secondary-50 pt-6">
+        <h2 className="text-xl font-medium mb-2">Active Providers</h2>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-red-500 text-xs font-semibold">
-            Note: Please input the number of units for Unfilled Spots, No Shows,
-            Short Notice, Failed Appts
+          <p className="text-red-500 text-xs font-medium">
+            (Note: Please input the number of units for Unfilled Spots, No
+            Shows, Short Notice, Failed Appts)
           </p>
           <Button
             size="lg"
