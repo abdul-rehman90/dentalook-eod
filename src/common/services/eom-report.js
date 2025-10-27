@@ -1,6 +1,21 @@
 import apiClient from '../api/axios-config';
 
 export const EOMReportService = {
+  async getMonthlySchedule(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.clinic_id) params.append('clinic_id', filters.clinic_id);
+    if (filters.target_year) params.append('target_year', filters.target_year);
+    if (filters.target_month)
+      params.append('target_month', filters.target_month);
+    if (filters.regional_manager)
+      params.append('regional_manager', filters.regional_manager);
+    const response = await apiClient.get(
+      `/admin/eom-monthly-schedule/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getDashboardData(filters = {}) {
     const params = new URLSearchParams();
 
@@ -50,6 +65,14 @@ export const EOMReportService = {
 
   async addIssueIdeas(payload) {
     const response = await apiClient.post('/eom-issues-ideas/', payload);
+    return response;
+  },
+
+  async addMonthlySchedule(payload) {
+    const response = await apiClient.post(
+      '/admin/eom-monthly-schedule/',
+      payload
+    );
     return response;
   },
 

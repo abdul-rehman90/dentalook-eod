@@ -21,7 +21,7 @@ const defaultRow = {
   category: ''
 };
 
-export default function IssuesIdeas() {
+export default function IssuesIdeas({ onNext }) {
   const router = useRouter();
   const [tableData, setTableData] = useState([defaultRow]);
   const {
@@ -105,22 +105,6 @@ export default function IssuesIdeas() {
     setTableData([...tableData, newItem]);
   };
 
-  const handleSubmitEOMReport = async () => {
-    try {
-      setLoading(true);
-      const response = await EOMReportService.submissionEOMReport({
-        eomsubmission_id: id
-      });
-      if (response.status === 200) {
-        toast.success('EOM submission is successfully submitted');
-        router.push('/review/list/eom');
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const saveData = useCallback(
     async (navigate = false) => {
       try {
@@ -132,28 +116,27 @@ export default function IssuesIdeas() {
           }));
 
         if (payload.length > 0) {
+          setLoading(true);
           const response = await EOMReportService.addIssueIdeas(payload);
           if (response.status === 201) {
             setDirty(false);
-            if (navigate) {
-              await handleSubmitEOMReport();
-            } else {
-              updateStepData(currentStepId, tableData);
-              toast.success('Record is successfully saved');
-            }
+            updateStepData(currentStepId, tableData);
+            toast.success('Record is successfully saved');
+            if (navigate) onNext();
             return true;
           }
         } else {
           setDirty(false);
-          if (navigate) {
-            await handleSubmitEOMReport();
-          }
+          updateStepData(currentStepId, tableData);
+          if (navigate) onNext();
         }
       } catch (error) {
         toast.error('Failed to save issues/ideas data');
+      } finally {
+        setLoading(false);
       }
     },
-    [tableData, id, handleSubmitEOMReport]
+    [tableData, id, currentStepId, setLoading, updateStepData, onNext, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);

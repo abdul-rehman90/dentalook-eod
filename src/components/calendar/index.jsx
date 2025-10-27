@@ -386,7 +386,6 @@ export default function MyCalendar() {
 
         setSubmissionData(mappedData);
       } catch (error) {
-        console.error('Error fetching submission list:', error);
       } finally {
         setLoading(false);
       }

@@ -32,7 +32,8 @@ const stepConfig = {
     { id: 'hiring', name: 'Hiring and Training' },
     { id: 'supplies', name: 'Supplies' },
     { id: 'google', name: 'Google Reviews' },
-    { id: 'issue', name: 'Issues/Ideas' }
+    { id: 'issue', name: 'Issues/Ideas' },
+    { id: 'schedule', name: 'Monthly Schedule' }
   ]
 };
 
@@ -138,6 +139,7 @@ export const AppProvider = ({ children }) => {
             equipment: response.data.equipment || [],
             google: response.data.google_review || {},
             clinical: response.data.clinic_upgrade || [],
+            schedule: response.data.monthly_schedule || {},
             account: response.data.account_receivable || [],
             hiring: {
               hiring: response.data.hiring_need || null,

@@ -319,7 +319,6 @@ export default function Referrals() {
           if (navigate) await handleSubmitEODReport();
         }
       } catch (error) {
-        console.error('Save failed:', error);
       } finally {
         setLoading(false);
       }
