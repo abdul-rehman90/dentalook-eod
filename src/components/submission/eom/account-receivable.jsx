@@ -21,6 +21,8 @@ export default function AccountReceivable({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eom?.basic?.clinic;
+  const basicDetails = reportData.eom?.basic || {};
+
   const [tableData, setTableData] = useState([
     {
       key: '1',
