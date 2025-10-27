@@ -238,9 +238,10 @@ export default function MonthlySchedule() {
             events={events}
             date={currentDate}
             localizer={localizer}
-            style={{ height: '100%' }}
             onNavigate={setCurrentDate}
             onSelectSlot={handleSelectSlot}
+            style={{ height: '100%', cursor: 'pointer' }}
+            onSelectEvent={({ start }) => handleSelectSlot({ start })}
             components={{ event: CustomEvent, toolbar: CustomToolbar }}
           />
         </div>

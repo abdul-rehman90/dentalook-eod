@@ -23,7 +23,9 @@ const options = [
 export default function BasicDetails() {
   const router = useRouter();
   const [form] = Form.useForm();
+  const user = Form.useWatch('user', form);
   const status = Form.useWatch('status', form);
+  const clinic = Form.useWatch('clinic', form);
   const [tableData, setTableData] = useState([]);
   const [practices, setPractices] = useState([]);
   const [provinces, setProvinces] = useState([]);
@@ -144,7 +146,7 @@ export default function BasicDetails() {
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = [], weeklySchedule = null) => {
       updateStepData(currentStepId, {
-        weeklySchedule: weeklySchedule,
+        // weeklySchedule: weeklySchedule,
         activeProviders: activeProviders,
         clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
@@ -167,7 +169,7 @@ export default function BasicDetails() {
           moveRouter(submission_id, values, [], weeklySchedule);
         } else {
           updateStepData(currentStepId, {
-            weeklySchedule: weeklySchedule,
+            // weeklySchedule: weeklySchedule,
             activeProviders: activeProviders,
             clinicDetails: { ...values, eodsubmission_id: submission_id }
           });
@@ -197,7 +199,7 @@ export default function BasicDetails() {
           } else {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
-              weeklySchedule: weeklySchedule,
+              // weeklySchedule: weeklySchedule,
               activeProviders: payload || [],
               clinicDetails: { ...values, eodsubmission_id: submission_id }
             });
@@ -349,14 +351,14 @@ export default function BasicDetails() {
           currentStepData?.clinicDetails?.province
       );
       initializeForm();
-      const savedSchedule = currentStepData?.weeklySchedule;
-      if (savedSchedule) {
-        const activeDays = Object.entries(savedSchedule)
-          .filter(([key, value]) => value === true && key !== 'clinic')
-          .map(([key]) => key);
+      // const savedSchedule = currentStepData?.weeklySchedule;
+      // if (savedSchedule) {
+      //   const activeDays = Object.entries(savedSchedule)
+      //     .filter(([key, value]) => value === true && key !== 'clinic')
+      //     .map(([key]) => key);
 
-        setSelectedDays(new Set(activeDays));
-      }
+      //   setSelectedDays(new Set(activeDays));
+      // }
     } else if (!id) {
       handleProvinceChange(provinces[0].value);
     }
@@ -481,9 +483,12 @@ export default function BasicDetails() {
                 </Row>
                 {shouldShowProviders && (
                   <WeeklySchedule
+                    user={user}
+                    clinic={clinic}
                     selectedDays={selectedDays}
                     submissionDate={submissionDate}
                     setSelectedDays={setSelectedDays}
+                    province={form.getFieldValue('province')}
                   />
                 )}
                 {shouldShowProviders && (
