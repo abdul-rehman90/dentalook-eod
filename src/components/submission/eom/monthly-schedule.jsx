@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import enUS from 'date-fns/locale/en-US';
@@ -51,11 +51,20 @@ const CustomEvent = ({ event }) => (
 
 export default function MonthlySchedule() {
   const router = useRouter();
+  const isSavingRef = useRef(false);
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(null);
   const [closedDays, setClosedDays] = useState(new Set());
-  const { id, steps, setLoading, reportData, currentStep, updateStepData } =
-    useGlobalContext();
+  const {
+    id,
+    steps,
+    setLoading,
+    reportData,
+    currentStep,
+    updateStepData,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  } = useGlobalContext();
   const currentStepId = steps[currentStep - 1]?.id;
   const basic = reportData?.eom?.basic || {};
   const { clinic: clinicId, province_id, province, submission_month } = basic;
@@ -122,6 +131,9 @@ export default function MonthlySchedule() {
 
   const saveData = useCallback(
     async (navigate = false) => {
+      if (isSavingRef.current) return false;
+      isSavingRef.current = true;
+
       try {
         setLoading(true);
         const targetMonth = dayjs(currentDate).format('MM');
@@ -147,11 +159,15 @@ export default function MonthlySchedule() {
           updateStepData(currentStepId, dates);
           toast.success('Record saved successfully');
           if (navigate) await handleSubmitEOMReport();
+          return true;
         }
+        return false;
       } catch {
         toast.error('Failed to save monthly schedule');
+        return false;
       } finally {
         setLoading(false);
+        isSavingRef.current = false;
       }
     },
     [
@@ -160,8 +176,8 @@ export default function MonthlySchedule() {
       provinceId,
       setLoading,
       currentDate,
-      updateStepData,
       currentStepId,
+      updateStepData,
       regional_manager,
       handleSubmitEOMReport
     ]
@@ -213,13 +229,31 @@ export default function MonthlySchedule() {
   }, [currentDate, closedDays]);
 
   useEffect(() => {
-    window.addEventListener('stepNavigationSave', () => saveData(false));
-    window.addEventListener('stepNavigationNext', () => saveData(true));
+    const onSave = () => saveData(false);
+    const onNext = () => saveData(true);
+
+    window.addEventListener('stepNavigationSave', onSave);
+    window.addEventListener('stepNavigationNext', onNext);
+
     return () => {
-      window.removeEventListener('stepNavigationSave', () => saveData(false));
-      window.removeEventListener('stepNavigationNext', () => saveData(true));
+      window.removeEventListener('stepNavigationSave', onSave);
+      window.removeEventListener('stepNavigationNext', onNext);
     };
   }, [saveData]);
+
+  useEffect(() => {
+    registerStepSaveHandler(currentStep, async (navigate = false) => {
+      return saveData(navigate);
+    });
+    return () => {
+      unregisterStepSaveHandler(currentStep);
+    };
+  }, [
+    saveData,
+    currentStep,
+    registerStepSaveHandler,
+    unregisterStepSaveHandler
+  ]);
 
   return (
     <React.Fragment>

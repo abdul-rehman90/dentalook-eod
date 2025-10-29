@@ -516,6 +516,10 @@
   display: none;
 }
 
+.clinic-adj .ant-form-item .ant-row {
+  gap: 15px;
+}
+
 /* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
   display: none !important;
 }
