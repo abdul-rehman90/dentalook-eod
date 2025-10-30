@@ -38,7 +38,8 @@ export default function Dashboard() {
     data: [],
     title: '',
     columns: [],
-    visible: false
+    visible: false,
+    attritionData: []
   });
 
   const groupByProviderType = (
@@ -127,6 +128,10 @@ export default function Dashboard() {
         percentage: apiData.number_of_patients.percentage,
         details:
           apiData.number_of_patients.patient_details?.[0]?.patients?.sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          ) || [],
+        attritionData:
+          apiData.number_of_attritions.attrition_detail?.[0]?.patients?.sort(
             (a, b) => new Date(b.date) - new Date(a.date)
           ) || []
       },
@@ -309,6 +314,7 @@ export default function Dashboard() {
         title={modalState.title}
         visible={modalState.visible}
         columns={modalState.columns}
+        attritionData={modalState.attritionData}
         onCancel={() => setModalState((prev) => ({ ...prev, visible: false }))}
       />
 

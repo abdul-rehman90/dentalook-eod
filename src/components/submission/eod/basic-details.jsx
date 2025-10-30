@@ -8,6 +8,7 @@ import ActiveProviders from './active-providers';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import { FormControl } from '@/common/utils/form-control';
 import { EODReportService } from '@/common/services/eod-report';
+import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
@@ -18,6 +19,16 @@ import {
 const options = [
   { label: 'Open', value: 'open' },
   { label: 'Close', value: 'close' }
+];
+
+const DAYS_OF_WEEK = [
+  { key: 'monday', label: 'Mon' },
+  { key: 'tuesday', label: 'Tue' },
+  { key: 'wednesday', label: 'Wed' },
+  { key: 'thursday', label: 'Thu' },
+  { key: 'friday', label: 'Fri' },
+  { key: 'saturday', label: 'Sat' },
+  { key: 'sunday', label: 'Sun' }
 ];
 
 export default function BasicDetails() {
@@ -143,6 +154,46 @@ export default function BasicDetails() {
     }
   };
 
+  const addMonthlySchedule = async (values) => {
+    try {
+      const baseDate = dayjs(values.submission_date || dayjs());
+      const targetMonth = dayjs(values.submission_date).format('MM');
+      const targetYear = dayjs(values.submission_date).format('YYYY');
+      const dayOfWeek = baseDate.day();
+
+      const startOfWeek =
+        dayOfWeek === 0
+          ? baseDate.subtract(6, 'day')
+          : baseDate.subtract(dayOfWeek - 1, 'day');
+
+      const weekDays = DAYS_OF_WEEK.map((day, i) => ({
+        ...day,
+        date: startOfWeek.add(i, 'day')
+      }));
+
+      const weeklyDates = weekDays.map((day) => ({
+        date: day.date.format('YYYY-MM-DD'),
+        status: selectedDays.has(day.key)
+      }));
+
+      const payload = {
+        dates: weeklyDates,
+        target_year: targetYear,
+        clinic_id: values.clinic,
+        province: values.province,
+        target_month: targetMonth,
+        regional_manager: values.user
+      };
+
+      const res = await EOMReportService.addMonthlySchedule(payload);
+      if (res.status === 201) {
+        toast.success('Weekly schedule saved successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to save weekly schedule');
+    }
+  };
+
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = [], weeklySchedule = null) => {
       updateStepData(currentStepId, {
@@ -259,27 +310,11 @@ export default function BasicDetails() {
         const response = await EODReportService.addBasicDetails(payload);
         if (response.status === 201) {
           const submission_id = response.data.data.id;
-          const weeklyPayloadLocal = {
-            clinic: values.clinic,
-            created_at: dayjs(values.submission_date).format('YYYY-MM-DD'),
-            monday: selectedDays.has('monday'),
-            tuesday: selectedDays.has('tuesday'),
-            wednesday: selectedDays.has('wednesday'),
-            thursday: selectedDays.has('thursday'),
-            friday: selectedDays.has('friday'),
-            saturday: selectedDays.has('saturday'),
-            sunday: selectedDays.has('sunday')
-          };
           if (values.status === 'close') {
             await handleSubmitEODReport(submission_id);
           } else {
-            await addWeeklySchedule(weeklyPayloadLocal);
-            await addActiveProviders(
-              payload,
-              submission_id,
-              navigate,
-              weeklyPayloadLocal
-            );
+            await addMonthlySchedule(values);
+            await addActiveProviders(payload, submission_id, navigate);
           }
 
           return true;
@@ -351,14 +386,6 @@ export default function BasicDetails() {
           currentStepData?.clinicDetails?.province
       );
       initializeForm();
-      // const savedSchedule = currentStepData?.weeklySchedule;
-      // if (savedSchedule) {
-      //   const activeDays = Object.entries(savedSchedule)
-      //     .filter(([key, value]) => value === true && key !== 'clinic')
-      //     .map(([key]) => key);
-
-      //   setSelectedDays(new Set(activeDays));
-      // }
     } else if (!id) {
       handleProvinceChange(provinces[0].value);
     }
@@ -512,3 +539,15 @@ export default function BasicDetails() {
     </React.Fragment>
   );
 }
+
+// const weeklyPayloadLocal = {
+//   clinic: values.clinic,
+//   created_at: dayjs(values.submission_date).format('YYYY-MM-DD'),
+//   monday: selectedDays.has('monday'),
+//   tuesday: selectedDays.has('tuesday'),
+//   wednesday: selectedDays.has('wednesday'),
+//   thursday: selectedDays.has('thursday'),
+//   friday: selectedDays.has('friday'),
+//   saturday: selectedDays.has('saturday'),
+//   sunday: selectedDays.has('sunday')
+// };

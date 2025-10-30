@@ -52,9 +52,9 @@ export default function WeeklySchedule({
       const targetYear = dayjs(submissionDate).format('YYYY');
 
       const res = await EOMReportService.getMonthlySchedule({
-        regional_manager: user,
-        clinic_id: clinic,
+        clinic: clinic,
         province: province,
+        regional_manager: user,
         target_year: targetYear,
         target_month: targetMonth
       });

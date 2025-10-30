@@ -4,7 +4,7 @@ export const EOMReportService = {
   async getMonthlySchedule(filters = {}) {
     const params = new URLSearchParams();
 
-    if (filters.clinic_id) params.append('clinic_id', filters.clinic_id);
+    if (filters.clinic) params.append('clinic', filters.clinic);
     if (filters.target_year) params.append('target_year', filters.target_year);
     if (filters.target_month)
       params.append('target_month', filters.target_month);

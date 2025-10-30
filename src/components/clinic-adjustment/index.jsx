@@ -3,52 +3,77 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
-import { DatePicker, Form, Input, Select } from 'antd';
+import { DatePicker, Input, Table } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { EODReportService } from '@/common/services/eod-report';
 
 export default function ClinicAdjustment() {
-  const [form] = Form.useForm();
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({
-    date: null,
-    clinic_id: null,
-    clinic_name: ''
-  });
-  const initialValues = {
-    amount: '',
-    date: null,
-    clinic_id: null,
-    clinic_name: ''
-  };
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [clinicAmounts, setClinicAmounts] = useState({});
 
-  const handleFilterChange = (key, value, label) => {
-    setFilters((prev) => ({
+  const columns = [
+    {
+      key: 'name',
+      width: '60%',
+      dataIndex: 'name',
+      title: 'Clinic Name'
+    },
+    {
+      width: '40%',
+      key: 'amount',
+      title: 'Amount',
+      dataIndex: 'amount',
+      render: (_, record) => (
+        <Input
+          type="number"
+          placeholder="Enter amount"
+          className="!p-2 !rounded-md"
+          value={clinicAmounts[record.id] || ''}
+          onChange={(e) => handleAmountChange(record.id, e.target.value)}
+        />
+      )
+    }
+  ];
+
+  const handleAmountChange = (clinicId, amount) => {
+    setClinicAmounts((prev) => ({
       ...prev,
-      [key]: value,
-      ...(label ? { clinic_name: label } : {})
+      [clinicId]: amount
     }));
   };
 
-  const onFinish = async (values) => {
+  const onSubmit = async () => {
+    if (!selectedDate) {
+      toast.error('Please select a date');
+      return;
+    }
+
+    const payload = Object.entries(clinicAmounts)
+      .filter(([_, amount]) => amount && parseFloat(amount) > 0)
+      .map(([clinicId, amount]) => ({
+        amount: parseFloat(amount),
+        clinic_id: parseInt(clinicId),
+        date: dayjs(selectedDate).format('YYYY-MM-DD')
+      }));
+
+    if (payload.length === 0) {
+      toast.error('Please enter at least one amount');
+      return;
+    }
+
     try {
       setLoading(true);
-      const payload = {
-        amount: values.amount,
-        clinic_id: filters.clinic_id,
-        date: filters.date ? dayjs(filters.date).format('YYYY-MM-DD') : null
-      };
-
       const response = await EODReportService.addClinicAdjustment(payload);
-      if (response.status === 201) {
-        form.resetFields();
-        setFilters({ date: null, clinic_id: null });
-        toast.success('Record is successfully saved');
+      if (response.status === 200) {
+        setClinicAmounts({});
+        setSelectedDate(null);
+        toast.success('Records successfully saved');
       }
     } catch (error) {
       let errorMessage =
-        error?.response?.data?.detail ??
+        error?.response?.data?.error[0] ??
         'Something went wrong. Please try again.';
       toast.error(errorMessage);
     } finally {
@@ -58,15 +83,12 @@ export default function ClinicAdjustment() {
 
   const fetchAllRegionalManagers = async () => {
     try {
+      setLoading(true);
       const { data } = await EODReportService.getAllRegionalManagers();
-      setClinics(
-        data.clinics.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
-      );
+      setClinics(data.clinics || []);
     } catch (error) {
-      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,35 +96,14 @@ export default function ClinicAdjustment() {
     fetchAllRegionalManagers();
   }, []);
 
-  useEffect(() => {
-    if (filters.clinic_id && filters.date) {
-      form.setFieldsValue({
-        clinic_name: filters.clinic_name || '',
-        date: filters.date ? dayjs(filters.date).format('DD/MM/YYYY') : null
-      });
-    }
-  }, [filters, form]);
-
   return (
     <div className="px-13 py-6 bg-[#FAFAFB] min-h-[calc(100vh_-_75px)]">
-      <div className="bg-white p-6 rounded-xl">
-        <h1 className="text-2xl font-semibold text-black">Clinic Adjustment</h1>
-        <div className="flex flex-wrap gap-4 mt-5">
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
-              Clinics
-            </p>
-            <Select
-              options={clinics}
-              value={filters.clinic_id}
-              style={{ width: '100%' }}
-              placeholder="Select Clinic"
-              onChange={(value, option) =>
-                handleFilterChange('clinic_id', value, option?.label)
-              }
-            />
-          </div>
-          <div className="flex flex-col gap-2 flex-1">
+      <div className="bg-white p-5 rounded-xl">
+        <div className="flex justify-between items-center border-b-1 border-b-secondary-50 pb-4">
+          <h1 className="text-2xl font-semibold text-black">
+            Clinic Adjustment
+          </h1>
+          <div className="flex flex-col gap-1">
             <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
               Date
             </p>
@@ -110,62 +111,30 @@ export default function ClinicAdjustment() {
               allowClear={false}
               format="MM/DD/YYYY"
               placeholder="Select date"
-              style={{ width: '100%' }}
-              value={filters.date ? dayjs(filters.date) : null}
-              onChange={(date) =>
-                handleFilterChange('date', date ? date.toDate() : null)
-              }
+              value={selectedDate ? dayjs(selectedDate) : null}
+              onChange={(date) => setSelectedDate(date ? date.toDate() : null)}
             />
           </div>
         </div>
-        <div className="mt-8">
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={initialValues}
-          >
-            <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 clinic-adj">
-              <Form.Item label="Clinic" name="clinic_name">
-                <Input
-                  disabled
-                  placeholder="Select Clinic"
-                  className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
-                />
-              </Form.Item>
-              <Form.Item label="Date" name="date">
-                <Input
-                  disabled
-                  placeholder="Select date"
-                  className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
-                />
-              </Form.Item>
-              <Form.Item
-                name="amount"
-                label="Amount"
-                rules={[{ required: true, message: 'Please enter amount' }]}
-              >
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  className="!p-2 !rounded-md !bg-[#F9FAFB] !text-[#6B7280]"
-                />
-              </Form.Item>
-            </div>
-            <div className="flex justify-end mt-1">
-              <Form.Item>
-                <Button
-                  size="lg"
-                  type="submit"
-                  variant="secondary"
-                  isLoading={loading}
-                  className="w-full h-9 !shadow-none text-black !rounded-lg"
-                >
-                  Submit
-                </Button>
-              </Form.Item>
-            </div>
-          </Form>
+        <div className="mt-5 ">
+          <Table
+            rowKey="id"
+            loading={loading}
+            columns={columns}
+            pagination={false}
+            dataSource={clinics}
+            className="clinic-adjustment-table"
+          />
+          <div className="flex justify-end mt-6">
+            <Button
+              size="lg"
+              onClick={onSubmit}
+              isLoading={loading}
+              className="h-9 !shadow-none text-black !rounded-lg"
+            >
+              Submit
+            </Button>
+          </div>
         </div>
       </div>
     </div>

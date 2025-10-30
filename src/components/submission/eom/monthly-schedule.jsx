@@ -157,7 +157,7 @@ export default function MonthlySchedule() {
         const res = await EOMReportService.addMonthlySchedule(payload);
         if (res.status === 201) {
           updateStepData(currentStepId, dates);
-          toast.success('Record saved successfully');
+          toast.success('Record is successfully saved');
           if (navigate) await handleSubmitEOMReport();
           return true;
         }
@@ -195,7 +195,7 @@ export default function MonthlySchedule() {
 
       const res = await EOMReportService.getMonthlySchedule({
         regional_manager,
-        clinic_id: clinicId,
+        clinic: clinicId,
         target_year: targetYear,
         target_month: targetMonth
       });
