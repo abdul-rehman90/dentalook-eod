@@ -44,6 +44,23 @@ export default function ClinicAdjustment() {
     }));
   };
 
+  const fetchClinicAdjustments = async (date) => {
+    try {
+      setLoading(true);
+      const { data } = await EODReportService.getClinicAdjustment({
+        date: dayjs(date).format('YYYY-MM-DD')
+      });
+      const amounts = {};
+      data?.forEach((item) => {
+        amounts[item.clinic] = item.amount;
+      });
+      setClinicAmounts(amounts);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onSubmit = async () => {
     if (!selectedDate) {
       toast.error('Please select a date');
@@ -112,7 +129,13 @@ export default function ClinicAdjustment() {
               format="MM/DD/YYYY"
               placeholder="Select date"
               value={selectedDate ? dayjs(selectedDate) : null}
-              onChange={(date) => setSelectedDate(date ? date.toDate() : null)}
+              onChange={(date) => {
+                const newDate = date ? date.toDate() : null;
+                setSelectedDate(newDate);
+                if (newDate) {
+                  fetchClinicAdjustments(newDate);
+                }
+              }}
             />
           </div>
         </div>

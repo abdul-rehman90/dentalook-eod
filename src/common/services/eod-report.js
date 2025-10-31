@@ -24,6 +24,17 @@ export const EODReportService = {
     return response;
   },
 
+  async getClinicAdjustment(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.date) params.append('date', filters.date);
+
+    const response = await apiClient.get(
+      `/eod-adjustment/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getDataOfProvinceById(id) {
     const response = await apiClient.get(`/province-data/${id}`);
     return response;
