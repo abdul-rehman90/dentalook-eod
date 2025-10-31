@@ -68,16 +68,21 @@ export const EODReportService = {
     return response;
   },
 
-  async addWeeklySchedule(payload) {
-    const response = await apiClient.post(
-      '/eod-submission-weekly-schedule/',
-      payload
-    );
+  async addClinicAdjustment(payload) {
+    const response = await apiClient.post('/eod-adjustment/', payload);
     return response;
   },
 
   async addBasicDetails(payload) {
     const response = await apiClient.post('/eod-submission/', payload);
+    return response;
+  },
+
+  async addWeeklySchedule(payload) {
+    const response = await apiClient.post(
+      '/eod-submission-weekly-schedule/',
+      payload
+    );
     return response;
   },
 

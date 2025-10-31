@@ -59,10 +59,19 @@ export const METRICS_MODAL_COLUMNS = {
       dataIndex: 'clinic_name'
     },
     {
+      title: 'Days Work',
       key: 'submission_date',
-      title: 'Submission Date',
       dataIndex: 'submission_date',
-      render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
+      render: (value, record) => {
+        if (record.rowType === 'provider' && record.children) {
+          return (
+            <span className="font-semibold text-gray-800">
+              {record.children.length}
+            </span>
+          );
+        }
+        return value ? dayjs(value).format('MMM DD, YYYY') : '';
+      }
     },
     {
       key: 'total_production',

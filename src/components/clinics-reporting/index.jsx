@@ -1,49 +1,69 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Icons } from '@/common/assets';
-import Link from 'next/link';
 
 export default function ClinicsReporting() {
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem('role');
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
+
   const cardsData = [
     {
       id: '1',
       route: '/submission/eod/1',
       title: 'Submit End Of Day',
-      description: "Record today's clinic operations"
+      description: "Record today's clinic operations."
     },
     {
       id: '2',
       route: '/submission/eom/1',
       title: 'Submit End of Month',
-      description: 'Submit monthly performance summary'
+      description: 'Submit your monthly performance summary.'
     },
     {
       id: '3',
       route: '/review/list/eod',
       title: 'Review EOD Submissions',
-      description: 'Access your EOD recorded reports here'
+      description: 'Access and review your submitted daily reports.'
     },
     {
       id: '4',
       route: '/review/list/eom',
       title: 'Review EOM Submissions',
-      description: 'Access your EOM recorded reports here'
+      description: 'Access and review your monthly reports.'
     },
     {
       id: '5',
       route: '/calendar',
       title: 'Submission Tracker',
-      description: 'Track and monitor submission timelines easily'
+      description: 'Track and monitor submission timelines easily.'
     },
     {
       id: '6',
       title: 'Dashboard',
       route: '/dashboard',
-      description: 'Get a quick overview of clinic performance'
+      description: 'Get a quick overview of overall clinic performance.'
+    },
+    {
+      id: '7',
+      title: 'Clinic Adjustment',
+      route: '/clinic-adjustment',
+      description: 'Adjust clinic data or performance metrics as needed.'
     }
   ];
+
+  const filteredCards =
+    role === 'LT'
+      ? cardsData
+      : cardsData.filter((card) => card.title !== 'Clinic Adjustment');
 
   return (
     <React.Fragment>
@@ -59,8 +79,9 @@ export default function ClinicsReporting() {
           records, and maintain compliance, all in one place.
         </p>
       </div>
+
       <div className="grid md:grid-cols-2 gap-6">
-        {cardsData.map((card) => (
+        {filteredCards.map((card) => (
           <Link
             tabIndex={0}
             key={card.id}
