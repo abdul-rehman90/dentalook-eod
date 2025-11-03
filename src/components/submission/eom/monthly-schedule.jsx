@@ -89,9 +89,6 @@ export default function MonthlySchedule() {
     return days;
   };
 
-  const getSundaysInMonth = (date) =>
-    new Set(getDaysInMonth(date).filter((day) => dayjs(day).day() === 0));
-
   const mapScheduleToEvents = (date, closed) =>
     getDaysInMonth(date)
       .filter((d) => closed.has(d))
@@ -200,16 +197,13 @@ export default function MonthlySchedule() {
         target_month: targetMonth
       });
 
-      const sundays = getSundaysInMonth(currentDate);
       if (res.status === 200 && Array.isArray(res.data)) {
         const closedFromAPI = new Set(
           res.data.filter((i) => !i.status).map((i) => i.date)
         );
-        setClosedDays(new Set([...closedFromAPI, ...sundays]));
-      } else setClosedDays(sundays);
-    } catch {
-      setClosedDays(getSundaysInMonth(currentDate));
-    }
+        setClosedDays(closedFromAPI);
+      }
+    } catch {}
   }, [clinicId, regional_manager, currentDate]);
 
   useEffect(() => {

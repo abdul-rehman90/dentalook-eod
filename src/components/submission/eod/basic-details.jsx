@@ -186,9 +186,9 @@ export default function BasicDetails() {
       };
 
       const res = await EOMReportService.addMonthlySchedule(payload);
-      if (res.status === 201) {
-        toast.success('Weekly schedule saved successfully');
-      }
+      // if (res.status === 201) {
+      //   toast.success('Weekly schedule saved successfully');
+      // }
     } catch (error) {
       toast.error('Failed to save weekly schedule');
     }
