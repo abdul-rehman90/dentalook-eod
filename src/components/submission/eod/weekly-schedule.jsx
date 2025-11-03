@@ -82,7 +82,7 @@ export default function WeeklySchedule({
 
         weekDates.forEach((date, index) => {
           const dayKey = dayKeys[index];
-          if (dayKey !== 'sunday' && !apiClosedDates.has(date)) {
+          if (!apiClosedDates.has(date)) {
             openDays.add(dayKey);
           }
         });
