@@ -5,6 +5,7 @@ export default function DatePickerField({
   name,
   label,
   required,
+  onChange,
   placeholder,
   message = '',
   picker = 'day',
@@ -64,6 +65,7 @@ export default function DatePickerField({
         format={format}
         allowClear={false}
         disabled={disabled}
+        onChange={onChange}
         style={{ width: '100%' }}
         placeholder={placeholder}
         disabledDate={disabledDate}
