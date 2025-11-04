@@ -67,13 +67,11 @@ export default function ClinicAdjustment() {
       return;
     }
 
-    const payload = Object.entries(clinicAmounts)
-      .filter(([_, amount]) => amount && parseFloat(amount) > 0)
-      .map(([clinicId, amount]) => ({
-        amount: parseFloat(amount),
-        clinic_id: parseInt(clinicId),
-        date: dayjs(selectedDate).format('YYYY-MM-DD')
-      }));
+    const payload = Object.entries(clinicAmounts).map(([clinicId, amount]) => ({
+      amount: parseFloat(amount),
+      clinic_id: parseInt(clinicId),
+      date: dayjs(selectedDate).format('YYYY-MM-DD')
+    }));
 
     if (payload.length === 0) {
       toast.error('Please enter at least one amount');

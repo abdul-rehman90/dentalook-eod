@@ -57,6 +57,12 @@ export default function ClinicsReporting() {
       title: 'Clinic Adjustment',
       route: '/clinic-adjustment',
       description: 'Adjust clinic data or performance metrics as needed.'
+    },
+    {
+      id: '8',
+      route: '/monthly-schedule',
+      title: 'Monthly Schedule Management',
+      description: 'Manage and update monthly clinic schedules and closed days.'
     }
   ];
 
