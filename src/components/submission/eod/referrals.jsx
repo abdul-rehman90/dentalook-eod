@@ -35,6 +35,11 @@ const specialityOptions = [
   { value: 'Prosthodontics', label: 'Prosthodontics' },
   { value: 'Cosmetic Dentistry', label: 'Cosmetic Dentistry' },
   { value: 'Dentures', label: 'Dentures' },
+  { value: 'Radiology-CBCT', label: 'Radiology-CBCT' },
+  { value: 'Sedation - Adult', label: 'Sedation - Adult' },
+  { value: 'Sedation - Pediatric', label: 'Sedation - Pediatric' },
+  { value: 'Botox', label: 'Botox' },
+  { value: 'Orthognathic Surgery', label: 'Orthognathic Surgery' },
   { value: 'Other', label: 'Other' }
 ];
 
