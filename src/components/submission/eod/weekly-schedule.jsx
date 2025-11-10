@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { Col, Row } from 'antd';
+import { EOMReportService } from '@/common/services/eom-report';
 
 const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Mon' },
@@ -13,6 +14,9 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function WeeklySchedule({
+  user,
+  clinic,
+  province,
   selectedDays,
   submissionDate,
   setSelectedDays
@@ -40,15 +44,90 @@ export default function WeeklySchedule({
     }));
   }, [submissionDate]);
 
+  const fetchWeeklySchedule = useCallback(async () => {
+    if (!clinic || !submissionDate || !user) return;
+
+    try {
+      const targetMonth = dayjs(submissionDate).format('MM');
+      const targetYear = dayjs(submissionDate).format('YYYY');
+
+      const res = await EOMReportService.getMonthlySchedule({
+        clinic: clinic,
+        province: province,
+        regional_manager: user,
+        target_year: targetYear,
+        target_month: targetMonth
+      });
+
+      if (res.status === 200 && Array.isArray(res.data)) {
+        const weekStart = dayjs(submissionDate).startOf('week').add(1, 'day');
+        const weekDates = Array.from({ length: 7 }, (_, i) =>
+          weekStart.add(i, 'day').format('YYYY-MM-DD')
+        );
+
+        const apiClosedDates = new Set(
+          res.data.filter((item) => !item.status).map((item) => item.date)
+        );
+
+        const dayKeys = [
+          'monday',
+          'tuesday',
+          'wednesday',
+          'thursday',
+          'friday',
+          'saturday',
+          'sunday'
+        ];
+        const openDays = new Set();
+
+        weekDates.forEach((date, index) => {
+          const dayKey = dayKeys[index];
+          if (!apiClosedDates.has(date)) {
+            openDays.add(dayKey);
+          }
+        });
+
+        setSelectedDays(openDays);
+      } else {
+        setSelectedDays(
+          new Set([
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday'
+          ])
+        );
+      }
+    } catch {
+      setSelectedDays(
+        new Set([
+          'monday',
+          'tuesday',
+          'wednesday',
+          'thursday',
+          'friday',
+          'saturday'
+        ])
+      );
+    }
+  }, [clinic, user, province, submissionDate, setSelectedDays]);
+
+  useEffect(() => {
+    if (clinic && user && submissionDate) {
+      fetchWeeklySchedule();
+    }
+  }, [clinic, user, submissionDate, fetchWeeklySchedule]);
+
   return (
-    <Row className="my-3">
+    <Row className="my-3 border-t-1 border-t-secondary-50 pt-6">
       <Col span={24}>
         <div className="mb-4">
           <label className="text-xl font-medium mb-4 block">
             Weekly Schedule
             <span className="text-sm text-gray-500 ml-2">
-              (Select the days you want to include in this week’s schedule. You
-              can toggle days on or off as needed.)
+              (Select the days which are closed this week)
             </span>
           </label>
 

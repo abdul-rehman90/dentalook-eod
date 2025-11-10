@@ -4,6 +4,7 @@ import IssuesIdeasEOM from './issue-ideas';
 import BasicDetailsEOM from './basic-details';
 import GoogleReviewsEOM from './google-reviews';
 import HiringTrainingEOM from './hiring-training';
+import MonthlyScheduleEOM from './monthly-schedule';
 import ClinicalUpgradeEOM from './clinical-upgrade';
 import AccountReceivableEOM from './account-receivable';
 
@@ -14,6 +15,7 @@ export {
   BasicDetailsEOM,
   GoogleReviewsEOM,
   HiringTrainingEOM,
+  MonthlyScheduleEOM,
   ClinicalUpgradeEOM,
   AccountReceivableEOM
 };

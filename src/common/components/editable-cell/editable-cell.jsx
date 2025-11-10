@@ -23,7 +23,6 @@ export default function EditableCell({
   if (type === 'select') {
     return (
       <Select
-        showSearch={showSearch}
         filterOption={
           showSearch
             ? (input, option) =>
@@ -33,6 +32,7 @@ export default function EditableCell({
         options={options}
         disabled={disabled}
         className={className}
+        showSearch={showSearch}
         placeholder={placeholder}
         value={localValue || undefined}
         onChange={(val) => {

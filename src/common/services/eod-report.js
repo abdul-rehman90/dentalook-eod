@@ -24,6 +24,17 @@ export const EODReportService = {
     return response;
   },
 
+  async getClinicAdjustment(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.date) params.append('date', filters.date);
+
+    const response = await apiClient.get(
+      `/eod-adjustment/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getDataOfProvinceById(id) {
     const response = await apiClient.get(`/province-data/${id}`);
     return response;
@@ -68,16 +79,21 @@ export const EODReportService = {
     return response;
   },
 
-  async addWeeklySchedule(payload) {
-    const response = await apiClient.post(
-      '/eod-submission-weekly-schedule/',
-      payload
-    );
+  async addClinicAdjustment(payload) {
+    const response = await apiClient.post('/eod-adjustment/', payload);
     return response;
   },
 
   async addBasicDetails(payload) {
     const response = await apiClient.post('/eod-submission/', payload);
+    return response;
+  },
+
+  async addWeeklySchedule(payload) {
+    const response = await apiClient.post(
+      '/eod-submission-weekly-schedule/',
+      payload
+    );
     return response;
   },
 
@@ -128,6 +144,20 @@ export const EODReportService = {
 
   async getAllEODData(id) {
     const response = await apiClient.get(`/eod-data/${id}/`);
+    return response;
+  },
+
+  async getAllSubmissionTrackerTable(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.start_date)
+      params.append('start_date', filters.start_date.format('YYYY-MM-DD'));
+    if (filters.end_date)
+      params.append('end_date', filters.end_date.format('YYYY-MM-DD'));
+
+    const response = await apiClient.get(
+      `/review-eod-submission-table/?${params.toString()}`
+    );
     return response;
   },
 

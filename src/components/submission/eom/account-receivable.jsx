@@ -5,6 +5,8 @@ import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 
+const toNumber = (val) => parseFloat(val?.toString().replace(/,/g, '')) || 0;
+
 export default function AccountReceivable({ onNext }) {
   const {
     id,
@@ -21,6 +23,7 @@ export default function AccountReceivable({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eom?.basic?.clinic;
+
   const [tableData, setTableData] = useState([
     {
       key: '1',
@@ -127,16 +130,16 @@ export default function AccountReceivable({ onNext }) {
 
         const payload = {
           submission: Number(id),
-          patient0_30: parseFloat(patientData?.age_0_30) || 0,
-          patient30_60: parseFloat(patientData?.age_30_60) || 0,
-          patient60_90: parseFloat(patientData?.age_60_90) || 0,
-          patient90_plus: parseFloat(patientData?.age_90_plus) || 0,
-          patient_payment_plan: parseFloat(patientData?.payment_plan) || 0,
-          insurance0_30: parseFloat(insuranceData?.age_0_30) || 0,
-          insurance30_60: parseFloat(insuranceData?.age_30_60) || 0,
-          insurance60_90: parseFloat(insuranceData?.age_60_90) || 0,
-          insurance90_plus: parseFloat(insuranceData?.age_90_plus) || 0,
-          insurance_payment_plan: parseFloat(insuranceData?.payment_plan) || 0
+          patient0_30: toNumber(patientData?.age_0_30),
+          patient30_60: toNumber(patientData?.age_30_60),
+          patient60_90: toNumber(patientData?.age_60_90),
+          patient90_plus: toNumber(patientData?.age_90_plus),
+          patient_payment_plan: toNumber(patientData?.payment_plan),
+          insurance0_30: toNumber(insuranceData?.age_0_30),
+          insurance30_60: toNumber(insuranceData?.age_30_60),
+          insurance60_90: toNumber(insuranceData?.age_60_90),
+          insurance90_plus: toNumber(insuranceData?.age_90_plus),
+          insurance_payment_plan: toNumber(insuranceData?.payment_plan)
         };
 
         const response = await EOMReportService.addAccountReceivable([payload]);

@@ -21,6 +21,7 @@ export default function LoginForm() {
       setLoading(true);
       const response = await AuthService.login(values);
       if (response.status === 200) {
+        localStorage.setItem('role', response.data.user.role);
         setUserAndToken(response.data.access);
         router.push('/clinics-reporting');
         toast.success('Login successful!');

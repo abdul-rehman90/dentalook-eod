@@ -30,9 +30,28 @@ export default function List() {
     },
     { title: 'Practice', dataIndex: 'clinic_name', key: 'clinic_name' },
     {
-      title: 'Status',
+      key: 'status',
+      dataIndex: 'status',
+      title: 'Clinic Status',
+      render: (status) =>
+        status ? (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-semibold  ${
+              status === 'open'
+                ? 'bg-[#E9F7EE] text-primary-400'
+                : 'bg-[#FFF4ED] text-[#FF8A4E]'
+            }`}
+          >
+            {status === 'open' ? 'Opened' : 'Closed'}
+          </span>
+        ) : (
+          'N/A'
+        )
+    },
+    {
       key: 'submitted',
       dataIndex: 'submitted',
+      title: 'Submission Status',
       render: (status) =>
         status ? (
           <span

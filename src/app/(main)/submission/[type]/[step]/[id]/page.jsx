@@ -22,6 +22,7 @@ import {
   GoogleReviewsEOM,
   HiringTrainingEOM,
   ClinicalUpgradeEOM,
+  MonthlyScheduleEOM,
   AccountReceivableEOM
 } from '@/components/submission/eom';
 
@@ -48,7 +49,8 @@ export default function SubmissionPage() {
       5: <HiringTrainingEOM onNext={handle} />,
       6: <SuppliesEOM onNext={handle} />,
       7: <GoogleReviewsEOM onNext={handle} />,
-      8: <IssuesIdeasEOM />
+      8: <IssuesIdeasEOM onNext={handle} />,
+      9: <MonthlyScheduleEOM />
     }
   };
 

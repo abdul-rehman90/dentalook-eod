@@ -1,18 +1,20 @@
 'use client';
 
-import React from 'react';
-import { Modal, Table } from 'antd';
+import React, { useState } from 'react';
+import { Modal, Table, Tabs } from 'antd';
+import dayjs from 'dayjs';
 
 export default function CardDetailsModal({
   data,
   title,
   columns,
   visible,
-  onCancel
+  onCancel,
+  attritionData = []
 }) {
+  const [activeTab, setActiveTab] = useState('patients');
   let treeData = data;
 
-  // Group data by Number of New Patients
   const prepareNewPatientsData = (patients) => {
     const grouped = patients.reduce((acc, patient, index) => {
       const { source, ...rest } = patient;
@@ -41,7 +43,34 @@ export default function CardDetailsModal({
     }));
   };
 
-  // Group data by provider name
+  const prepareAttritionsData = (attritions) => {
+    const grouped = attritions.reduce((acc, attrition, index) => {
+      const { reason, ...rest } = attrition;
+      if (!acc[reason]) {
+        acc[reason] = {
+          reason,
+          children: [],
+          attritionsCount: 0,
+          rowType: 'reason',
+          key: `reason-${reason}`
+        };
+      }
+      acc[reason].attritionsCount += 1;
+      acc[reason].children.push({
+        ...rest,
+        no_of_attritions: 1,
+        rowType: 'attrition',
+        key: `reason-${reason}-attrition-${index}`
+      });
+      return acc;
+    }, {});
+
+    return Object.values(grouped).map((group) => ({
+      ...group,
+      no_of_attritions: group.attritionsCount
+    }));
+  };
+
   const prepareProductionByProviderData = (submissions) => {
     const grouped = {};
 
@@ -185,23 +214,93 @@ export default function CardDetailsModal({
     treeData = prepareProductionByProviderData(data);
   } else if (title === 'Number of New Patients') {
     treeData = prepareNewPatientsData(data);
+  } else if (title === 'Patient Data') {
+    treeData =
+      activeTab === 'patients'
+        ? prepareNewPatientsData(data)
+        : prepareAttritionsData(attritionData);
   } else if (title === 'Missed Opportunities') {
     treeData = prepareMissedOpportunitiesData(data);
   }
 
-  return (
-    <Modal
-      width={1200}
-      footer={null}
-      open={visible}
-      onCancel={onCancel}
-      bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
-      title={
-        <div className="p-4">
-          <h4 className="text-lg font-semibold text-gray-800">{title}</h4>
-        </div>
-      }
-    >
+  const renderContent = () => {
+    if (title === 'Patient Data') {
+      const tabItems = [
+        {
+          key: 'patients',
+          label: 'New Patients',
+          children: (
+            <Table
+              columns={columns}
+              pagination={false}
+              dataSource={prepareNewPatientsData(data)}
+              expandable={{
+                expandRowByClick: true,
+                showExpandColumn: false
+              }}
+              onRow={(record) => ({
+                className: record.rowType === 'patient' ? 'bg-gray-50' : ''
+              })}
+            />
+          )
+        },
+        {
+          key: 'attritions',
+          label: 'Attritions',
+          children: (
+            <Table
+              pagination={false}
+              dataSource={prepareAttritionsData(attritionData)}
+              expandable={{
+                expandRowByClick: true,
+                showExpandColumn: false
+              }}
+              onRow={(record) => ({
+                className: record.rowType === 'attrition' ? 'bg-gray-50' : ''
+              })}
+              columns={[
+                { title: 'Reason', dataIndex: 'reason', key: 'reason' },
+                {
+                  key: 'no_of_attritions',
+                  title: 'No of Attritions',
+                  dataIndex: 'no_of_attritions',
+                  render: (value, record) => {
+                    if (record.rowType === 'reason') {
+                      return (
+                        <span className="font-semibold text-gray-800">
+                          {value}
+                        </span>
+                      );
+                    }
+                    return <span>{value}</span>;
+                  }
+                },
+                {
+                  key: 'date',
+                  title: 'Date',
+                  dataIndex: 'date',
+                  render: (value) =>
+                    value ? dayjs(value).format('MMM DD, YYYY') : ''
+                },
+                { title: 'Name', dataIndex: 'name', key: 'name' },
+                { title: 'Comments', dataIndex: 'comments', key: 'comments' }
+              ]}
+            />
+          )
+        }
+      ];
+
+      return (
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab} 
+          items={tabItems}
+          className="custom-modal-tabs"
+        />
+      );
+    }
+
+    return (
       <Table
         columns={columns}
         pagination={false}
@@ -222,6 +321,23 @@ export default function CardDetailsModal({
             : undefined
         }
       />
+    );
+  };
+
+  return (
+    <Modal
+      width={1200}
+      footer={null}
+      open={visible}
+      onCancel={onCancel}
+      bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+      title={
+        <div className="p-4">
+          <h4 className="text-lg font-semibold text-gray-800">{title}</h4>
+        </div>
+      }
+    >
+      {renderContent()}
     </Modal>
   );
 }

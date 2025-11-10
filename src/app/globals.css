@@ -353,47 +353,6 @@
   flex-direction: column-reverse;
 }
 
-/* Other styles */
-.add-provider-form > .ant-form-item {
-  width: 100% !important;
-}
-
-.custom-filter {
-  width: 100%;
-  border-radius: 12px !important;
-}
-
-.custom-filter .ant-select-selector {
-  border-radius: 12px !important;
-  border: 1px solid #d9dadf !important;
-}
-
-.dentalook-bg {
-  width: 100%;
-  height: 100%;
-  background: url('../common/assets/images/login-bg.png') center / 100% 100%;
-}
-
-.step::before {
-  top: 25;
-  left: 12px;
-  width: 2px;
-  content: '';
-  height: 50px;
-  position: absolute;
-  background-image: url('../common/assets/svg/dashed-line.svg');
-}
-
-.proud-moment label > span {
-  line-height: 18px;
-  white-space: break-spaces;
-}
-
-.recharts-surface:focus,
-.recharts-sector:focus {
-  outline: none;
-}
-
 /* Tabs container styling */
 .custom-status-tabs .ant-tabs-nav {
   width: 100%;
@@ -448,12 +407,157 @@
   border-bottom-right-radius: 8px !important;
 }
 
-/* .hide-ok-button .ant-picker-footer .ant-picker-ok button {
-  display: none !important;
+/* Date Range Picker UI Enhancements */
+.rdrDateRangePickerWrapper {
+  border-bottom: 1px solid #eff2f7;
 }
 
-.hide-ok-button .ant-picker-footer {
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper {
+  width: 170px;
+  overflow-y: auto;
+  max-height: 360px;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}
+
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rdrDateRangePickerWrapper .rdrDefinedRangesWrapper::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: #d1d5db;
+}
+
+.rdrDateRangePickerWrapper .rdrDateDisplayWrapper {
+  display: none;
+}
+
+.rdrDateRangePickerWrapper .rdrMonthAndYearWrapper {
   padding: 0;
-  min-height: 0;
-  border: none;
-} */
+  height: auto;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRanges {
+  gap: 4px;
+  padding: 6px;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRange {
+  padding: 6px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #414651;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.rdrDateRangePickerWrapper .rdrStaticRange:hover {
+  background-color: #f1f5f9;
+}
+
+.rdrDateRangePickerWrapper .rdrInputRanges {
+  display: none;
+}
+
+.rdrMonths .rdrMonth {
+  width: 23em;
+  padding: 10px;
+}
+
+.rdrWeekDays .rdrWeekDay,
+.rdrDays .rdrDayNumber {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rdrDays .rdrDayNumber > span:after {
+  display: none;
+}
+
+/* Other styles */
+.add-provider-form > .ant-form-item {
+  width: 100% !important;
+}
+
+.custom-filter {
+  width: 100%;
+  border-radius: 12px !important;
+}
+
+.custom-filter .ant-select-selector {
+  border-radius: 12px !important;
+  border: 1px solid #d9dadf !important;
+}
+
+.dentalook-bg {
+  width: 100%;
+  height: 100%;
+  background: url('../common/assets/images/login-bg.png') center / 100% 100%;
+}
+
+.step::before {
+  top: 25;
+  left: 12px;
+  width: 2px;
+  content: '';
+  height: 50px;
+  position: absolute;
+  background-image: url('../common/assets/svg/dashed-line.svg');
+}
+
+.proud-moment label > span {
+  line-height: 18px;
+  white-space: break-spaces;
+}
+
+.recharts-surface:focus,
+.recharts-sector:focus {
+  outline: none;
+}
+
+/* Custom Modal Tabs */
+.custom-modal-tabs .ant-tabs-nav {
+  margin-bottom: 20px !important;
+}
+
+.custom-modal-tabs .ant-tabs-nav-list {
+  gap: 0 !important;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 4px;
+}
+
+.custom-modal-tabs .ant-tabs-tab {
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  color: #6c757d !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-modal-tabs .ant-tabs-tab:hover {
+  color: #495057 !important;
+  background-color: #e9ecef !important;
+  border-bottom: none !important;
+}
+
+.custom-modal-tabs .ant-tabs-tab-active {
+  color: #212529 !important;
+  font-weight: 600 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  border-bottom: none !important;
+}
+
+.custom-modal-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #212529 !important;
+}
+
+.custom-modal-tabs .ant-tabs-content-holder {
+  padding-top: 0 !important;
+}

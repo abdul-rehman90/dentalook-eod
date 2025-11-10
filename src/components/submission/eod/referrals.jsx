@@ -35,13 +35,25 @@ const specialityOptions = [
   { value: 'Prosthodontics', label: 'Prosthodontics' },
   { value: 'Cosmetic Dentistry', label: 'Cosmetic Dentistry' },
   { value: 'Dentures', label: 'Dentures' },
+  { value: 'Radiology-CBCT', label: 'Radiology-CBCT' },
+  { value: 'Sedation - Adult', label: 'Sedation - Adult' },
+  { value: 'Sedation - Pediatric', label: 'Sedation - Pediatric' },
+  { value: 'Botox', label: 'Botox' },
+  { value: 'Orthognathic Surgery', label: 'Orthognathic Surgery' },
   { value: 'Other', label: 'Other' }
+];
+
+const referralTypeOptions = [
+  { value: 'Internal', label: 'Internal' },
+  { value: 'External', label: 'External' }
 ];
 
 const defaultRow = {
   key: 1,
   reason: '',
+  refer_to: '',
   specialty: '',
+  refer_type: '',
   patient_name: '',
   provider_name: '',
   other_specialty: ''
@@ -49,6 +61,7 @@ const defaultRow = {
 
 export default function Referrals() {
   const router = useRouter();
+  const [clinics, setClinics] = useState([]);
   const [providers, setProviders] = useState([]);
   const [tableData, setTableData] = useState([defaultRow]);
   const {
@@ -89,7 +102,7 @@ export default function Referrals() {
       width: 150,
       editable: true,
       key: 'specialty',
-      title: 'Speciality',
+      title: 'Specialty',
       inputType: 'select',
       dataIndex: 'specialty',
       selectOptions: specialityOptions
@@ -101,16 +114,57 @@ export default function Referrals() {
             editable: true,
             inputType: 'text',
             key: 'other_specialty',
-            title: 'Other Speciality',
+            title: 'Other Specialty',
             dataIndex: 'other_specialty',
+            render: (_, record) =>
+              record.specialty === 'Other' ? (
+                <EditableCell
+                  recordKey={record.key}
+                  field="other_specialty"
+                  onCommit={handleCellCommit}
+                  value={record.other_specialty}
+                />
+              ) : null
+          }
+        ]
+      : []),
+    {
+      width: 150,
+      editable: true,
+      key: 'refer_type',
+      inputType: 'select',
+      title: 'Referral Type',
+      dataIndex: 'refer_type',
+      selectOptions: referralTypeOptions
+    },
+    ...(tableData.some((item) => item.refer_type)
+      ? [
+          {
+            width: 200,
+            editable: true,
+            key: 'refer_to',
+            title: 'Refer To',
+            inputType: 'text',
+            dataIndex: 'refer_to',
             render: (_, record) => {
-              if (record.specialty === 'Other') {
+              if (record.refer_type === 'Internal') {
                 return (
                   <EditableCell
+                    type="select"
+                    field="refer_to"
+                    options={clinics}
                     recordKey={record.key}
-                    field="other_specialty"
+                    value={record.refer_to}
                     onCommit={handleCellCommit}
-                    value={record.other_specialty}
+                  />
+                );
+              } else if (record.refer_type === 'External') {
+                return (
+                  <EditableCell
+                    field="refer_to"
+                    recordKey={record.key}
+                    value={record.refer_to}
+                    onCommit={handleCellCommit}
                   />
                 );
               }
@@ -119,14 +173,6 @@ export default function Referrals() {
           }
         ]
       : []),
-    {
-      width: 250,
-      key: 'reason',
-      editable: true,
-      inputType: 'text',
-      dataIndex: 'reason',
-      title: 'Reason (Clinic/Provider referred to)'
-    },
     ...(tableData.length > 1
       ? [
           {
@@ -155,9 +201,14 @@ export default function Referrals() {
   const handleCellCommit = (key, field, value) => {
     setDirty(true);
     setTableData((prev) =>
-      prev.map((item) =>
-        item.key === key ? { ...item, [field]: value } : item
-      )
+      prev.map((item) => {
+        if (item.key !== key) return item;
+        if (field === 'refer_type') {
+          return { ...item, [field]: value, refer_to: '' };
+        }
+
+        return { ...item, [field]: value };
+      })
     );
   };
 
@@ -168,6 +219,14 @@ export default function Referrals() {
         item.key === record.key ? { ...item, [dataIndex]: value } : item
       )
     );
+  };
+
+  const handleAddNew = () => {
+    const newKey =
+      tableData.length > 0
+        ? Math.max(...tableData.map((item) => item.key)) + 1
+        : 1;
+    setTableData([...tableData, { ...defaultRow, key: newKey }]);
   };
 
   const handleSubmitEODReport = async () => {
@@ -186,24 +245,6 @@ export default function Referrals() {
     }
   };
 
-  const handleAddNew = () => {
-    const newKey =
-      tableData.length > 0
-        ? Math.max(...tableData.map((item) => item.key)) + 1
-        : 1;
-    setTableData([
-      ...tableData,
-      {
-        key: newKey,
-        reason: '',
-        specialty: '',
-        patient_name: '',
-        provider_name: '',
-        other_specialty: ''
-      }
-    ]);
-  };
-
   const saveData = useCallback(
     async (navigate = false) => {
       try {
@@ -218,6 +259,10 @@ export default function Referrals() {
           (item) => item.specialty === 'Other' && !item.other_specialty
         );
 
+        const rowsWithReferTypeButNoReferTo = tableData.filter(
+          (item) => item.refer_type && !item.refer_to
+        );
+
         if (rowsWithMissingData.length > 0) {
           toast.error(
             'Please specify both Provider and Specialty for all patients with names'
@@ -227,7 +272,14 @@ export default function Referrals() {
 
         if (rowsWithMissingOtherSpeciality.length > 0) {
           toast.error(
-            'Please specify the "Other Speciality" for all rows where specialty is "Other"'
+            'Please specify the "Other Specialty" for all rows where specialty is "Other"'
+          );
+          return false;
+        }
+
+        if (rowsWithReferTypeButNoReferTo.length > 0) {
+          toast.error(
+            'Please select "Refer To" for all rows where Referral Type is selected'
           );
           return false;
         }
@@ -236,11 +288,24 @@ export default function Referrals() {
           .filter(
             (item) => item.patient_name && item.provider_name && item.specialty
           )
-          .map(({ key, ...item }) => ({
-            ...item,
-            user: item.provider_name,
-            eodsubmission: Number(id)
-          }));
+          .map(({ key, ...item }) => {
+            let referToValue = item.refer_to;
+
+            if (item.refer_type === 'Internal') {
+              const selectedClinic = clinics.find(
+                (c) => c.value === item.refer_to
+              );
+              referToValue = selectedClinic ? selectedClinic.label : '';
+            }
+
+            return {
+              ...item,
+              refer_to: referToValue,
+              user: item.provider_name,
+              eodsubmission: Number(id),
+              refer_type: item.refer_type
+            };
+          });
 
         if (payload.length > 0) {
           const response = await EODReportService.addRefferal(payload);
@@ -263,7 +328,7 @@ export default function Referrals() {
         setLoading(false);
       }
     },
-    [tableData, clinicId, id, setLoading, setDirty]
+    [tableData, clinics, id, setLoading, setDirty]
   );
 
   const handleSave = useCallback(async () => saveData(false), [saveData]);
@@ -281,13 +346,33 @@ export default function Referrals() {
     } catch (error) {}
   };
 
+  const fetchClinics = async (provinceId) => {
+    try {
+      const { data } = await EODReportService.getDataOfProvinceById(provinceId);
+      setClinics(
+        data.clinics.map((clinic) => ({
+          value: clinic.clinic_id,
+          label: clinic.clinic_name
+        }))
+      );
+    } catch (error) {}
+  };
+
   useEffect(() => {
-    if (clinicId) fetchActiveProviders();
+    if (clinicId) {
+      fetchActiveProviders();
+      const provinceId =
+        reportData?.eod?.basic?.clinicDetails?.province_id ||
+        reportData?.eod?.basic?.clinicDetails?.province;
+      if (provinceId) fetchClinics(provinceId);
+    }
     if (clinicId && currentStepData.length > 0) {
       const transformedData = currentStepData.map((item) => ({
         reason: item.reason,
         specialty: item.specialty,
+        refer_to: item.refer_to || '',
         patient_name: item.patient_name,
+        refer_type: item.refer_type || '',
         other_specialty: item.other_specialty,
         key: item.id?.toString() || item.key?.toString(),
         provider_name: item.user?.id || item.provider_name
@@ -299,7 +384,6 @@ export default function Referrals() {
   useEffect(() => {
     window.addEventListener('stepNavigationSave', handleSave);
     window.addEventListener('stepNavigationNext', handleSubmit);
-
     return () => {
       window.removeEventListener('stepNavigationSave', handleSave);
       window.removeEventListener('stepNavigationNext', handleSubmit);
