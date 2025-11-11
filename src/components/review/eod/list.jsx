@@ -32,7 +32,7 @@ export default function List() {
     {
       key: 'status',
       dataIndex: 'status',
-      title: 'Clinic Status',
+      title: 'Clinic Open/Closed',
       render: (status) =>
         status ? (
           <span
