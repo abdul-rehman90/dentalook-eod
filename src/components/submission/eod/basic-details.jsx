@@ -141,19 +141,6 @@ export default function BasicDetails() {
     }
   };
 
-  const addWeeklySchedule = async (weeklyPayloadParam) => {
-    try {
-      const response = await EODReportService.addWeeklySchedule(
-        weeklyPayloadParam
-      );
-      if (response.status === 201) {
-        toast.success('Weekly schedule saved successfully');
-      }
-    } catch (error) {
-      toast.error('Failed to save weekly schedule');
-    }
-  };
-
   const addMonthlySchedule = async (values) => {
     try {
       const baseDate = dayjs(values.submission_date || dayjs());
@@ -197,7 +184,6 @@ export default function BasicDetails() {
   const moveRouter = useCallback(
     (submission_id, values, activeProviders = [], weeklySchedule = null) => {
       updateStepData(currentStepId, {
-        // weeklySchedule: weeklySchedule,
         activeProviders: activeProviders,
         clinicDetails: { ...values, eodsubmission_id: submission_id }
       });
@@ -220,7 +206,6 @@ export default function BasicDetails() {
           moveRouter(submission_id, values, [], weeklySchedule);
         } else {
           updateStepData(currentStepId, {
-            // weeklySchedule: weeklySchedule,
             activeProviders: activeProviders,
             clinicDetails: { ...values, eodsubmission_id: submission_id }
           });
@@ -250,7 +235,6 @@ export default function BasicDetails() {
           } else {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
-              // weeklySchedule: weeklySchedule,
               activeProviders: payload || [],
               clinicDetails: { ...values, eodsubmission_id: submission_id }
             });
@@ -313,7 +297,7 @@ export default function BasicDetails() {
           if (values.status === 'close') {
             await handleSubmitEODReport(submission_id);
           } else {
-            await addMonthlySchedule(values);
+            // await addMonthlySchedule(values);
             await addActiveProviders(payload, submission_id, navigate);
           }
 
@@ -508,7 +492,7 @@ export default function BasicDetails() {
                     options={generateTimeSlots(7, 22, 30)}
                   />
                 </Row>
-                {shouldShowProviders && (
+                {false && (
                   <WeeklySchedule
                     user={user}
                     clinic={clinic}
@@ -539,15 +523,3 @@ export default function BasicDetails() {
     </React.Fragment>
   );
 }
-
-// const weeklyPayloadLocal = {
-//   clinic: values.clinic,
-//   created_at: dayjs(values.submission_date).format('YYYY-MM-DD'),
-//   monday: selectedDays.has('monday'),
-//   tuesday: selectedDays.has('tuesday'),
-//   wednesday: selectedDays.has('wednesday'),
-//   thursday: selectedDays.has('thursday'),
-//   friday: selectedDays.has('friday'),
-//   saturday: selectedDays.has('saturday'),
-//   sunday: selectedDays.has('sunday')
-// };
