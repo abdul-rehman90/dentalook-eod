@@ -450,7 +450,7 @@ export default function MyCalendar() {
           components={{ event: CustomEvent, toolbar: CustomToolbar }}
         />
       </div>
-      <div className="relative flex justify-between items-center my-6">
+      {/* <div className="relative flex justify-between items-center my-6">
         <h2 className="text-lg font-semibold">Clinic Submissions Tracker</h2>
         <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
       </div>
@@ -500,7 +500,7 @@ export default function MyCalendar() {
           columns={tableColumns}
           dataSource={getFilteredTableData()}
         />
-      </div>
+      </div> */}
     </div>
   );
 }
