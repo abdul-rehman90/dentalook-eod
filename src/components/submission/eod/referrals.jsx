@@ -252,7 +252,11 @@ export default function Referrals() {
 
         const rowsWithMissingData = tableData.filter(
           (item) =>
-            item.patient_name && (!item.provider_name || !item.specialty)
+            item.patient_name &&
+            (!item.provider_name ||
+              !item.specialty ||
+              !item.refer_type ||
+              !item.refer_to)
         );
 
         const rowsWithMissingOtherSpeciality = tableData.filter(
@@ -265,7 +269,7 @@ export default function Referrals() {
 
         if (rowsWithMissingData.length > 0) {
           toast.error(
-            'Please specify both Provider and Specialty for all patients with names'
+            'For every row with Patient Name, Provider, Specialty, Referral Type, and Refer To are required'
           );
           return false;
         }

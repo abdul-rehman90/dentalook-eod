@@ -210,7 +210,7 @@ export default function SubmissionLayout({ children }) {
       </h1>
 
       <div className="flex gap-2">
-        <div className="w-full max-w-[250px]">
+        <div className="w-full max-w-[220px]">
           <Stepper onStepClick={onStepperClick} />
         </div>
 

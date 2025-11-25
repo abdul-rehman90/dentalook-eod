@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Dropdown, Tabs } from 'antd';
 import { Icons } from '@/common/assets';
@@ -8,7 +9,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { removeUserAndToken } from '@/common/utils/auth-user';
 import { useGlobalContext } from '@/common/context/global-context';
 import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
-import Link from 'next/link';
 
 const items = [
   { key: '/submission/eod', label: 'Submit End Of Day' },
@@ -38,6 +38,7 @@ export default function Header() {
 
   function handleSignOut() {
     removeUserAndToken();
+    localStorage.removeItem('role');
     guardedPush('/login');
   }
 
