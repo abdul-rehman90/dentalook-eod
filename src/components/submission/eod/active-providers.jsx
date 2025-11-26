@@ -21,10 +21,10 @@ const providerTypes = [
 ];
 
 const lunchBreakOptions = [
-  { value: '15', label: '15mnt' },
-  { value: '30', label: '30mnt' },
-  { value: '45', label: '45mnt' },
-  { value: '60', label: '1hr' }
+  { value: '15', label: '15 min' },
+  { value: '30', label: '30 min' },
+  { value: '45', label: '45 min' },
+  { value: '60', label: '1 hr' }
 ];
 
 const GetModalContent = () => {
