@@ -120,6 +120,8 @@ export default function MyCalendar() {
   const [clinics, setClinics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
+  const [role, setRole] = useState(null);
+
   const [submissionData, setSubmissionData] = useState([]);
   const [currentDate, setCurrentDate] = useState(
     dayjs().startOf('month').toDate()
@@ -316,6 +318,13 @@ export default function MyCalendar() {
   };
 
   useEffect(() => {
+    const storedRole = localStorage.getItem('role');
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchAllClinics = async () => {
       try {
         const { data } = await EODReportService.getAllRegionalManagers();
@@ -437,7 +446,7 @@ export default function MyCalendar() {
           ))}
         </div>
       )}
-      <div className="h-[400px] md:h-[450px] w-full mb-6">
+      <div className="h-[500px] md:h-[550px] w-full mb-6">
         <Calendar
           events={events}
           endAccessor="end"
@@ -450,57 +459,66 @@ export default function MyCalendar() {
           components={{ event: CustomEvent, toolbar: CustomToolbar }}
         />
       </div>
-      {/* <div className="relative flex justify-between items-center my-6">
-        <h2 className="text-lg font-semibold">Clinic Submissions Tracker</h2>
-        <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
-      </div>
-      <div>
-        <Tabs
-          size="large"
-          tabBarGutter={0}
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          className="custom-status-tabs w-full"
-          items={[
-            {
-              key: 'All',
-              label: renderTab('All', getStatusCounts().All, 'All')
-            },
-            {
-              key: 'Submitted',
-              label: renderTab(
-                'Submitted',
-                getStatusCounts().Submitted,
-                'Submitted'
-              )
-            },
-            {
-              key: 'Draft',
-              label: renderTab('Draft', getStatusCounts().Draft, 'Draft')
-            },
-            {
-              key: 'Closed',
-              label: renderTab('Closed', getStatusCounts().Closed, 'Closed')
-            },
-            {
-              key: 'Not started',
-              label: renderTab(
-                'Not Started',
-                getStatusCounts()['Not started'],
-                'Not started'
-              )
-            }
-          ]}
-        />
-        <Table
-          size="small"
-          className="mt-6"
-          loading={loading}
-          pagination={false}
-          columns={tableColumns}
-          dataSource={getFilteredTableData()}
-        />
-      </div> */}
+      {role === 'LT' && (
+        <React.Fragment>
+          <div className="relative flex justify-between items-center my-6">
+            <h2 className="text-lg font-semibold">
+              Clinic Submissions Tracker
+            </h2>
+            <DateRangePicker
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+            />
+          </div>
+          <div>
+            <Tabs
+              size="large"
+              tabBarGutter={0}
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              className="custom-status-tabs w-full"
+              items={[
+                {
+                  key: 'All',
+                  label: renderTab('All', getStatusCounts().All, 'All')
+                },
+                {
+                  key: 'Submitted',
+                  label: renderTab(
+                    'Submitted',
+                    getStatusCounts().Submitted,
+                    'Submitted'
+                  )
+                },
+                {
+                  key: 'Draft',
+                  label: renderTab('Draft', getStatusCounts().Draft, 'Draft')
+                },
+                {
+                  key: 'Closed',
+                  label: renderTab('Closed', getStatusCounts().Closed, 'Closed')
+                },
+                {
+                  key: 'Not started',
+                  label: renderTab(
+                    'Not Started',
+                    getStatusCounts()['Not started'],
+                    'Not started'
+                  )
+                }
+              ]}
+            />
+            <Table
+              size="small"
+              className="mt-6"
+              loading={loading}
+              pagination={false}
+              columns={tableColumns}
+              dataSource={getFilteredTableData()}
+            />
+          </div>
+        </React.Fragment>
+      )}
     </div>
   );
 }

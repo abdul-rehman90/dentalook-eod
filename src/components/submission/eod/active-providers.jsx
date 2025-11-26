@@ -20,6 +20,13 @@ const providerTypes = [
   { value: 'RDT', label: 'RDT' }
 ];
 
+const lunchBreakOptions = [
+  { value: '15', label: '15 min' },
+  { value: '30', label: '30 min' },
+  { value: '45', label: '45 min' },
+  { value: '60', label: '1 hr' }
+];
+
 const GetModalContent = () => {
   return (
     <div className="add-provider-form">
@@ -73,11 +80,12 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
                   ? {
                       ...p,
                       is_active: checked,
-                      number_of_patients_seen: checked ? 0 : null,
-                      unfilled_spots: checked ? 0 : null,
                       no_shows: checked ? 0 : null,
-                      short_notice_cancellations: checked ? 0 : null,
-                      failed_appointments: checked ? 0 : null
+                      unfilled_spots: checked ? 0 : null,
+                      break_duration: checked ? null : null,
+                      failed_appointments: checked ? 0 : null,
+                      number_of_patients_seen: checked ? 0 : null,
+                      short_notice_cancellations: checked ? 0 : null
                     }
                   : p
               )
@@ -87,7 +95,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       )
     },
     { width: 50, key: 'type', title: 'Title', dataIndex: 'type' },
-    { width: 120, key: 'name', title: 'Provider Name', dataIndex: 'name' },
+    { width: 150, key: 'name', title: 'Provider Name', dataIndex: 'name' },
     {
       width: 50,
       key: 'start_time',
@@ -130,7 +138,27 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       }
     },
     {
-      width: 80,
+      width: 50,
+      title: 'Lunch Break',
+      key: 'break_duration',
+      dataIndex: 'break_duration',
+      render: (_, record) => {
+        return (
+          <EditableCell
+            type="select"
+            field="break_duration"
+            recordKey={record.key}
+            options={lunchBreakOptions}
+            onCommit={handleCellCommit}
+            disabled={!record.is_active}
+            placeholder="Select Duration"
+            value={record.break_duration}
+          />
+        );
+      }
+    },
+    {
+      width: 130,
       editable: true,
       title: 'Pt. Seen',
       inputType: 'text',
@@ -140,7 +168,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       onCell: () => ({ className: 'divider-cell' })
     },
     {
-      width: 80,
+      width: 130,
       editable: true,
       inputType: 'text',
       key: 'unfilled_spots',
@@ -149,7 +177,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active
     },
     {
-      width: 80,
+      width: 130,
       editable: true,
       key: 'no_shows',
       inputType: 'text',
@@ -158,7 +186,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active
     },
     {
-      width: 80,
+      width: 130,
       editable: true,
       inputType: 'text',
       title: 'Short Ntc (Units)',
@@ -167,7 +195,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active
     },
     {
-      width: 80,
+      width: 130,
       editable: true,
       inputType: 'text',
       title: 'Failed (Units)',
@@ -209,6 +237,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         is_active: false,
         name: values.name,
         unfilled_spots: null,
+        break_duration: null,
         type: values.user_type,
         id: response.data.user_id,
         key: response.data.user_id,
@@ -241,6 +270,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           is_active: false,
           name: provider.name,
           unfilled_spots: null,
+          break_duration: null,
           type: provider.user_type,
           short_notice_cancellations: null,
           failed_appointments: provider.failed_appointments
@@ -262,6 +292,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
                 no_shows: existingData.no_shows,
                 is_active: existingData.is_active,
                 unfilled_spots: existingData.unfilled_spots,
+                break_duration: existingData.break_duration,
                 end_time: formatTimeForUI(existingData.end_time),
                 start_time: formatTimeForUI(existingData.start_time),
                 failed_appointments: existingData.failed_appointments,
