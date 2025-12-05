@@ -40,8 +40,10 @@ export const EODReportService = {
     return response;
   },
 
-  async getProviders(id) {
-    const response = await apiClient.get(`/provider-by-clinic/${id}`);
+  async getProviders(id, includeInactive = false) {
+    const response = await apiClient.get(
+      `/provider-by-clinic/${id}?is_active=${includeInactive}`
+    );
     return response;
   },
 
