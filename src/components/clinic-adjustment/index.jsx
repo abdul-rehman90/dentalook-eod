@@ -140,6 +140,7 @@ export default function ClinicAdjustment() {
         <div className="mt-5 ">
           <Table
             rowKey="id"
+            height={400}
             loading={loading}
             columns={columns}
             pagination={false}
