@@ -511,6 +511,11 @@
   white-space: break-spaces;
 }
 
+.clinic-adjustment-table {
+  overflow: auto;
+  max-height: 60vh;
+}
+
 .recharts-surface:focus,
 .recharts-sector:focus {
   outline: none;
@@ -522,36 +527,36 @@
 }
 
 .custom-modal-tabs .ant-tabs-nav-list {
+  padding: 4px;
   gap: 0 !important;
   border-radius: 8px;
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
-  padding: 4px;
 }
 
 .custom-modal-tabs .ant-tabs-tab {
   margin: 0 !important;
-  padding: 8px 16px !important;
-  border-radius: 6px !important;
+  border: none !important;
   color: #6c757d !important;
   font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
   background: transparent !important;
-  border: none !important;
+  transition: all 0.2s ease !important;
 }
 
 .custom-modal-tabs .ant-tabs-tab:hover {
   color: #495057 !important;
-  background-color: #e9ecef !important;
   border-bottom: none !important;
+  background-color: #e9ecef !important;
 }
 
 .custom-modal-tabs .ant-tabs-tab-active {
-  color: #212529 !important;
   font-weight: 600 !important;
+  color: #212529 !important;
+  border-bottom: none !important;
   background-color: #ffffff !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  border-bottom: none !important;
 }
 
 .custom-modal-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
