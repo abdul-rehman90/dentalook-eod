@@ -259,7 +259,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
   const fetchProviders = async () => {
     try {
       setLoading(true);
-      const { data } = await EODReportService.getProviders(clinicId);
+      const { data } = await EODReportService.getProviders(clinicId, true);
       const baseProviders = data.providers
         .map((provider) => ({
           no_shows: null,
