@@ -16,6 +16,7 @@ const reasonOptions = [
   { value: 'Quality Of Care', label: 'Quality Of Care' },
   { value: 'Negative Experience', label: 'Negative Experience' },
   { value: 'Deceased', label: 'Deceased' },
+  { value: 'Inactivated', label: 'Inactivated' },
   { value: 'Other', label: 'Other' }
 ];
 
