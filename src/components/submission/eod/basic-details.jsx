@@ -518,7 +518,7 @@ export default function BasicDetails() {
                       <Card className="!p-0 !gap-0 border border-secondary-50">
                         <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
                           <CardTitle className="text-[15px] font-medium text-black">
-                            Notes
+                            Schedule Notes
                           </CardTitle>
                         </CardHeader>
                         <Form.Item name="notes" noStyle>
