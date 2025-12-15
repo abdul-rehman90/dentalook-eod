@@ -417,7 +417,7 @@ export default function BasicDetails() {
       <Form
         form={form}
         initialValues={initialValues}
-        style={{ padding: '0 24px' }}
+        style={{ padding: '0 16px' }}
       >
         <Row justify="space-between">
           <FormControl
@@ -514,7 +514,7 @@ export default function BasicDetails() {
                       tableData={tableData}
                       setTableData={setTableData}
                     />
-                    <div className="pr-6 border-t-1 border-t-secondary-50 pt-6 mt-6">
+                    <div className="pr-3 border-t-1 border-t-secondary-50 pt-6 mt-6">
                       <Card className="!p-0 !gap-0 border border-secondary-50">
                         <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
                           <CardTitle className="text-[15px] font-medium text-black">

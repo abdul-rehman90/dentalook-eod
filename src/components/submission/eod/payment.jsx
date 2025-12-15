@@ -366,7 +366,7 @@ export default function Payment({ onNext }) {
               />
             </Card>
             <FileUploadSection
-              setDirty={setDirty}
+              eodSubmissionId={id}
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
             />

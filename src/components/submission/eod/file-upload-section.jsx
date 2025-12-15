@@ -1,23 +1,79 @@
-import React, { useState } from 'react';
-import { Upload, Button, List, message, Modal } from 'antd';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { Upload, Button, List, Modal } from 'antd';
+import { EODReportService } from '@/common/services/eod-report';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import {
   UploadOutlined,
   DeleteOutlined,
-  FileOutlined
+  FileOutlined,
+  CloudUploadOutlined
 } from '@ant-design/icons';
 
 const { Dragger } = Upload;
 
+const getMimeTypeFromFileName = (fileName = '') => {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+
+  switch (ext) {
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    case 'pdf':
+      return 'application/pdf';
+    case 'doc':
+      return 'application/msword';
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'xls':
+      return 'application/vnd.ms-excel';
+    case 'xlsx':
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    default:
+      return 'application/octet-stream';
+  }
+};
+
 export default function FileUploadSection({
-  setDirty,
   uploadedFiles,
+  eodSubmissionId,
   setUploadedFiles
 }) {
+  const [uploading, setUploading] = useState(false);
   const [previewModal, setPreviewModal] = useState({
     file: null,
     visible: false
   });
+
+  const fetchExistingDocuments = async () => {
+    if (!eodSubmissionId) return;
+
+    try {
+      const response = await EODReportService.getPaymentDocBySubmissionId(
+        eodSubmissionId
+      );
+      const existingDocs = response.data.map((doc) => ({
+        size: 0,
+        file: null,
+        id: doc.id,
+        status: 'done',
+        isExisting: true,
+        uid: `existing-${doc.id}`,
+        url: doc.document.inline_url,
+        name: doc.document_name || 'Document',
+        downloadUrl: doc.document.download_url,
+        type: getMimeTypeFromFileName(doc.document_name)
+      }));
+
+      setUploadedFiles(existingDocs);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
+  };
 
   const handleUpload = (file) => {
     const isValidType = [
@@ -32,40 +88,61 @@ export default function FileUploadSection({
     ].includes(file.type);
 
     if (!isValidType) {
-      message.error(
+      toast.error(
         'You can only upload JPG, PNG, PDF, DOC, DOCX, XLS, XLSX files!'
       );
       return false;
     }
 
-    // const isLt10M = file.size / 1024 / 1024 < 10;
-    // if (!isLt10M) {
-    //   message.error('File must be smaller than 10MB!');
-    //   return false;
-    // }
+    // Check for duplicate files
+    const isDuplicate = uploadedFiles.some(
+      (existingFile) =>
+        existingFile.name === file.name && existingFile.size === file.size
+    );
+
+    if (isDuplicate) {
+      toast.error(`File is already uploaded!`);
+      return false;
+    }
 
     // Create file object with preview
     const fileObj = {
-      file: file,
-      status: 'done',
+      file,
+      id: null,
       name: file.name,
       size: file.size,
       type: file.type,
-      uid: file.uid || `${Date.now()}-${Math.random()}`,
-      url: URL.createObjectURL(file)
+      status: 'pending',
+      url: URL.createObjectURL(file),
+      uid: file.uid || `${Date.now()}-${Math.random()}`
     };
 
-    setDirty(true);
     setUploadedFiles((prev) => [...prev, fileObj]);
-    message.success(`${file.name} uploaded successfully`);
+    toast.success(`File is added to upload queue`);
 
     return false; // Prevent default upload behavior
   };
 
-  const handleRemove = (fileUid) => {
-    setDirty(true);
-    setUploadedFiles((prev) => prev.filter((file) => file.uid !== fileUid));
-    message.success('File removed successfully');
+  const handleRemove = async (uid) => {
+    const fileToRemove = uploadedFiles.find((f) => f.uid === uid);
+
+    // 🟡 Pending → frontend only
+    if (fileToRemove?.status === 'pending') {
+      setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
+      toast.success('File removed from upload queue');
+      return;
+    }
+
+    // 🟢 Uploaded / Existing → backend delete
+    if (fileToRemove?.id) {
+      try {
+        await EODReportService.deletePaymentDocById(fileToRemove.id);
+        setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
+        toast.success('Document deleted successfully');
+      } catch {
+        toast.error('Failed to delete document');
+      }
+    }
   };
 
   const formatFileSize = (bytes) => {
@@ -74,6 +151,75 @@ export default function FileUploadSection({
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleUploadToServer = async () => {
+    const pendingFiles = uploadedFiles.filter(
+      (file) => file.status === 'pending'
+    );
+
+    if (pendingFiles.length === 0) {
+      toast.warning('No files to upload');
+      return;
+    }
+
+    if (!eodSubmissionId) {
+      toast.error('EOD Submission ID is required');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Add all files to single FormData
+      pendingFiles.forEach((fileObj) => {
+        formData.append('documents', fileObj.file);
+      });
+
+      formData.append('eodsubmission_id', eodSubmissionId);
+
+      // Call API with proper headers for FormData
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/eod-payment-document/`,
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const uploadedDocs = await response.json();
+
+      // Update all files status to uploaded
+      setUploadedFiles((prev) =>
+        prev.map((f) => {
+          if (f.status !== 'pending') return f;
+          const uploadedDoc = uploadedDocs.find(
+            (d) => d.document_name === f.name
+          );
+          return {
+            ...f,
+            status: 'done',
+            isExisting: true,
+            id: uploadedDoc?.id ?? null
+          };
+        })
+      );
+
+      toast.success(`${pendingFiles.length} file(s) uploaded successfully`);
+    } catch (error) {
+      toast.error('Failed to upload files');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const getFileIcon = (fileType) => {
@@ -90,13 +236,39 @@ export default function FileUploadSection({
   };
 
   const handleFilePreview = (file) => {
-    setPreviewModal({ visible: true, file });
+    const isPreviewable =
+      file.type.startsWith('image/') ||
+      file.type === 'application/pdf' ||
+      file.url?.includes('pdf');
+
+    if (isPreviewable) {
+      setPreviewModal({ visible: true, file });
+    } else {
+      // Direct download for non-previewable files
+      const downloadUrl = file.downloadUrl || file.url;
+      if (downloadUrl) {
+        window.open(downloadUrl, '_blank');
+      }
+    }
   };
 
   const renderPreviewContent = (file) => {
-    const previewUrl = file.url || URL.createObjectURL(file.file);
+    const previewUrl =
+      file.url || (file.file ? URL.createObjectURL(file.file) : null);
 
-    if (file.type.startsWith('image/')) {
+    if (!previewUrl) {
+      return (
+        <div className="text-center p-8">
+          <FileOutlined
+            style={{ fontSize: '48px', color: '#999', marginBottom: '16px' }}
+          />
+          <p>Preview not available</p>
+          <p className="text-gray-500">{file.name}</p>
+        </div>
+      );
+    }
+
+    if (file.type.startsWith('image/') || file.url?.includes('image')) {
       return (
         <img
           alt={file.name}
@@ -104,7 +276,7 @@ export default function FileUploadSection({
           style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain' }}
         />
       );
-    } else if (file.type === 'application/pdf') {
+    } else if (file.type === 'application/pdf' || file.url?.includes('pdf')) {
       return (
         <iframe
           src={previewUrl}
@@ -119,10 +291,24 @@ export default function FileUploadSection({
           />
           <p>Preview not available for this file type</p>
           <p className="text-gray-500">{file.name}</p>
+          <a
+            href={file.downloadUrl || previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline"
+          >
+            Download File
+          </a>
         </div>
       );
     }
   };
+
+  useEffect(() => {
+    if (eodSubmissionId) {
+      fetchExistingDocuments();
+    }
+  }, [eodSubmissionId]);
 
   return (
     <Card className="!p-0 !gap-0 border border-secondary-50 mt-4">
@@ -131,7 +317,6 @@ export default function FileUploadSection({
           File Attachments
         </CardTitle>
       </CardHeader>
-
       <div className="p-4">
         <Dragger
           multiple
@@ -160,56 +345,81 @@ export default function FileUploadSection({
             Support: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX
           </p>
         </Dragger>
-
         {uploadedFiles.length > 0 && (
           <div className="payment-attachments mt-3">
             <h4 className="text-sm font-medium mb-2 text-gray-700">
-              Uploaded Files ({uploadedFiles.length})
+              Files ({uploadedFiles.length})
             </h4>
-            <List
-              size="small"
-              dataSource={uploadedFiles}
-              renderItem={(file) => (
-                <List.Item
-                  onClick={() => handleFilePreview(file)}
-                  className="!p-2 rounded-lg mb-4 last:mb-0 cursor-pointer hover:bg-gray-50"
-                  actions={[
-                    <Button
-                      danger
-                      type="text"
-                      size="small"
-                      className="!p-1"
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(file.uid);
-                      }}
+            <div className="max-h-60 overflow-y-auto">
+              <List
+                size="small"
+                dataSource={uploadedFiles}
+                renderItem={(file) => (
+                  <List.Item
+                    onClick={() => handleFilePreview(file)}
+                    className="!p-2 rounded-lg mb-2 last:mb-0 cursor-pointer hover:bg-gray-50"
+                    actions={[
+                      <Button
+                        danger
+                        type="text"
+                        size="small"
+                        className="!p-1"
+                        icon={<DeleteOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemove(file.uid);
+                        }}
+                      />
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={getFileIcon(file.type)}
+                      title={
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-800">
+                            {file.name}
+                          </span>
+                          {file.status === 'pending' && (
+                            <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
+                              Pending
+                            </span>
+                          )}
+                          {file.status === 'done' && (
+                            <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+                              {file.isExisting ? 'Existing' : 'Uploaded'}
+                            </span>
+                          )}
+                        </div>
+                      }
+                      // description={
+                      //   <span className="text-xs text-gray-500">
+                      //     {formatFileSize(file.size)}
+                      //   </span>
+                      // }
                     />
-                  ]}
+                  </List.Item>
+                )}
+              />
+            </div>
+            {uploadedFiles.some((f) => f.status === 'pending') && (
+              <div className="flex justify-end mt-3">
+                <Button
+                  type="primary"
+                  loading={uploading}
+                  icon={<CloudUploadOutlined />}
+                  onClick={handleUploadToServer}
                 >
-                  <List.Item.Meta
-                    avatar={getFileIcon(file.type)}
-                    title={
-                      <span className="text-sm font-medium text-gray-800">
-                        {file.name}
-                      </span>
-                    }
-                    description={
-                      <span className="text-xs text-gray-500">
-                        {formatFileSize(file.size)}
-                      </span>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
+                  Upload All Files
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
-
       <Modal
         width="80%"
         footer={null}
+        style={{ top: 20 }}
         open={previewModal.visible}
         onCancel={() => setPreviewModal({ visible: false, file: null })}
         title={

@@ -404,7 +404,7 @@ export default function MyCalendar() {
   }, [dateRange]);
 
   return (
-    <div className="p-5 bg-white mx-13 my-4">
+    <div className="p-5 bg-white mx-8 my-4">
       <div className="flex justify-end items-end mb-4">
         <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">

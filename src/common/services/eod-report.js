@@ -76,6 +76,16 @@ export const EODReportService = {
     return response;
   },
 
+  async getPaymentDocBySubmissionId(id) {
+    const response = await apiClient.get(`/eod-payment-document/${id}`);
+    return response;
+  },
+
+  async deletePaymentDocById(id) {
+    const response = await apiClient.delete(`/eod-payment-document/${id}/`);
+    return response;
+  },
+
   async handlePaymentTypeOrder(payload) {
     const response = await apiClient.post('/payment-type-order/', payload);
     return response;
@@ -111,6 +121,11 @@ export const EODReportService = {
 
   async addPayment(payload) {
     const response = await apiClient.post('/eod-payments/', payload);
+    return response;
+  },
+
+  async addPaymentDoc(payload) {
+    const response = await apiClient.post('/eod-payment-document/', payload);
     return response;
   },
 

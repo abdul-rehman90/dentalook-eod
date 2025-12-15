@@ -67,16 +67,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       key: 'is_active',
       dataIndex: 'is_active',
       render: (_, record) => {
-        if (record.isRecoveryRow) {
-          return (
-            <div className="flex flex-col gap-1">
-              <p className="text-green-600 text-nowrap">Recovered Units</p>
-              <p className="text-xs text-gray-600 text-nowrap">
-                (Enter by type under No Shows / Short Ntc)
-              </p>
-            </div>
-          );
-        }
+        if (record.isRecoveryRow) return null;
         return (
           <Checkbox
             checked={record.is_active}
@@ -212,23 +203,26 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       key: 'break_duration',
       dataIndex: 'break_duration',
       render: (_, record) => {
-        if (record.isRecoveryRow) return null;
+        if (record.isRecoveryRow)
+          return <p className="text-gray-900 text-nowrap">Recovered Units</p>;
         return (
-          <EditableCell
-            type="select"
-            field="break_duration"
-            recordKey={record.key}
-            options={lunchBreakOptions}
-            onCommit={handleCellCommit}
-            disabled={!record.is_active}
-            placeholder="Select Duration"
-            value={record.break_duration}
-          />
+          <div className="max-w-[100px]">
+            <EditableCell
+              type="select"
+              field="break_duration"
+              recordKey={record.key}
+              options={lunchBreakOptions}
+              onCommit={handleCellCommit}
+              disabled={!record.is_active}
+              placeholder="Select Duration"
+              value={record.break_duration}
+            />
+          </div>
         );
       }
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       title: 'Pt. Seen',
       inputType: 'text',
@@ -237,7 +231,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active || record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       key: 'unfilled_spots',
@@ -246,7 +240,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active || record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       key: 'no_shows',
       inputType: 'text',
@@ -255,7 +249,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active && !record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       title: 'Short Ntc (Units)',
@@ -264,7 +258,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       disabled: (record) => !record.is_active && !record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       title: 'Failed (Units)',
@@ -457,7 +451,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       >
         <GetModalContent />
       </AddModal>
-      <div className="pr-6 border-t-1 border-t-secondary-50 pt-6">
+      <div className="pr-3 border-t-1 border-t-secondary-50 pt-6">
         <h2 className="text-xl font-medium mb-2">Active Providers</h2>
         <div className="flex items-center justify-between mb-4">
           <p className="text-red-500 text-xs font-medium">

@@ -308,7 +308,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 mx-13 my-4">
+    <div className="flex flex-col gap-6 mx-8 my-4">
       <CardDetailsModal
         data={modalState.data}
         title={modalState.title}
