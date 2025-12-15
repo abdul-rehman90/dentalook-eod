@@ -3,6 +3,7 @@ import { Input } from 'antd';
 import toast from 'react-hot-toast';
 import { Col, Row, Table } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import FileUploadSection from './file-upload-section';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -29,6 +30,7 @@ const paymentOptions = [
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
   const [tableData, setTableData] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const {
     id,
     steps,
@@ -192,6 +194,7 @@ export default function Payment({ onNext }) {
 
         const payload = {
           notes: notes,
+          attachments: uploadedFiles,
           payments: validPayments.map((item) => ({
             ...item,
             payment_type: item.type,
@@ -206,13 +209,21 @@ export default function Payment({ onNext }) {
           if (response.status === 201) {
             setDirty(false);
             toast.success('Record is successfully saved');
-            updateStepData(currentStepId, { notes, payments: tableData });
+            updateStepData(currentStepId, {
+              notes,
+              payments: tableData,
+              attachments: uploadedFiles
+            });
             if (navigate) onNext();
             return true;
           }
         } else {
           setDirty(false);
-          updateStepData(currentStepId, { notes: '', payments: tableData });
+          updateStepData(currentStepId, {
+            notes: '',
+            payments: tableData,
+            attachments: uploadedFiles
+          });
           if (navigate) onNext();
         }
       } catch {
@@ -228,7 +239,8 @@ export default function Payment({ onNext }) {
       tableData,
       setLoading,
       currentStepId,
-      updateStepData
+      updateStepData,
+      uploadedFiles
     ]
   );
 
@@ -242,6 +254,7 @@ export default function Payment({ onNext }) {
     ) {
       setNotes(currentStepData.notes || '');
       setTableData(currentStepData.payments || []);
+      setUploadedFiles(currentStepData.attachments || []);
     } else if (clinicId) {
       const storedNotes =
         Array.isArray(currentStepData) && currentStepData[0]?.notes;
@@ -352,6 +365,11 @@ export default function Payment({ onNext }) {
                 }}
               />
             </Card>
+            <FileUploadSection
+              setDirty={setDirty}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+            />
           </Col>
         </Row>
       </div>
