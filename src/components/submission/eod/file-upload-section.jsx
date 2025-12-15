@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Button, List, message } from 'antd';
+import { Upload, Button, List, message, Modal } from 'antd';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import {
   UploadOutlined,
@@ -14,7 +14,10 @@ export default function FileUploadSection({
   uploadedFiles,
   setUploadedFiles
 }) {
-  const [uploading, setUploading] = useState(false);
+  const [previewModal, setPreviewModal] = useState({
+    file: null,
+    visible: false
+  });
 
   const handleUpload = (file) => {
     const isValidType = [
@@ -48,7 +51,8 @@ export default function FileUploadSection({
       name: file.name,
       size: file.size,
       type: file.type,
-      uid: file.uid || `${Date.now()}-${Math.random()}`
+      uid: file.uid || `${Date.now()}-${Math.random()}`,
+      url: URL.createObjectURL(file)
     };
 
     setDirty(true);
@@ -83,6 +87,41 @@ export default function FileUploadSection({
       return <FileOutlined style={{ color: '#52c41a' }} />;
     }
     return <FileOutlined />;
+  };
+
+  const handleFilePreview = (file) => {
+    setPreviewModal({ visible: true, file });
+  };
+
+  const renderPreviewContent = (file) => {
+    const previewUrl = file.url || URL.createObjectURL(file.file);
+
+    if (file.type.startsWith('image/')) {
+      return (
+        <img
+          alt={file.name}
+          src={previewUrl}
+          style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain' }}
+        />
+      );
+    } else if (file.type === 'application/pdf') {
+      return (
+        <iframe
+          src={previewUrl}
+          style={{ width: '100%', height: '70vh', border: 'none' }}
+        />
+      );
+    } else {
+      return (
+        <div className="text-center p-8">
+          <FileOutlined
+            style={{ fontSize: '48px', color: '#999', marginBottom: '16px' }}
+          />
+          <p>Preview not available for this file type</p>
+          <p className="text-gray-500">{file.name}</p>
+        </div>
+      );
+    }
   };
 
   return (
@@ -132,7 +171,8 @@ export default function FileUploadSection({
               dataSource={uploadedFiles}
               renderItem={(file) => (
                 <List.Item
-                  className="!p-2 rounded-lg mb-4 last:mb-0"
+                  onClick={() => handleFilePreview(file)}
+                  className="!p-2 rounded-lg mb-4 last:mb-0 cursor-pointer hover:bg-gray-50"
                   actions={[
                     <Button
                       danger
@@ -140,7 +180,10 @@ export default function FileUploadSection({
                       size="small"
                       className="!p-1"
                       icon={<DeleteOutlined />}
-                      onClick={() => handleRemove(file.uid)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(file.uid);
+                      }}
                     />
                   ]}
                 >
@@ -163,6 +206,24 @@ export default function FileUploadSection({
           </div>
         )}
       </div>
+
+      <Modal
+        width="80%"
+        footer={null}
+        open={previewModal.visible}
+        onCancel={() => setPreviewModal({ visible: false, file: null })}
+        title={
+          <div className="p-3">
+            <h4 className="font-semibold text-gray-800">
+              {previewModal.file?.name}
+            </h4>
+          </div>
+        }
+      >
+        <div className="p-3">
+          {previewModal.file && renderPreviewContent(previewModal.file)}
+        </div>
+      </Modal>
     </Card>
   );
 }
