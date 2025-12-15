@@ -63,7 +63,7 @@ export default function Header() {
   const activeKey = getActiveKey();
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-13 py-5">
+    <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-8 py-5">
       <div className="flex gap-2 justify-between">
         <div className="flex gap-8">
           <div
