@@ -16,7 +16,8 @@ const items = [
   { key: '/review/list/eod', label: 'Review EOD Submissions' },
   { key: '/review/list/eom', label: 'Review EOM Submissions' },
   { key: '/calendar', label: 'Submission Tracker' },
-  { key: '/dashboard', label: 'Dashboard' }
+  { key: '/dashboard', label: 'Dashboard' },
+  { key: '/collection-tracker', label: 'Collection Tracker' }
 ];
 
 export default function Header() {
@@ -57,6 +58,8 @@ export default function Header() {
       return '/review/list/eom';
     if (pathname.startsWith('/calendar')) return '/calendar';
     if (pathname.startsWith('/dashboard')) return '/dashboard';
+    if (pathname.startsWith('/collection-tracker'))
+      return '/collection-tracker';
     return '';
   };
 
