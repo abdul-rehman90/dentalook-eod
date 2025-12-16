@@ -19,25 +19,27 @@ export const DEFAULT_METRICS = [
   {
     value: '$0',
     details: [],
-    percentage: 0,
     title: 'Total Production'
   },
   {
     value: 0,
     details: [],
-    percentage: 0,
     title: 'Number of New Patients'
   },
   {
     value: 0,
     details: [],
-    percentage: 0,
     title: 'Missed Opportunities'
   },
   {
     value: 0,
     details: [],
     title: 'Monthly Supplies'
+  },
+  {
+    value: 0,
+    details: [],
+    title: 'Outgoing Referrals'
   }
 ];
 
@@ -352,6 +354,40 @@ export const METRICS_MODAL_COLUMNS = {
         }
         return <span>{value}</span>;
       }
+    }
+  ],
+  'Outgoing Referrals': [
+    {
+      key: 'specialty',
+      title: 'Specialty',
+      dataIndex: 'specialty'
+    },
+    {
+      key: 'no_of_referrals',
+      title: 'No of Referrals',
+      dataIndex: 'no_of_referrals',
+      render: (value, record) => {
+        if (record.rowType === 'specialty') {
+          return <span className="font-semibold text-gray-800">{value}</span>;
+        }
+        return <span>{value}</span>;
+      }
+    },
+    {
+      key: 'date',
+      title: 'Date',
+      dataIndex: 'date',
+      render: (value) => (value ? dayjs(value).format('MMM DD, YYYY') : '')
+    },
+    {
+      key: 'patient_name',
+      title: 'Patient Name',
+      dataIndex: 'patient_name'
+    },
+    {
+      key: 'provider_name',
+      title: 'Provider Name',
+      dataIndex: 'provider_name'
     }
   ]
 };
