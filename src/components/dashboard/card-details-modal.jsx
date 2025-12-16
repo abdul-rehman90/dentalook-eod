@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Table, Tabs } from 'antd';
 import dayjs from 'dayjs';
+import { Modal, Table, Tabs } from 'antd';
 
 export default function CardDetailsModal({
   data,
@@ -12,8 +12,8 @@ export default function CardDetailsModal({
   onCancel,
   attritionData = []
 }) {
-  const [activeTab, setActiveTab] = useState('patients');
   let treeData = data;
+  const [activeTab, setActiveTab] = useState('patients');
 
   const prepareNewPatientsData = (patients) => {
     const grouped = patients.reduce((acc, patient, index) => {
@@ -68,6 +68,34 @@ export default function CardDetailsModal({
     return Object.values(grouped).map((group) => ({
       ...group,
       no_of_attritions: group.attritionsCount
+    }));
+  };
+
+  const prepareReferralsData = (referralData) => {
+    const grouped = referralData.reduce((acc, referral, index) => {
+      const { specialty, ...rest } = referral;
+      if (!acc[specialty]) {
+        acc[specialty] = {
+          specialty,
+          children: [],
+          total_referrals: 0,
+          rowType: 'specialty',
+          key: `specialty-${specialty}`
+        };
+      }
+      acc[specialty].total_referrals += 1;
+      acc[specialty].children.push({
+        ...rest,
+        rowType: 'clinic',
+        no_of_referrals: 1,
+        key: `specialty-${specialty}-referral-${index}`
+      });
+      return acc;
+    }, {});
+
+    return Object.values(grouped).map((group) => ({
+      ...group,
+      no_of_referrals: group.total_referrals
     }));
   };
 
@@ -221,6 +249,8 @@ export default function CardDetailsModal({
         : prepareAttritionsData(attritionData);
   } else if (title === 'Missed Opportunities') {
     treeData = prepareMissedOpportunitiesData(data);
+  } else if (title === 'Outgoing Referrals') {
+    treeData = prepareReferralsData(data || []);
   }
 
   const renderContent = () => {
@@ -291,10 +321,10 @@ export default function CardDetailsModal({
       ];
 
       return (
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab} 
+        <Tabs
           items={tabItems}
+          activeKey={activeTab}
+          onChange={setActiveTab}
           className="custom-modal-tabs"
         />
       );
@@ -311,7 +341,9 @@ export default function CardDetailsModal({
         }}
         onRow={(record) => ({
           className:
-            record.rowType === 'submission' || record.rowType === 'patient'
+            record.rowType === 'submission' ||
+            record.rowType === 'patient' ||
+            record.rowType === 'clinic'
               ? 'bg-gray-50'
               : ''
         })}
