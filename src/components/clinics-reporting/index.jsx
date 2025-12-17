@@ -63,6 +63,12 @@ export default function ClinicsReporting() {
       route: '/monthly-schedule',
       title: 'Monthly Schedule Management',
       description: 'Manage and update monthly clinic schedules and closed days.'
+    },
+    {
+      id: '9',
+      route: '/collection-tracker',
+      title: 'Collection Tracker',
+      description: 'Track production and payment details across clinics.'
     }
   ];
 
