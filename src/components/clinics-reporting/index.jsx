@@ -73,9 +73,13 @@ export default function ClinicsReporting() {
   ];
 
   const filteredCards =
-    role === 'LT'
+    role === 'LT' || role === 'AC'
       ? cardsData
-      : cardsData.filter((card) => card.title !== 'Clinic Adjustment');
+      : cardsData.filter(
+          (card) =>
+            card.title !== 'Clinic Adjustment' &&
+            card.title !== 'Collection Tracker'
+        );
 
   return (
     <React.Fragment>

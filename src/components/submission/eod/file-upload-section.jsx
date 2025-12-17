@@ -4,90 +4,30 @@ import { Upload, Button, List, Modal } from 'antd';
 import { EODReportService } from '@/common/services/eod-report';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import {
+  getFileIcon,
+  isValidFileType,
+  isPreviewableFileType,
+  getMimeTypeFromFileName
+} from '@/common/utils/file-handling';
+import {
+  FileOutlined,
   UploadOutlined,
   DeleteOutlined,
-  FileOutlined,
   CloudUploadOutlined
 } from '@ant-design/icons';
 
 const { Dragger } = Upload;
 
-const getMimeTypeFromFileName = (fileName = '') => {
-  const ext = fileName.split('.').pop()?.toLowerCase();
-
-  switch (ext) {
-    case 'png':
-      return 'image/png';
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'gif':
-      return 'image/gif';
-    case 'pdf':
-      return 'application/pdf';
-    case 'doc':
-      return 'application/msword';
-    case 'docx':
-      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    case 'xls':
-      return 'application/vnd.ms-excel';
-    case 'xlsx':
-      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    default:
-      return 'application/octet-stream';
-  }
-};
-
-export default function FileUploadSection({
-  uploadedFiles,
-  eodSubmissionId,
-  setUploadedFiles
-}) {
+export default function FileUploadSection({ eodSubmissionId }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [previewModal, setPreviewModal] = useState({
     file: null,
     visible: false
   });
 
-  const fetchExistingDocuments = async () => {
-    if (!eodSubmissionId) return;
-
-    try {
-      const response = await EODReportService.getPaymentDocBySubmissionId(
-        eodSubmissionId
-      );
-      const existingDocs = response.data.map((doc) => ({
-        size: 0,
-        file: null,
-        id: doc.id,
-        status: 'done',
-        isExisting: true,
-        uid: `existing-${doc.id}`,
-        url: doc.document.inline_url,
-        name: doc.document_name || 'Document',
-        downloadUrl: doc.document.download_url,
-        type: getMimeTypeFromFileName(doc.document_name)
-      }));
-
-      setUploadedFiles(existingDocs);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-    }
-  };
-
   const handleUpload = (file) => {
-    const isValidType = [
-      'image/png',
-      'image/jpg',
-      'image/jpeg',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ].includes(file.type);
-
-    if (!isValidType) {
+    if (!isValidFileType(file)) {
       toast.error(
         'You can only upload JPG, PNG, PDF, DOC, DOCX, XLS, XLSX files!'
       );
@@ -203,13 +143,13 @@ export default function FileUploadSection({
         prev.map((f) => {
           if (f.status !== 'pending') return f;
           const uploadedDoc = uploadedDocs.find(
-            (d) => d.document_name === f.name
+            (d) => d.document_name === f.name.replace(/\s+/g, '_')
           );
           return {
             ...f,
             status: 'done',
             isExisting: true,
-            id: uploadedDoc?.id ?? null
+            id: uploadedDoc?.id || null
           };
         })
       );
@@ -222,26 +162,8 @@ export default function FileUploadSection({
     }
   };
 
-  const getFileIcon = (fileType) => {
-    if (fileType.startsWith('image/')) {
-      return <FileOutlined style={{ color: '#52c41a' }} />;
-    } else if (fileType === 'application/pdf') {
-      return <FileOutlined style={{ color: '#ff4d4f' }} />;
-    } else if (fileType.includes('word')) {
-      return <FileOutlined style={{ color: '#1890ff' }} />;
-    } else if (fileType.includes('sheet') || fileType.includes('excel')) {
-      return <FileOutlined style={{ color: '#52c41a' }} />;
-    }
-    return <FileOutlined />;
-  };
-
   const handleFilePreview = (file) => {
-    const isPreviewable =
-      file.type.startsWith('image/') ||
-      file.type === 'application/pdf' ||
-      file.url?.includes('pdf');
-
-    if (isPreviewable) {
+    if (isPreviewableFileType(file)) {
       setPreviewModal({ visible: true, file });
     } else {
       // Direct download for non-previewable files
@@ -301,6 +223,32 @@ export default function FileUploadSection({
           </a>
         </div>
       );
+    }
+  };
+
+  const fetchExistingDocuments = async () => {
+    if (!eodSubmissionId) return;
+
+    try {
+      const response = await EODReportService.getPaymentDocBySubmissionId(
+        eodSubmissionId
+      );
+      const existingDocs = response.data.map((doc) => ({
+        size: 0,
+        file: null,
+        id: doc.id,
+        status: 'done',
+        isExisting: true,
+        uid: `existing-${doc.id}`,
+        url: doc.document.inline_url,
+        name: doc.document_name || 'Document',
+        downloadUrl: doc.document.download_url,
+        type: getMimeTypeFromFileName(doc.document_name)
+      }));
+
+      setUploadedFiles(existingDocs);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
     }
   };
 
@@ -425,7 +373,8 @@ export default function FileUploadSection({
         title={
           <div className="p-3">
             <h4 className="font-semibold text-gray-800">
-              {previewModal.file?.name}
+              {previewModal.file?.name.charAt(0).toUpperCase() +
+                previewModal.file?.name.slice(1)}
             </h4>
           </div>
         }
