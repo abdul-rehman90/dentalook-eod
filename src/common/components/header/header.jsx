@@ -9,16 +9,26 @@ import { usePathname, useRouter } from 'next/navigation';
 import { removeUserAndToken } from '@/common/utils/auth-user';
 import { useGlobalContext } from '@/common/context/global-context';
 import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
+import { hasCollectionTrackerAccess, hasClinicAdjustmentAccess } from '@/common/utils/role-access';
 
-const items = [
+const baseItems = [
   { key: '/submission/eod', label: 'Submit End Of Day' },
   { key: '/submission/eom', label: 'Submit End of Month' },
   { key: '/review/list/eod', label: 'Review EOD Submissions' },
   { key: '/review/list/eom', label: 'Review EOM Submissions' },
   { key: '/calendar', label: 'Submission Tracker' },
-  { key: '/dashboard', label: 'Dashboard' },
-  { key: '/collection-tracker', label: 'Collection Tracker' }
+  { key: '/dashboard', label: 'Dashboard' }
 ];
+
+const collectionTrackerItem = {
+  key: '/collection-tracker',
+  label: 'Collection Tracker'
+};
+
+const clinicAdjustmentItem = {
+  key: '/clinic-adjustment',
+  label: 'Clinic Adjustment'
+};
 
 export default function Header() {
   const router = useRouter();
@@ -26,6 +36,18 @@ export default function Header() {
   const { isDirty } = useGlobalContext();
   const [currentTime] = useState(getCanadianTimeFormatted());
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
+
+  // Get navigation items based on user role
+  const getNavigationItems = () => {
+    const items = [...baseItems];
+    if (hasClinicAdjustmentAccess()) {
+      items.push(clinicAdjustmentItem);
+    }
+    if (hasCollectionTrackerAccess()) {
+      items.push(collectionTrackerItem);
+    }
+    return items;
+  };
 
   const guardedPush = (url) => {
     if (isDirty && url !== pathname) {
@@ -58,6 +80,7 @@ export default function Header() {
       return '/review/list/eom';
     if (pathname.startsWith('/calendar')) return '/calendar';
     if (pathname.startsWith('/dashboard')) return '/dashboard';
+    if (pathname.startsWith('/clinic-adjustment')) return '/clinic-adjustment';
     if (pathname.startsWith('/collection-tracker'))
       return '/collection-tracker';
     return '';
@@ -81,7 +104,7 @@ export default function Header() {
               type="line"
               activeKey={activeKey}
               className="[&_.ant-tabs-nav]:!mb-0"
-              items={items.map((item) => {
+              items={getNavigationItems().map((item) => {
                 const href = item.key.startsWith('/submission')
                   ? `${item.key}/1`
                   : item.key;

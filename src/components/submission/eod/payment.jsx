@@ -30,7 +30,6 @@ const paymentOptions = [
 export default function Payment({ onNext }) {
   const [notes, setNotes] = useState('');
   const [tableData, setTableData] = useState([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
   const {
     id,
     steps,
@@ -194,7 +193,6 @@ export default function Payment({ onNext }) {
 
         const payload = {
           notes: notes,
-          attachments: uploadedFiles,
           payments: validPayments.map((item) => ({
             ...item,
             payment_type: item.type,
@@ -211,8 +209,7 @@ export default function Payment({ onNext }) {
             toast.success('Record is successfully saved');
             updateStepData(currentStepId, {
               notes,
-              payments: tableData,
-              attachments: uploadedFiles
+              payments: tableData
             });
             if (navigate) onNext();
             return true;
@@ -221,8 +218,7 @@ export default function Payment({ onNext }) {
           setDirty(false);
           updateStepData(currentStepId, {
             notes: '',
-            payments: tableData,
-            attachments: uploadedFiles
+            payments: tableData
           });
           if (navigate) onNext();
         }
@@ -239,8 +235,7 @@ export default function Payment({ onNext }) {
       tableData,
       setLoading,
       currentStepId,
-      updateStepData,
-      uploadedFiles
+      updateStepData
     ]
   );
 
@@ -254,7 +249,6 @@ export default function Payment({ onNext }) {
     ) {
       setNotes(currentStepData.notes || '');
       setTableData(currentStepData.payments || []);
-      setUploadedFiles(currentStepData.attachments || []);
     } else if (clinicId) {
       const storedNotes =
         Array.isArray(currentStepData) && currentStepData[0]?.notes;
@@ -365,11 +359,7 @@ export default function Payment({ onNext }) {
                 }}
               />
             </Card>
-            <FileUploadSection
-              eodSubmissionId={id}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-            />
+            <FileUploadSection eodSubmissionId={id} />
           </Col>
         </Row>
       </div>

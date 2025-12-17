@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DatePicker, Select } from 'antd';
+import FileListSection from './file-list-section';
+import { DatePicker, Select, Row, Col } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -269,28 +270,35 @@ export default function CollectionTracker() {
             <p className="text-base font-medium text-black mb-4">
               Payment Details
             </p>
-            <GenericTable
-              showPagination
-              loading={loading}
-              columns={paymentColumns}
-              dataSource={paymentData}
-            />
-            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">
-                  Total Payment Amount:
-                </span>
-                <span className="font-semibold text-lg text-gray-800">
-                  $
-                  {paymentData
-                    .reduce(
-                      (sum, item) => sum + Number(item.payment_amount || 0),
-                      0
-                    )
-                    .toLocaleString()}
-                </span>
-              </div>
-            </div>
+            <Row gutter={16}>
+              <Col span={16}>
+                <GenericTable
+                  showPagination
+                  loading={loading}
+                  columns={paymentColumns}
+                  dataSource={paymentData}
+                />
+                <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-700">
+                      Total Payment Amount:
+                    </span>
+                    <span className="font-semibold text-lg text-gray-800">
+                      $
+                      {paymentData
+                        .reduce(
+                          (sum, item) => sum + Number(item.payment_amount || 0),
+                          0
+                        )
+                        .toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <FileListSection filters={filters} />
+              </Col>
+            </Row>
           </div>
         </div>
       </div>

@@ -3,7 +3,16 @@ import { NextResponse } from 'next/server';
 export function middleware(req) {
   const { pathname, origin } = req.nextUrl;
   const token = req.cookies.get('auth-token')?.value;
-  const protectedRoutes = ['/clinics-reporting', '/submission', '/review'];
+  const protectedRoutes = [
+    '/review',
+    '/calendar',
+    '/dashboard',
+    '/submission',
+    '/monthly-schedule',
+    '/clinics-reporting',
+    '/clinic-adjustment',
+    '/collection-tracker'
+  ];
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -23,8 +32,13 @@ export function middleware(req) {
 export const config = {
   matcher: [
     '/login',
+    '/calendar',
+    '/dashboard',
+    '/review/:path*',
+    '/monthly-schedule',
     '/clinics-reporting',
+    '/clinic-adjustment',
     '/submission/:path*',
-    '/review/:path*'
+    '/collection-tracker'
   ]
 };
