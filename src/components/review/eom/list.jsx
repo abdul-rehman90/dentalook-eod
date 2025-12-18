@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { DatePicker, Select } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
 import { Button } from '@/common/components/button/button';
-import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { EODReportService } from '@/common/services/eod-report';
@@ -75,20 +75,59 @@ export default function List() {
     }
   ];
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value
-    }));
+  const updateDependentFilters = async (params) => {
+    try {
+      const { data } = await EODReportService.getFilteredListData(params);
+      let dependentUpdates = {};
+
+      if (params.province && !params.regional_manager) {
+        setRegionalManagers(
+          data.regional_managers.map((i) => ({ value: i.id, label: i.name }))
+        );
+        setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
+        dependentUpdates = { regional_manager: null, clinic_id: null };
+      }
+
+      if (params.regional_manager) {
+        setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
+        dependentUpdates = { clinic_id: null };
+      }
+
+      return dependentUpdates;
+    } catch (e) {
+      console.error('Error updating dependent filters:', e);
+      return {};
+    }
   };
 
-  const handleResetFilters = () => {
-    setFilters({
+  const handleFilterChange = async (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+
+    let dependentUpdates = {};
+    if (key === 'province') {
+      dependentUpdates = await updateDependentFilters({ province: value });
+    }
+    if (key === 'regional_manager') {
+      dependentUpdates = await updateDependentFilters({
+        province: newFilters.province,
+        regional_manager: value
+      });
+    }
+
+    setFilters({ ...newFilters, ...dependentUpdates });
+  };
+
+  const handleResetFilters = async () => {
+    const initialFilters = {
       province: null,
+      end_date: null,
       clinic_id: null,
-      submission_month: null,
+      start_date: null,
       regional_manager: null
-    });
+    };
+
+    setFilters(initialFilters);
+    await fetchInitialData();
   };
 
   const fetchSubmissions = async () => {
@@ -108,32 +147,22 @@ export default function List() {
     }
   };
 
-  const fetchAllRegionalManagers = async () => {
+  const fetchInitialData = async () => {
     try {
-      const { data } = await EODReportService.getAllRegionalManagers();
-      setProvinces(
-        data.provinces.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
-      );
-      setClinics(
-        data.clinics.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
-      );
+      const { data } = await EODReportService.getFilteredListData();
+
+      setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
+      setProvinces(data.provinces.map((i) => ({ value: i.id, label: i.name })));
       setRegionalManagers(
-        data.regional_managers.map((item) => ({
-          value: item.id,
-          label: item.name
-        }))
+        data.regional_managers.map((i) => ({ value: i.id, label: i.name }))
       );
-    } catch (error) {}
+    } catch (e) {
+      console.error('Error fetching filter data:', e);
+    }
   };
 
   useEffect(() => {
-    fetchAllRegionalManagers();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -160,7 +189,9 @@ export default function List() {
               Province
             </p>
             <Select
+              showSearch
               options={provinces}
+              optionFilterProp="label"
               value={filters.province}
               style={{ width: '100%' }}
               placeholder="Select Province"
@@ -172,6 +203,8 @@ export default function List() {
               Regional Manager
             </p>
             <Select
+              showSearch
+              optionFilterProp="label"
               style={{ width: '100%' }}
               options={regionalManagers}
               value={filters.regional_manager}
@@ -186,7 +219,9 @@ export default function List() {
               Practice Name
             </p>
             <Select
+              showSearch
               options={clinics}
+              optionFilterProp="label"
               value={filters.clinic_id}
               style={{ width: '100%' }}
               placeholder="Select Practice"
