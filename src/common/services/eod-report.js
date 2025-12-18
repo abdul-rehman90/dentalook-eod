@@ -11,6 +11,19 @@ export const EODReportService = {
     return response;
   },
 
+  async getFilteredListData(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.province) params.append('province_id', filters.province);
+    if (filters.regional_manager)
+      params.append('regional_manager_id', filters.regional_manager);
+
+    const response = await apiClient.get(
+      `/get-dashboard-filters/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getAllReports(filters = {}) {
     const params = new URLSearchParams();
 

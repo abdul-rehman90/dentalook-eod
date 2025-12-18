@@ -328,8 +328,10 @@ export default function Dashboard() {
             Clinics
           </p>
           <Select
+            showSearch
             size="large"
             options={clinics}
+            optionFilterProp="label"
             className="custom-filter"
             value={filters.clinic_id}
             placeholder="Select Clinic"
