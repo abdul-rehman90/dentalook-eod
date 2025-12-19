@@ -181,15 +181,16 @@ export default function CollectionTracker() {
 
   return (
     <div className="flex flex-col gap-5 px-8 py-6 bg-gray-50 min-h-[calc(100vh-86px)]">
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
+      <div className="p-4 bg-white border border-secondary-50 rounded-xl">
         <p className="text-[18px] font-semibold text-black">
           Collection Tracker Details
         </p>
       </div>
 
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
+      <div className="p-4 bg-white border border-secondary-50 rounded-xl">
         <div className="flex items-center justify-between mb-3">
-          <p className="font-medium text-black">Filters</p>
+          <p className="text-sm font-semibold text-gray-800">Filters</p>
+
           <Button
             size="lg"
             variant="secondary"
@@ -200,55 +201,52 @@ export default function CollectionTracker() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">Province</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 bg-white rounded-lg">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-gray-700">
+              Province
+            </label>
             <Select
               showSearch
               options={provinces}
               optionFilterProp="label"
               value={filters.province}
-              style={{ width: '100%' }}
               placeholder="Select Province"
-              onChange={(val) => handleFilterChange('province', val)}
             />
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-gray-700">
               Regional Manager
-            </p>
+            </label>
             <Select
               showSearch
               optionFilterProp="label"
-              style={{ width: '100%' }}
               options={regionalManagers}
               value={filters.regional_manager}
               placeholder="Select Regional Manager"
-              onChange={(val) => handleFilterChange('regional_manager', val)}
             />
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">Practice Name</p>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-gray-700">
+              Practice Name
+            </label>
             <Select
               showSearch
               options={clinics}
               optionFilterProp="label"
               value={filters.clinic_id}
-              style={{ width: '100%' }}
               placeholder="Select Practice"
-              onChange={(val) => handleFilterChange('clinic_id', val)}
             />
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">Date</p>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-gray-700">Date</label>
             <DatePicker
               allowClear={false}
+              className="w-full"
               format="MM/DD/YYYY"
-              placeholder="Select date"
-              style={{ width: '100%' }}
               value={filters.start_date}
               onChange={(date) => handleFilterChange('start_date', date)}
             />
@@ -256,26 +254,34 @@ export default function CollectionTracker() {
         </div>
       </div>
 
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
-        <Row gutter={16}>
+      <div className="p-4 bg-white border border-secondary-50 rounded-xl">
+        <Row gutter={24}>
           <Col span={16}>
-            <p className="font-medium mb-4">Payment Details</p>
+            <p className="text-sm font-semibold text-gray-800 mb-3">
+              Payment Details
+            </p>
+
             <GenericTable
               showPagination
-              loading={tableLoading.payment}
               columns={paymentColumns}
+              loading={tableLoading.payment}
               dataSource={tableData.payment}
             />
           </Col>
           <Col span={8}>
-            <p className="font-medium mb-4">File Attachements</p>
+            <p className="text-sm font-semibold text-gray-800 mb-3">
+              File Attachements
+            </p>
             <FileListSection filters={filters} />
           </Col>
         </Row>
       </div>
 
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
-        <p className="font-medium mb-4">Production Details</p>
+      <div className="p-4 bg-white border border-secondary-50 rounded-xl">
+        <p className="text-sm font-semibold text-gray-800 mb-3">
+          Production Details
+        </p>
+
         <GenericTable
           showPagination
           columns={productionColumns}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Upload, Button, List, Modal } from 'antd';
 import { getUserAndToken } from '@/common/utils/auth-user';
-import { EODReportService } from '@/common/services/eod-report';
+import { EOMReportService } from '@/common/services/eom-report';
 import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import {
   getFileIcon,
@@ -19,7 +19,7 @@ import {
 
 const { Dragger } = Upload;
 
-export default function FileUploadSection({ eodSubmissionId }) {
+export default function FileUploadSection({ eomSubmissionId }) {
   const { token } = getUserAndToken();
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -36,7 +36,6 @@ export default function FileUploadSection({ eodSubmissionId }) {
       return false;
     }
 
-    // Check for duplicate files
     const isDuplicate = uploadedFiles.some(
       (existingFile) =>
         existingFile.name === file.name && existingFile.size === file.size
@@ -47,7 +46,6 @@ export default function FileUploadSection({ eodSubmissionId }) {
       return false;
     }
 
-    // Create file object with preview
     const fileObj = {
       file,
       id: null,
@@ -62,23 +60,21 @@ export default function FileUploadSection({ eodSubmissionId }) {
     setUploadedFiles((prev) => [...prev, fileObj]);
     toast.success(`File is added to upload queue`);
 
-    return false; // Prevent default upload behavior
+    return false;
   };
 
   const handleRemove = async (uid) => {
     const fileToRemove = uploadedFiles.find((f) => f.uid === uid);
 
-    // 🟡 Pending → frontend only
     if (fileToRemove?.status === 'pending') {
       setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
       toast.success('File removed from upload queue');
       return;
     }
 
-    // 🟢 Uploaded / Existing → backend delete
     if (fileToRemove?.id) {
       try {
-        await EODReportService.deletePaymentDocById(fileToRemove.id);
+        await EOMReportService.deletePaymentDocById(fileToRemove.id);
         setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
         toast.success('Document deleted successfully');
       } catch {
@@ -97,8 +93,8 @@ export default function FileUploadSection({ eodSubmissionId }) {
       return;
     }
 
-    if (!eodSubmissionId) {
-      toast.error('EOD Submission ID is required');
+    if (!eomSubmissionId) {
+      toast.error('EOM Submission ID is required');
       return;
     }
 
@@ -107,16 +103,14 @@ export default function FileUploadSection({ eodSubmissionId }) {
     try {
       const formData = new FormData();
 
-      // Add all files to single FormData
       pendingFiles.forEach((fileObj) => {
         formData.append('documents', fileObj.file);
       });
 
-      formData.append('eodsubmission_id', eodSubmissionId);
+      formData.append('submission_id', eomSubmissionId);
 
-      // Call API with proper headers for FormData
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/eod-payment-document/`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/eom-payment-document/`,
         {
           method: 'POST',
           body: formData,
@@ -132,7 +126,6 @@ export default function FileUploadSection({ eodSubmissionId }) {
 
       const uploadedDocs = await response.json();
 
-      // Update all files status to uploaded
       setUploadedFiles((prev) =>
         prev.map((f) => {
           if (f.status !== 'pending') return f;
@@ -160,7 +153,6 @@ export default function FileUploadSection({ eodSubmissionId }) {
     if (isPreviewableFileType(file)) {
       setPreviewModal({ visible: true, file });
     } else {
-      // Direct download for non-previewable files
       const downloadUrl = file.downloadUrl || file.url;
       if (downloadUrl) {
         window.open(downloadUrl, '_blank');
@@ -221,11 +213,11 @@ export default function FileUploadSection({ eodSubmissionId }) {
   };
 
   const fetchExistingDocuments = async () => {
-    if (!eodSubmissionId) return;
+    if (!eomSubmissionId) return;
 
     try {
-      const response = await EODReportService.getPaymentDocBySubmissionId(
-        eodSubmissionId
+      const response = await EOMReportService.getPaymentDocBySubmissionId(
+        eomSubmissionId
       );
       const existingDocs = response.data.map((doc) => ({
         size: 0,
@@ -247,10 +239,10 @@ export default function FileUploadSection({ eodSubmissionId }) {
   };
 
   useEffect(() => {
-    if (eodSubmissionId) {
+    if (eomSubmissionId) {
       fetchExistingDocuments();
     }
-  }, [eodSubmissionId]);
+  }, [eomSubmissionId]);
 
   return (
     <Card className="!p-0 !gap-0 border border-secondary-50 mt-4">
@@ -333,11 +325,6 @@ export default function FileUploadSection({ eodSubmissionId }) {
                           )}
                         </div>
                       }
-                      // description={
-                      //   <span className="text-xs text-gray-500">
-                      //     {formatFileSize(file.size)}
-                      //   </span>
-                      // }
                     />
                   </List.Item>
                 )}
