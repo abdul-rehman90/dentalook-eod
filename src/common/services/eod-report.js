@@ -65,8 +65,10 @@ export const EODReportService = {
     return response;
   },
 
-  async getTargetGoalByClinicId(id) {
-    const response = await apiClient.get(`/clinic-by-id/${id}`);
+  async getTargetGoalByClinicId(id, date) {
+    const response = await apiClient.get(
+      `/clinic-by-id/${id}/?submission_date=${date}`
+    );
     return response;
   },
 
