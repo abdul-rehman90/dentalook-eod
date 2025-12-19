@@ -102,7 +102,7 @@ export default function FileListSection({ filters }) {
 
   useEffect(() => {
     fetchAllPaymentDocuments();
-  }, []);
+  }, [filters]);
 
   return (
     <React.Fragment>
