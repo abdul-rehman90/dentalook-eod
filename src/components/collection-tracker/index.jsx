@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 import FileListSection from './file-list-section';
 import { DatePicker, Select, Row, Col } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { CollectionTrackerService } from '@/common/services/collection-tracker';
+
+const yesterday = dayjs().subtract(1, 'day');
 
 export default function CollectionTracker() {
   const [clinics, setClinics] = useState([]);
@@ -22,9 +25,9 @@ export default function CollectionTracker() {
   });
   const [filters, setFilters] = useState({
     province: null,
-    end_date: null,
     clinic_id: null,
-    start_date: null,
+    end_date: yesterday,
+    start_date: yesterday,
     regional_manager: null
   });
 
@@ -80,6 +83,10 @@ export default function CollectionTracker() {
   const handleFilterChange = async (key, value) => {
     const newFilters = { ...filters, [key]: value };
 
+    if (key === 'start_date') {
+      newFilters.end_date = value;
+    }
+
     let dependentUpdates = {};
     if (key === 'province') {
       dependentUpdates = await updateDependentFilters({ province: value });
@@ -97,9 +104,9 @@ export default function CollectionTracker() {
   const handleResetFilters = async () => {
     const initialFilters = {
       province: null,
-      end_date: null,
       clinic_id: null,
-      start_date: null,
+      end_date: yesterday,
+      start_date: yesterday,
       regional_manager: null
     };
 
@@ -173,14 +180,14 @@ export default function CollectionTracker() {
   }, [filters]);
 
   return (
-    <div className="px-8 py-6 bg-gray-50 min-h-[calc(100vh-86px)]">
-      <div className="p-4 bg-white border border-secondary-50 rounded-tl-[5px] rounded-tr-[5px]">
+    <div className="flex flex-col gap-5 px-8 py-6 bg-gray-50 min-h-[calc(100vh-86px)]">
+      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
         <p className="text-[18px] font-semibold text-black">
           Collection Tracker Details
         </p>
       </div>
 
-      <div className="p-4 border border-t-0 border-secondary-50 bg-white rounded-lg mt-4">
+      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
         <div className="flex items-center justify-between mb-3">
           <p className="font-medium text-black">Filters</p>
           <Button
@@ -236,7 +243,7 @@ export default function CollectionTracker() {
           </div>
 
           <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">From</p>
+            <p className="text-xs font-medium text-gray-900">Date</p>
             <DatePicker
               allowClear={false}
               format="MM/DD/YYYY"
@@ -246,32 +253,10 @@ export default function CollectionTracker() {
               onChange={(date) => handleFilterChange('start_date', date)}
             />
           </div>
-
-          <div className="flex flex-col flex-1 gap-2">
-            <p className="text-xs font-medium text-gray-900">To</p>
-            <DatePicker
-              allowClear={false}
-              format="MM/DD/YYYY"
-              value={filters.end_date}
-              placeholder="Select date"
-              style={{ width: '100%' }}
-              onChange={(date) => handleFilterChange('end_date', date)}
-            />
-          </div>
         </div>
       </div>
 
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg mt-6">
-        <p className="font-medium mb-4">Production Details</p>
-        <GenericTable
-          showPagination
-          columns={productionColumns}
-          loading={tableLoading.production}
-          dataSource={tableData.production}
-        />
-      </div>
-
-      <div className="p-4 bg-white border border-secondary-50 rounded-lg mt-6">
+      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
         <Row gutter={16}>
           <Col span={16}>
             <p className="font-medium mb-4">Payment Details</p>
@@ -287,6 +272,16 @@ export default function CollectionTracker() {
             <FileListSection filters={filters} />
           </Col>
         </Row>
+      </div>
+
+      <div className="p-4 bg-white border border-secondary-50 rounded-lg">
+        <p className="font-medium mb-4">Production Details</p>
+        <GenericTable
+          showPagination
+          columns={productionColumns}
+          loading={tableLoading.production}
+          dataSource={tableData.production}
+        />
       </div>
     </div>
   );
