@@ -23,8 +23,12 @@ export default function LoginForm() {
       if (response.status === 200) {
         localStorage.setItem('role', response.data.user.role);
         setUserAndToken(response.data.access);
-        router.push('/clinics-reporting');
         toast.success('Login successful!');
+        if (response.data.user.role === 'AC') {
+          router.push('/collection-tracker');
+        } else {
+          router.push('/clinics-reporting');
+        }
       }
     } catch (error) {
       let errorMessage =

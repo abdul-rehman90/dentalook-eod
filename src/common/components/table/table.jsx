@@ -93,6 +93,7 @@ function GenericTable({
   columns,
   loading,
   onCellChange,
+  rowClassName,
   footer = null,
   rowKey = 'key',
   dataSource = [],
@@ -250,6 +251,7 @@ function GenericTable({
         className={tableClass}
         showHeader={showHeader}
         dataSource={paginatedData}
+        rowClassName={rowClassName}
         columns={transformedColumns}
         summary={footer ? footer : null}
       />

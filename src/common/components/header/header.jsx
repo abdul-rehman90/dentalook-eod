@@ -9,7 +9,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { removeUserAndToken } from '@/common/utils/auth-user';
 import { useGlobalContext } from '@/common/context/global-context';
 import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
-import { hasCollectionTrackerAccess, hasClinicAdjustmentAccess } from '@/common/utils/role-access';
+import {
+  ROLES,
+  getUserRole,
+  hasCollectionTrackerAccess,
+  hasClinicAdjustmentAccess
+} from '@/common/utils/role-access';
 
 const baseItems = [
   { key: '/submission/eod', label: 'Submit End Of Day' },
@@ -39,7 +44,13 @@ export default function Header() {
 
   // Get navigation items based on user role
   const getNavigationItems = () => {
-    const items = [...baseItems];
+    let items = [...baseItems];
+
+    // AC role only has collection-tracker access, no navigation tabs needed
+    if (getUserRole() === ROLES.AC) {
+      return [];
+    }
+
     if (hasClinicAdjustmentAccess()) {
       items.push(clinicAdjustmentItem);
     }

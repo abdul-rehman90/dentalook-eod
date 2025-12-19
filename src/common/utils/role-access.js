@@ -22,3 +22,10 @@ export function hasClinicAdjustmentAccess() {
   const userRole = getUserRole();
   return CLINIC_ADJUSTMENT_ALLOWED_ROLES.includes(userRole);
 }
+
+export function isACRoleRestricted(route) {
+  const userRole = getUserRole();
+  if (userRole !== ROLES.AC) return false;
+
+  return !route.startsWith('/collection-tracker');
+}

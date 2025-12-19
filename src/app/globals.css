@@ -511,7 +511,8 @@
   white-space: break-spaces;
 }
 
-.clinic-adjustment-table {
+.clinic-adjustment-table,
+.clinic-submission-table {
   overflow: auto;
   max-height: 60vh;
 }

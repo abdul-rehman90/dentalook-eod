@@ -11,6 +11,18 @@ import { CollectionTrackerService } from '@/common/services/collection-tracker';
 
 const yesterday = dayjs().subtract(1, 'day');
 
+const normalizeTableData = (rows, totalKey) => {
+  const totalRow = rows.find((i) => i.date === 'All');
+  const normalRows = rows.filter((i) => i.date !== 'All');
+
+  if (normalRows.length === 0) return [];
+
+  return [
+    ...normalRows.map((i, idx) => ({ ...i, key: i.id || idx })),
+    ...(totalRow ? [{ ...totalRow, key: totalKey, isTotal: true }] : [])
+  ];
+};
+
 export default function CollectionTracker() {
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
@@ -32,8 +44,17 @@ export default function CollectionTracker() {
   });
 
   const productionColumns = [
-    { title: 'Date', dataIndex: 'date' },
-    { title: 'Clinic Name', dataIndex: 'clinic_name' },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      render: (value, record) =>
+        record.isTotal ? <span className="font-semibold">Total</span> : value
+    },
+    {
+      title: 'Clinic Name',
+      dataIndex: 'clinic_name',
+      render: (value, record) => (record.isTotal ? '' : value)
+    },
     { title: 'Title', dataIndex: 'provider_title' },
     { title: 'Provider Name', dataIndex: 'provider_name' },
     {
@@ -44,15 +65,32 @@ export default function CollectionTracker() {
   ];
 
   const paymentColumns = [
-    { title: 'Date', dataIndex: 'date' },
-    { title: 'Clinic Name', dataIndex: 'clinic_name' },
-    { title: 'Payment Type', dataIndex: 'payment_type' },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      render: (value, record) =>
+        record.isTotal ? <span className="font-semibold">Total</span> : value
+    },
+    {
+      title: 'Clinic Name',
+      dataIndex: 'clinic_name',
+      render: (value, record) => (record.isTotal ? '' : value)
+    },
+    {
+      title: 'Payment Type',
+      dataIndex: 'payment_type',
+      render: (value, record) => (record.isTotal ? '' : value)
+    },
     {
       title: 'Payment Amount',
       dataIndex: 'payment_amount',
       render: (v) => `$${Number(v).toLocaleString()}`
     },
-    { title: 'Insurance Company', dataIndex: 'insurance_company' }
+    {
+      title: 'Insurance Company',
+      dataIndex: 'insurance_company',
+      render: (value, record) => (record.isTotal ? '' : value)
+    }
   ];
 
   const updateDependentFilters = async (params) => {
@@ -122,12 +160,10 @@ export default function CollectionTracker() {
         currentFilters
       );
 
-      setTableData((p) => ({
-        ...p,
-        production: (data || [])
-          .filter((i) => i.date !== 'All')
-          .map((i, idx) => ({ ...i, key: i.id || idx }))
-      }));
+      const rows = data || [];
+      const totalKey = 'production-total';
+      const normalizedRows = normalizeTableData(rows, totalKey);
+      setTableData((p) => ({ ...p, production: normalizedRows }));
     } catch (e) {
       console.error('Production API error:', e);
     } finally {
@@ -143,12 +179,10 @@ export default function CollectionTracker() {
         currentFilters
       );
 
-      setTableData((p) => ({
-        ...p,
-        payment: (data || [])
-          .filter((i) => i.date !== 'All')
-          .map((i, idx) => ({ ...i, key: i.id || idx }))
-      }));
+      const rows = data || [];
+      const totalKey = 'payment-total';
+      const normalizedRows = normalizeTableData(rows, totalKey);
+      setTableData((p) => ({ ...p, payment: normalizedRows }));
     } catch (e) {
       console.error('Payment API error:', e);
     } finally {
@@ -160,11 +194,23 @@ export default function CollectionTracker() {
     try {
       const { data } = await EODReportService.getFilteredListData();
 
-      setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
+      const clinicOptions = data.clinics.map((i) => ({
+        value: i.id,
+        label: i.name
+      }));
+
+      setClinics(clinicOptions);
       setProvinces(data.provinces.map((i) => ({ value: i.id, label: i.name })));
       setRegionalManagers(
         data.regional_managers.map((i) => ({ value: i.id, label: i.name }))
       );
+
+      if (clinicOptions.length > 0) {
+        setFilters((prev) => ({
+          ...prev,
+          clinic_id: clinicOptions[0].value
+        }));
+      }
     } catch (e) {
       console.error('Error fetching filter data:', e);
     }
@@ -175,6 +221,7 @@ export default function CollectionTracker() {
   }, []);
 
   useEffect(() => {
+    if (!filters.clinic_id) return;
     fetchProductionData(filters);
     fetchPaymentData(filters);
   }, [filters]);
@@ -265,12 +312,13 @@ export default function CollectionTracker() {
             <p className="text-sm font-semibold text-gray-800 mb-3">
               Payment Details
             </p>
-
             <GenericTable
-              showPagination
               columns={paymentColumns}
               loading={tableLoading.payment}
               dataSource={tableData.payment}
+              rowClassName={(record) =>
+                record.isTotal ? 'bg-gray-100 font-semibold' : ''
+              }
             />
           </Col>
           <Col span={8}>
@@ -286,12 +334,13 @@ export default function CollectionTracker() {
         <p className="text-sm font-semibold text-gray-800 mb-3">
           Production Details
         </p>
-
         <GenericTable
-          showPagination
           columns={productionColumns}
           loading={tableLoading.production}
           dataSource={tableData.production}
+          rowClassName={(record) =>
+            record.isTotal ? 'bg-gray-100 font-semibold' : ''
+          }
         />
       </div>
     </div>

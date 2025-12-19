@@ -101,6 +101,7 @@ export default function FileListSection({ filters }) {
   };
 
   useEffect(() => {
+    if (!filters.clinic_id) return;
     fetchAllPaymentDocuments();
   }, [filters]);
 

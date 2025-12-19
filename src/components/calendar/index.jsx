@@ -512,11 +512,11 @@ export default function MyCalendar() {
             />
             <Table
               size="small"
-              className="mt-6"
               loading={loading}
               pagination={false}
               columns={tableColumns}
               dataSource={getFilteredTableData()}
+              className="mt-6 clinic-submission-table"
             />
           </div>
         </React.Fragment>
