@@ -212,6 +212,7 @@ export default function CollectionTracker() {
               optionFilterProp="label"
               value={filters.province}
               placeholder="Select Province"
+              onChange={(value) => handleFilterChange('province', value)}
             />
           </div>
 
@@ -225,6 +226,9 @@ export default function CollectionTracker() {
               options={regionalManagers}
               value={filters.regional_manager}
               placeholder="Select Regional Manager"
+              onChange={(value) =>
+                handleFilterChange('regional_manager', value)
+              }
             />
           </div>
 
@@ -238,6 +242,7 @@ export default function CollectionTracker() {
               optionFilterProp="label"
               value={filters.clinic_id}
               placeholder="Select Practice"
+              onChange={(value) => handleFilterChange('clinic_id', value)}
             />
           </div>
 
