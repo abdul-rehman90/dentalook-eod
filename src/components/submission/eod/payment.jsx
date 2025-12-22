@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Input } from 'antd';
 import toast from 'react-hot-toast';
 import { Col, Row, Table } from 'antd';
@@ -28,7 +28,6 @@ const paymentOptions = [
 ];
 
 export default function Payment({ onNext }) {
-  const fileUploadRef = useRef(null);
   const [notes, setNotes] = useState('');
   const [tableData, setTableData] = useState([]);
   const {
@@ -191,24 +190,6 @@ export default function Payment({ onNext }) {
         const validPayments = tableData.filter(
           (item) => item.amount && !isNaN(item.amount)
         );
-
-        // Check if files are uploaded when there are valid payments
-        if (validPayments.length > 0) {
-          const uploadedFiles =
-            fileUploadRef.current?.getUploadedFiles?.() || [];
-          if (uploadedFiles.length === 0) {
-            toast.error('Please upload at least one file attachment');
-            return false;
-          }
-
-          const pendingFiles = uploadedFiles.filter(
-            (file) => file.status === 'pending'
-          );
-          if (pendingFiles.length > 0) {
-            toast.error('Please upload all pending files before saving');
-            return false;
-          }
-        }
 
         const payload = {
           notes: notes,
@@ -378,7 +359,7 @@ export default function Payment({ onNext }) {
                 }}
               />
             </Card>
-            <FileUploadSection ref={fileUploadRef} eodSubmissionId={id} />
+            <FileUploadSection eodSubmissionId={id} />
           </Col>
         </Row>
       </div>
