@@ -24,6 +24,8 @@ export default function DailyProduction({ onNext }) {
   const currentStepData = getCurrentStepData();
   const currentStepId = steps[currentStep - 1].id;
   const clinicId = reportData?.eod?.basic?.clinicDetails?.clinic;
+  const submission_date =
+    reportData?.eod?.basic?.clinicDetails?.submission_date;
   const isClinicClosed =
     reportData?.eod?.basic?.clinicDetails?.status === 'closed';
   const hasRDT = reportData?.eod?.basic?.activeProviders?.some(
@@ -220,7 +222,10 @@ export default function DailyProduction({ onNext }) {
 
   const fetchTargetGoal = async () => {
     try {
-      const response = await EODReportService.getTargetGoalByClinicId(clinicId);
+      const response = await EODReportService.getTargetGoalByClinicId(
+        clinicId,
+        submission_date
+      );
       if (response.data.submission_month_target !== goal) {
         setGoal(response.data.submission_month_target);
       }

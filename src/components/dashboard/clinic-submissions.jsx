@@ -71,7 +71,7 @@ export default function ClinicSubmissions({ clinicSubmissions }) {
 
   return (
     <div className="p-6 rounded-xl border border-solid border-[#ececec] shadow-[0px_14px_20px_0px_#0000000A]">
-      <h2 className="text-black text-base font-medium mb-4">
+      <h2 className="text-black text-base font-semibold mb-4">
         Clinic Submissions
       </h2>
       <GenericTable columns={columns} dataSource={clinicSubmissions} />

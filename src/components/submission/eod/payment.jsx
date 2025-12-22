@@ -3,6 +3,7 @@ import { Input } from 'antd';
 import toast from 'react-hot-toast';
 import { Col, Row, Table } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import FileUploadSection from './file-upload-section';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
@@ -206,13 +207,19 @@ export default function Payment({ onNext }) {
           if (response.status === 201) {
             setDirty(false);
             toast.success('Record is successfully saved');
-            updateStepData(currentStepId, { notes, payments: tableData });
+            updateStepData(currentStepId, {
+              notes,
+              payments: tableData
+            });
             if (navigate) onNext();
             return true;
           }
         } else {
           setDirty(false);
-          updateStepData(currentStepId, { notes: '', payments: tableData });
+          updateStepData(currentStepId, {
+            notes: '',
+            payments: tableData
+          });
           if (navigate) onNext();
         }
       } catch {
@@ -352,6 +359,7 @@ export default function Payment({ onNext }) {
                 }}
               />
             </Card>
+            <FileUploadSection eodSubmissionId={id} />
           </Col>
         </Row>
       </div>

@@ -112,7 +112,7 @@ export default function ClinicAdjustment() {
   }, []);
 
   return (
-    <div className="px-13 py-6 bg-[#FAFAFB] min-h-[calc(100vh_-_75px)]">
+    <div className="px-8 py-6 bg-[#FAFAFB] min-h-[calc(100vh_-_75px)]">
       <div className="bg-white p-5 rounded-xl">
         <div className="flex justify-between items-center border-b-1 border-b-secondary-50 pb-4">
           <h1 className="text-2xl font-semibold text-black">
@@ -140,7 +140,6 @@ export default function ClinicAdjustment() {
         <div className="mt-5 ">
           <Table
             rowKey="id"
-            height={400}
             loading={loading}
             columns={columns}
             pagination={false}

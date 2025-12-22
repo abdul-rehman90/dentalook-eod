@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
-import { Form, Row } from 'antd';
 import toast from 'react-hot-toast';
+import { Form, Input, Row } from 'antd';
 import { useRouter } from 'next/navigation';
 import WeeklySchedule from './weekly-schedule';
 import ActiveProviders from './active-providers';
@@ -10,11 +10,14 @@ import { FormControl } from '@/common/utils/form-control';
 import { EODReportService } from '@/common/services/eod-report';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
+import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import StepNavigation from '@/common/components/step-navigation/step-navigation';
 import {
   formatTimeForUI,
   generateTimeSlots
 } from '@/common/utils/time-handling';
+
+const { TextArea } = Input;
 
 const options = [
   { label: 'Open', value: 'open' },
@@ -71,6 +74,7 @@ export default function BasicDetails() {
 
   const initialValues = {
     user: null,
+    notes: null,
     status: null,
     clinic: null,
     province: null,
@@ -344,7 +348,8 @@ export default function BasicDetails() {
         currentStepData.clinicDetails.regional_manager_id,
       submission_date: currentStepData.clinicDetails.submission_date
         ? dayjs(currentStepData.clinicDetails.submission_date)
-        : dayjs()
+        : dayjs(),
+      notes: currentStepData.clinicDetails.notes
     });
   };
 
@@ -412,7 +417,7 @@ export default function BasicDetails() {
       <Form
         form={form}
         initialValues={initialValues}
-        style={{ padding: '0 24px' }}
+        style={{ padding: '0 16px' }}
       >
         <Row justify="space-between">
           <FormControl
@@ -503,11 +508,38 @@ export default function BasicDetails() {
                   />
                 )}
                 {shouldShowProviders && (
-                  <ActiveProviders
-                    form={form}
-                    tableData={tableData}
-                    setTableData={setTableData}
-                  />
+                  <React.Fragment>
+                    <ActiveProviders
+                      form={form}
+                      tableData={tableData}
+                      setTableData={setTableData}
+                    />
+                    <div className="pr-3 border-t-1 border-t-secondary-50 pt-6 mt-6">
+                      <Card className="!p-0 !gap-0 border border-secondary-50">
+                        <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
+                          <CardTitle className="text-[15px] font-medium text-black">
+                            Schedule Notes
+                          </CardTitle>
+                        </CardHeader>
+                        <Form.Item name="notes" noStyle>
+                          <TextArea
+                            rows={4}
+                            placeholder="Enter note here..."
+                            style={{
+                              width: '100%',
+                              border: 'none',
+                              height: '170px',
+                              fontSize: '15px',
+                              boxShadow: 'none',
+                              color: '#777B8B',
+                              borderRadius: '12px',
+                              padding: '10px 16px'
+                            }}
+                          />
+                        </Form.Item>
+                      </Card>
+                    </div>
+                  </React.Fragment>
                 )}
               </React.Fragment>
             );

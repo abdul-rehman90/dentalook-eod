@@ -28,6 +28,26 @@ export const EOMReportService = {
     return response;
   },
 
+  async getPaymentDocBySubmissionId(id) {
+    const response = await apiClient.get(`/admin/eom-payment-document/${id}`);
+    return response;
+  },
+
+  async deletePaymentDocById(id) {
+    const response = await apiClient.delete(
+      `/admin/eom-payment-document/${id}/`
+    );
+    return response;
+  },
+
+  async addPaymentDoc(payload) {
+    const response = await apiClient.post(
+      '/admin/eom-payment-document/',
+      payload
+    );
+    return response;
+  },
+
   async addBasicDetails(payload) {
     const response = await apiClient.post('/eom-submission/', payload);
     return response;

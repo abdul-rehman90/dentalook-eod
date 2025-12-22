@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Checkbox } from 'antd';
 import AddModal from './add-modal';
 import toast from 'react-hot-toast';
@@ -66,42 +66,101 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       title: 'Active',
       key: 'is_active',
       dataIndex: 'is_active',
+      render: (_, record) => {
+        if (record.isRecoveryRow) return null;
+        return (
+          <Checkbox
+            checked={record.is_active}
+            className="custom-checkbox"
+            disabled={status === 'closed'}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setDirty(true);
+              setTableData((prev) => {
+                const updated = prev.map((p) =>
+                  p.key === record.key
+                    ? {
+                        ...p,
+                        is_active: checked,
+                        no_shows: checked ? 0 : null,
+                        unfilled_spots: checked ? 0 : null,
+                        break_duration: checked ? null : null,
+                        failed_appointments: checked ? 0 : null,
+                        number_of_patients_seen: checked ? 0 : null,
+                        short_notice_cancellations: checked ? 0 : null
+                      }
+                    : p
+                );
+
+                if (checked) {
+                  // Add recovery row if provider becomes active
+                  const recoveryExists = updated.find(
+                    (p) => p.key === `recovery_${record.id}`
+                  );
+                  if (!recoveryExists) {
+                    const providerIndex = updated.findIndex(
+                      (p) => p.key === record.key
+                    );
+                    const recoveryRow = {
+                      type: '',
+                      no_shows: null,
+                      parentId: record.id,
+                      isRecoveryRow: true,
+                      name: 'Recovery Units',
+                      recovered_no_shows: null,
+                      id: `recovery_${record.id}`,
+                      key: `recovery_${record.id}`,
+                      unfilled_spots: null,
+                      failed_appointments: null,
+                      number_of_patients_seen: null,
+                      short_notice_cancellations: null,
+                      recovered_short_notice_cancellations: null
+                    };
+                    updated.splice(providerIndex + 1, 0, recoveryRow);
+                  }
+                } else {
+                  // Remove recovery row if provider becomes inactive
+                  return updated.filter(
+                    (p) => p.key !== `recovery_${record.id}`
+                  );
+                }
+
+                return updated;
+              });
+            }}
+          />
+        );
+      }
+    },
+    {
+      width: 50,
+      key: 'type',
+      title: 'Title',
+      dataIndex: 'type',
+      render: (_, record) => (record.isRecoveryRow ? '' : record.type)
+    },
+    {
+      width: 150,
+      key: 'name',
+      dataIndex: 'name',
+      title: 'Provider Name',
       render: (_, record) => (
-        <Checkbox
-          checked={record.is_active}
-          className="custom-checkbox"
-          disabled={status === 'closed'}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setDirty(true);
-            setTableData((prev) =>
-              prev.map((p) =>
-                p.key === record.key
-                  ? {
-                      ...p,
-                      is_active: checked,
-                      no_shows: checked ? 0 : null,
-                      unfilled_spots: checked ? 0 : null,
-                      break_duration: checked ? null : null,
-                      failed_appointments: checked ? 0 : null,
-                      number_of_patients_seen: checked ? 0 : null,
-                      short_notice_cancellations: checked ? 0 : null
-                    }
-                  : p
-              )
-            );
-          }}
-        />
+        <span
+          className={
+            record.isRecoveryRow ? 'text-green-600 font-medium ml-4' : ''
+          }
+        >
+          {record.isRecoveryRow ? '' : record.name}
+        </span>
       )
     },
-    { width: 50, key: 'type', title: 'Title', dataIndex: 'type' },
-    { width: 150, key: 'name', title: 'Provider Name', dataIndex: 'name' },
     {
       width: 50,
       key: 'start_time',
       title: 'Start Time',
       dataIndex: 'start_time',
       render: (_, record) => {
+        if (record.isRecoveryRow) return null;
         return (
           <EditableCell
             showSearch
@@ -123,6 +182,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       title: 'End Time',
       dataIndex: 'end_time',
       render: (_, record) => {
+        if (record.isRecoveryRow) return null;
         return (
           <EditableCell
             type="select"
@@ -143,85 +203,123 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       key: 'break_duration',
       dataIndex: 'break_duration',
       render: (_, record) => {
+        if (record.isRecoveryRow)
+          return <p className="text-gray-900 text-nowrap">Recovered Units</p>;
         return (
-          <EditableCell
-            type="select"
-            field="break_duration"
-            recordKey={record.key}
-            options={lunchBreakOptions}
-            onCommit={handleCellCommit}
-            disabled={!record.is_active}
-            placeholder="Select Duration"
-            value={record.break_duration}
-          />
+          <div className="max-w-[100px]">
+            <EditableCell
+              type="select"
+              field="break_duration"
+              recordKey={record.key}
+              options={lunchBreakOptions}
+              onCommit={handleCellCommit}
+              disabled={!record.is_active}
+              placeholder="Select Duration"
+              value={record.break_duration}
+            />
+          </div>
         );
       }
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       title: 'Pt. Seen',
       inputType: 'text',
       key: 'number_of_patients_seen',
       dataIndex: 'number_of_patients_seen',
-      disabled: (record) => !record.is_active,
-      onCell: () => ({ className: 'divider-cell' })
+      disabled: (record) => !record.is_active || record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       key: 'unfilled_spots',
       title: 'Unfilled (Units)',
       dataIndex: 'unfilled_spots',
-      disabled: (record) => !record.is_active
+      disabled: (record) => !record.is_active || record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       key: 'no_shows',
       inputType: 'text',
       dataIndex: 'no_shows',
       title: 'No Shows (Units)',
-      disabled: (record) => !record.is_active
+      disabled: (record) => !record.is_active && !record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       title: 'Short Ntc (Units)',
       key: 'short_notice_cancellations',
       dataIndex: 'short_notice_cancellations',
-      disabled: (record) => !record.is_active
+      disabled: (record) => !record.is_active && !record.isRecoveryRow
     },
     {
-      width: 130,
+      width: 150,
       editable: true,
       inputType: 'text',
       title: 'Failed (Units)',
       key: 'failed_appointments',
       dataIndex: 'failed_appointments',
-      disabled: (record) => !record.is_active
+      disabled: (record) => !record.is_active || record.isRecoveryRow
     }
   ];
 
-  const handleCellCommit = (recordKey, field, value) => {
+  const handleCellCommit = useCallback((recordKey, field, value) => {
     setDirty(true);
-    setTableData((prev) =>
-      prev.map((item) =>
-        item.key === recordKey ? { ...item, [field]: value } : item
-      )
-    );
-  };
+    setTableData((prev) => {
+      const updated = [...prev];
+      const recordIndex = updated.findIndex((item) => item.key === recordKey);
+      if (recordIndex !== -1) {
+        updated[recordIndex] = { ...updated[recordIndex], [field]: value };
+      }
+      return updated;
+    });
+  }, []);
 
-  const handleCellChange = (record, dataIndex, value) => {
+  const handleCellChange = useCallback((record, dataIndex, value) => {
     setDirty(true);
-    setTableData(
-      tableData.map((item) =>
-        item.key === record.key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
+    setTableData((prev) => {
+      const updated = [...prev];
+      const recordIndex = updated.findIndex((item) => item.key === record.key);
+
+      if (recordIndex !== -1) {
+        if (record.isRecoveryRow) {
+          // For recovery rows, update both the display field and the recovery field
+          const recoveryField =
+            dataIndex === 'no_shows'
+              ? 'recovered_no_shows'
+              : 'recovered_short_notice_cancellations';
+          updated[recordIndex] = {
+            ...updated[recordIndex],
+            [dataIndex]: value,
+            [recoveryField]: value
+          };
+
+          // Update parent provider with recovery data
+          const parentIndex = updated.findIndex(
+            (item) => item.id === record.parentId
+          );
+          if (parentIndex !== -1) {
+            updated[parentIndex] = {
+              ...updated[parentIndex],
+              [recoveryField]: value
+            };
+          }
+        } else {
+          updated[recordIndex] = {
+            ...updated[recordIndex],
+            [dataIndex]: value
+          };
+        }
+      }
+
+      return updated;
+    });
+  }, []);
 
   const addNewProvider = async (values) => {
     const payload = {
@@ -242,7 +340,9 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         id: response.data.user_id,
         key: response.data.user_id,
         number_of_patients_seen: null,
-        short_notice_cancellations: null
+        short_notice_cancellations: null,
+        recovered_no_shows: null,
+        recovered_short_notice_cancellations: null
       };
       toast.success('Record is successfully saved');
       setTableData((prev) => {
@@ -272,7 +372,9 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
           unfilled_spots: null,
           break_duration: null,
           type: provider.user_type,
+          recovered_no_shows: null,
           short_notice_cancellations: null,
+          recovered_short_notice_cancellations: null,
           failed_appointments: provider.failed_appointments
         }))
         .sort((a, b) => {
@@ -282,11 +384,12 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
         });
 
       if (currentStepData?.activeProviders?.length > 0) {
-        const mergedData = baseProviders.map((provider) => {
+        const mergedData = [];
+        baseProviders.forEach((provider) => {
           const existingData = currentStepData.activeProviders.find(
             (item) => item.user?.id === provider.id || item.id === provider.id
           );
-          return existingData
+          const updatedProvider = existingData
             ? {
                 ...provider,
                 no_shows: existingData.no_shows,
@@ -298,9 +401,32 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
                 failed_appointments: existingData.failed_appointments,
                 number_of_patients_seen: existingData.number_of_patients_seen,
                 short_notice_cancellations:
-                  existingData.short_notice_cancellations
+                  existingData.short_notice_cancellations,
+                recovered_no_shows: existingData.recovered_no_shows,
+                recovered_short_notice_cancellations:
+                  existingData.recovered_short_notice_cancellations
               }
             : provider;
+
+          mergedData.push(updatedProvider);
+
+          // Add recovery row if provider is active
+          if (updatedProvider.is_active) {
+            mergedData.push({
+              type: '',
+              isRecoveryRow: true,
+              parentId: provider.id,
+              name: 'Recovery Units',
+              id: `recovery_${provider.id}`,
+              key: `recovery_${provider.id}`,
+              no_shows: updatedProvider.recovered_no_shows,
+              short_notice_cancellations:
+                updatedProvider.recovered_short_notice_cancellations,
+              recovered_no_shows: updatedProvider.recovered_no_shows,
+              recovered_short_notice_cancellations:
+                updatedProvider.recovered_short_notice_cancellations
+            });
+          }
         });
         setTableData(mergedData);
       } else {
@@ -325,7 +451,7 @@ export default function ActiveProviders({ form, tableData, setTableData }) {
       >
         <GetModalContent />
       </AddModal>
-      <div className="pr-6 border-t-1 border-t-secondary-50 pt-6">
+      <div className="pr-3 border-t-1 border-t-secondary-50 pt-6">
         <h2 className="text-xl font-medium mb-2">Active Providers</h2>
         <div className="flex items-center justify-between mb-4">
           <p className="text-red-500 text-xs font-medium">

@@ -115,7 +115,6 @@ export default function Dashboard() {
     return [
       {
         title: 'Total Production',
-        percentage: apiData.total_production.percentage,
         value: `$${apiData.total_production.value.toLocaleString()}`,
         details:
           apiData.total_production.eod_submissions?.sort(
@@ -125,7 +124,6 @@ export default function Dashboard() {
       {
         title: 'Number of New Patients',
         value: apiData.number_of_patients.value,
-        percentage: apiData.number_of_patients.percentage,
         details:
           apiData.number_of_patients.patient_details?.[0]?.patients?.sort(
             (a, b) => new Date(b.date) - new Date(a.date)
@@ -138,9 +136,6 @@ export default function Dashboard() {
       {
         title: 'Missed Opportunities',
         value: apiData.missed_schedule.total_number_in_hours.toFixed(2),
-        percentage: `$${apiData.missed_schedule.total_value_missed
-          .toFixed(2)
-          .toLocaleString()}`,
         details:
           apiData.missed_schedule.provider_details?.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
@@ -152,6 +147,14 @@ export default function Dashboard() {
         details:
           apiData.monthly_metrics.supplies?.sort(
             (a, b) => new Date(b.submission_date) - new Date(a.submission_date)
+          ) || []
+      },
+      {
+        title: 'Outgoing Referrals',
+        value: apiData.number_of_referrals?.value || 0,
+        details:
+          apiData.number_of_referrals?.referral_detail?.[0]?.patients?.sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
           ) || []
       }
     ];
@@ -198,13 +201,14 @@ export default function Dashboard() {
 
         if (response.status === 200) {
           const data = response.data;
-          setMetrics(formatMetricsData(data));
-          setRevenueData(processRevenueData(data));
           const prodProvidersData = data.production_by_provider || [];
           const missedProvidersData =
             data.missed_schedule.provider_details || [];
+
+          setMetrics(formatMetricsData(data));
           setProdProviders(prodProvidersData);
           setMissedProviders(missedProvidersData);
+          setRevenueData(processRevenueData(data));
           setProdTypes(
             groupByProviderType(
               prodProvidersData,
@@ -247,8 +251,8 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 mx-13 my-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-          {[...Array(4)].map((_, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+          {[...Array(5)].map((_, index) => (
             <Card key={index} className="bg-white !gap-4 h-fit">
               <CardHeader className="mb-5">
                 <Skeleton.Input active style={{ width: 150, height: 20 }} />
@@ -308,7 +312,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 mx-13 my-4">
+    <div className="flex flex-col gap-6 mx-8 my-4">
       <CardDetailsModal
         data={modalState.data}
         title={modalState.title}
@@ -324,8 +328,10 @@ export default function Dashboard() {
             Clinics
           </p>
           <Select
+            showSearch
             size="large"
             options={clinics}
+            optionFilterProp="label"
             className="custom-filter"
             value={filters.clinic_id}
             placeholder="Select Clinic"

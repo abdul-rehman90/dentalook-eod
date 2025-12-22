@@ -11,6 +11,19 @@ export const EODReportService = {
     return response;
   },
 
+  async getFilteredListData(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.province) params.append('province_id', filters.province);
+    if (filters.regional_manager)
+      params.append('regional_manager_id', filters.regional_manager);
+
+    const response = await apiClient.get(
+      `/get-dashboard-filters/?${params.toString()}`
+    );
+    return response;
+  },
+
   async getAllReports(filters = {}) {
     const params = new URLSearchParams();
 
@@ -52,8 +65,10 @@ export const EODReportService = {
     return response;
   },
 
-  async getTargetGoalByClinicId(id) {
-    const response = await apiClient.get(`/clinic-by-id/${id}`);
+  async getTargetGoalByClinicId(id, date) {
+    const response = await apiClient.get(
+      `/clinic-by-id/${id}/?submission_date=${date}`
+    );
     return response;
   },
 
@@ -73,6 +88,16 @@ export const EODReportService = {
     const response = await apiClient.get(
       `/eod-submission-supplies/?clinic_id=${id}&month=${date}`
     );
+    return response;
+  },
+
+  async getPaymentDocBySubmissionId(id) {
+    const response = await apiClient.get(`/eod-payment-document/${id}`);
+    return response;
+  },
+
+  async deletePaymentDocById(id) {
+    const response = await apiClient.delete(`/eod-payment-document/${id}/`);
     return response;
   },
 
@@ -111,6 +136,11 @@ export const EODReportService = {
 
   async addPayment(payload) {
     const response = await apiClient.post('/eod-payments/', payload);
+    return response;
+  },
+
+  async addPaymentDoc(payload) {
+    const response = await apiClient.post('/eod-payment-document/', payload);
     return response;
   },
 

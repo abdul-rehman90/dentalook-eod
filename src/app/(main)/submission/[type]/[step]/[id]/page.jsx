@@ -23,7 +23,8 @@ import {
   HiringTrainingEOM,
   ClinicalUpgradeEOM,
   MonthlyScheduleEOM,
-  AccountReceivableEOM
+  AccountReceivableEOM,
+  MonthlyFileUploadsEOM
 } from '@/components/submission/eom';
 
 export default function SubmissionPage() {
@@ -43,14 +44,15 @@ export default function SubmissionPage() {
     },
     eom: {
       1: <BasicDetailsEOM onNext={handle} />,
-      2: <AccountReceivableEOM onNext={handle} />,
-      3: <EquipmentEOM onNext={handle} />,
-      4: <ClinicalUpgradeEOM onNext={handle} />,
-      5: <HiringTrainingEOM onNext={handle} />,
-      6: <SuppliesEOM onNext={handle} />,
-      7: <GoogleReviewsEOM onNext={handle} />,
-      8: <IssuesIdeasEOM onNext={handle} />,
-      9: <MonthlyScheduleEOM />
+      2: <MonthlyFileUploadsEOM onNext={handle} />,
+      3: <AccountReceivableEOM onNext={handle} />,
+      4: <EquipmentEOM onNext={handle} />,
+      5: <ClinicalUpgradeEOM onNext={handle} />,
+      6: <HiringTrainingEOM onNext={handle} />,
+      7: <SuppliesEOM onNext={handle} />,
+      8: <GoogleReviewsEOM onNext={handle} />,
+      9: <IssuesIdeasEOM onNext={handle} />,
+      10: <MonthlyScheduleEOM />
     }
   };
 

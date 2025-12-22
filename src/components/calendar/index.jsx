@@ -404,15 +404,17 @@ export default function MyCalendar() {
   }, [dateRange]);
 
   return (
-    <div className="p-5 bg-white mx-13 my-4">
+    <div className="p-5 bg-white mx-8 my-4">
       <div className="flex justify-end items-end mb-4">
         <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
             Clinics
           </p>
           <Select
+            showSearch
             size="large"
             options={clinics}
+            optionFilterProp="label"
             className="custom-filter"
             value={filters.clinic_id}
             placeholder="Select Clinic"
@@ -510,11 +512,11 @@ export default function MyCalendar() {
             />
             <Table
               size="small"
-              className="mt-6"
               loading={loading}
               pagination={false}
               columns={tableColumns}
               dataSource={getFilteredTableData()}
+              className="mt-6 clinic-submission-table"
             />
           </div>
         </React.Fragment>

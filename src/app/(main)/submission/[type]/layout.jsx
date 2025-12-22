@@ -192,7 +192,7 @@ export default function SubmissionLayout({ children }) {
   }, [isDirty, pathname]);
 
   return (
-    <div className="px-13 py-6 bg-[#FAFAFB] min-h-screen">
+    <div className="px-8 py-6 bg-[#FAFAFB] min-h-screen">
       <h1 className="flex items-center text-[18px] font-semibold text-black mb-7">
         <Button
           size="icon"

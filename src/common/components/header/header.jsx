@@ -9,8 +9,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { removeUserAndToken } from '@/common/utils/auth-user';
 import { useGlobalContext } from '@/common/context/global-context';
 import { getCanadianTimeFormatted } from '@/common/utils/time-handling';
+import {
+  ROLES,
+  getUserRole,
+  hasCollectionTrackerAccess,
+  hasClinicAdjustmentAccess
+} from '@/common/utils/role-access';
 
-const items = [
+const baseItems = [
   { key: '/submission/eod', label: 'Submit End Of Day' },
   { key: '/submission/eom', label: 'Submit End of Month' },
   { key: '/review/list/eod', label: 'Review EOD Submissions' },
@@ -19,12 +25,40 @@ const items = [
   { key: '/dashboard', label: 'Dashboard' }
 ];
 
+const collectionTrackerItem = {
+  key: '/collection-tracker',
+  label: 'Collection Tracker'
+};
+
+const clinicAdjustmentItem = {
+  key: '/clinic-adjustment',
+  label: 'Clinic Adjustment'
+};
+
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { isDirty } = useGlobalContext();
   const [currentTime] = useState(getCanadianTimeFormatted());
   const isMainRoute = pathname === '/clinics-reporting' || pathname === '/';
+
+  // Get navigation items based on user role
+  const getNavigationItems = () => {
+    let items = [...baseItems];
+
+    // AC role only has collection-tracker access, no navigation tabs needed
+    if (getUserRole() === ROLES.AC) {
+      return [];
+    }
+
+    if (hasClinicAdjustmentAccess()) {
+      items.push(clinicAdjustmentItem);
+    }
+    if (hasCollectionTrackerAccess()) {
+      items.push(collectionTrackerItem);
+    }
+    return items;
+  };
 
   const guardedPush = (url) => {
     if (isDirty && url !== pathname) {
@@ -57,13 +91,16 @@ export default function Header() {
       return '/review/list/eom';
     if (pathname.startsWith('/calendar')) return '/calendar';
     if (pathname.startsWith('/dashboard')) return '/dashboard';
+    if (pathname.startsWith('/clinic-adjustment')) return '/clinic-adjustment';
+    if (pathname.startsWith('/collection-tracker'))
+      return '/collection-tracker';
     return '';
   };
 
   const activeKey = getActiveKey();
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-13 py-5">
+    <header className="sticky top-0 z-10 bg-white border-b border-[#F7F7F7] px-8 py-5">
       <div className="flex gap-2 justify-between">
         <div className="flex gap-8">
           <div
@@ -78,7 +115,7 @@ export default function Header() {
               type="line"
               activeKey={activeKey}
               className="[&_.ant-tabs-nav]:!mb-0"
-              items={items.map((item) => {
+              items={getNavigationItems().map((item) => {
                 const href = item.key.startsWith('/submission')
                   ? `${item.key}/1`
                   : item.key;

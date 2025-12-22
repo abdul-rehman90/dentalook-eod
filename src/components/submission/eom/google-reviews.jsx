@@ -68,21 +68,29 @@ export default function GoogleReviews({ onNext }) {
       try {
         const rowData = tableData[0];
 
-        if (rowData.google_review_score) {
-          const numericValue = parseFloat(rowData.google_review_score);
-          if (numericValue > 5) {
-            toast.error('Google review score cannot be greater than 5');
+        if (rowData.google_review_score !== '') {
+          const score = Number(rowData.google_review_score);
+
+          if (Number.isNaN(score)) {
+            toast.error('Google review score must be a number');
             return false;
           }
-          if (numericValue < 0) {
-            toast.error('Google review score cannot be negative');
+
+          if (score < 0 || score > 5) {
+            toast.error('Google review score must be between 0 and 5');
             return false;
           }
         }
 
-        if (rowData.google_review_count) {
-          const numericValue = parseInt(rowData.google_review_count, 10);
-          if (numericValue < 0) {
+        if (rowData.google_review_count !== '') {
+          const count = Number(rowData.google_review_count);
+
+          if (Number.isNaN(count) || !Number.isInteger(count)) {
+            toast.error('Google review count must be a valid whole number');
+            return false;
+          }
+
+          if (count < 0) {
             toast.error('Review count cannot be negative');
             return false;
           }

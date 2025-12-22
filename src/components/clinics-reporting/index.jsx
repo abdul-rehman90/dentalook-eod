@@ -3,17 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Icons } from '@/common/assets';
 
 export default function ClinicsReporting() {
+  const router = useRouter();
   const [role, setRole] = useState(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem('role');
     if (storedRole) {
       setRole(storedRole);
+      if (storedRole === 'AC') {
+        router.push('/collection-tracker');
+      }
     }
-  }, []);
+  }, [router]);
 
   const cardsData = [
     {
@@ -63,13 +68,22 @@ export default function ClinicsReporting() {
       route: '/monthly-schedule',
       title: 'Monthly Schedule Management',
       description: 'Manage and update monthly clinic schedules and closed days.'
+    },
+    {
+      id: '9',
+      route: '/collection-tracker',
+      title: 'Collection Tracker',
+      description: 'Track production and payment details across clinics.'
     }
   ];
 
-  const filteredCards =
-    role === 'LT'
-      ? cardsData
-      : cardsData.filter((card) => card.title !== 'Clinic Adjustment');
+  const filteredCards = role === 'LT'
+    ? cardsData
+    : cardsData.filter(
+        (card) =>
+          card.title !== 'Clinic Adjustment' &&
+          card.title !== 'Collection Tracker'
+      );
 
   return (
     <React.Fragment>
