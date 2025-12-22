@@ -27,6 +27,10 @@ export default function FileUploadSection({ eodSubmissionId }) {
     file: null,
     visible: false
   });
+  const [deleteModal, setDeleteModal] = useState({
+    file: null,
+    visible: false
+  });
 
   const handleUpload = (file) => {
     if (!isValidFileType(file)) {
@@ -71,6 +75,7 @@ export default function FileUploadSection({ eodSubmissionId }) {
     // 🟡 Pending → frontend only
     if (fileToRemove?.status === 'pending') {
       setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
+      setDeleteModal({ file: null, visible: false });
       toast.success('File removed from upload queue');
       return;
     }
@@ -81,10 +86,15 @@ export default function FileUploadSection({ eodSubmissionId }) {
         await EODReportService.deletePaymentDocById(fileToRemove.id);
         setUploadedFiles((prev) => prev.filter((f) => f.uid !== uid));
         toast.success('Document deleted successfully');
+        setDeleteModal({ file: null, visible: false });
       } catch {
         toast.error('Failed to delete document');
       }
     }
+  };
+
+  const showDeleteConfirmation = (file) => {
+    setDeleteModal({ file, visible: true });
   };
 
   const handleUploadToServer = async () => {
@@ -309,7 +319,7 @@ export default function FileUploadSection({ eodSubmissionId }) {
                         icon={<DeleteOutlined />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRemove(file.uid);
+                          showDeleteConfirmation(file);
                         }}
                       />
                     ]}
@@ -328,7 +338,7 @@ export default function FileUploadSection({ eodSubmissionId }) {
                           )}
                           {file.status === 'done' && (
                             <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                              {file.isExisting ? 'Existing' : 'Uploaded'}
+                              Uploaded
                             </span>
                           )}
                         </div>
@@ -376,6 +386,38 @@ export default function FileUploadSection({ eodSubmissionId }) {
         <div className="p-3">
           {previewModal.file && renderPreviewContent(previewModal.file)}
         </div>
+      </Modal>
+      <Modal
+        centered
+        width={400}
+        open={deleteModal.visible}
+        onCancel={() => setDeleteModal({ file: null, visible: false })}
+        title={
+          <div className="p-3">
+            <h4 className="text-lg font-semibold text-gray-800">
+              Confirm Delete
+            </h4>
+          </div>
+        }
+        footer={[
+          <div className="flex justify-end gap-2 p-3">
+            <Button
+              key="cancel"
+              onClick={() => setDeleteModal({ file: null, visible: false })}
+            >
+              Cancel
+            </Button>
+            <Button
+              danger
+              key="delete"
+              onClick={() => handleRemove(deleteModal.file?.uid)}
+            >
+              Delete
+            </Button>
+          </div>
+        ]}
+      >
+        <p>Are you sure you want to delete "{deleteModal.file?.name}"?</p>
       </Modal>
     </Card>
   );

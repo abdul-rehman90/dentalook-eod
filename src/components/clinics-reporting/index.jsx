@@ -3,17 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Icons } from '@/common/assets';
 
 export default function ClinicsReporting() {
+  const router = useRouter();
   const [role, setRole] = useState(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem('role');
     if (storedRole) {
       setRole(storedRole);
+      if (storedRole === 'AC') {
+        router.push('/collection-tracker');
+      }
     }
-  }, []);
+  }, [router]);
 
   const cardsData = [
     {
@@ -72,14 +77,13 @@ export default function ClinicsReporting() {
     }
   ];
 
-  const filteredCards =
-    role === 'LT' || role === 'AC'
-      ? cardsData
-      : cardsData.filter(
-          (card) =>
-            card.title !== 'Clinic Adjustment' &&
-            card.title !== 'Collection Tracker'
-        );
+  const filteredCards = role === 'LT'
+    ? cardsData
+    : cardsData.filter(
+        (card) =>
+          card.title !== 'Clinic Adjustment' &&
+          card.title !== 'Collection Tracker'
+      );
 
   return (
     <React.Fragment>
