@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle
+} from 'react';
 import toast from 'react-hot-toast';
 import { Upload, Button, List, Modal } from 'antd';
 import { getUserAndToken } from '@/common/utils/auth-user';
@@ -19,7 +24,7 @@ import {
 
 const { Dragger } = Upload;
 
-export default function FileUploadSection({ eodSubmissionId }) {
+export default forwardRef(function FileUploadSection({ eodSubmissionId }, ref) {
   const { token } = getUserAndToken();
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -31,6 +36,10 @@ export default function FileUploadSection({ eodSubmissionId }) {
     file: null,
     visible: false
   });
+
+  useImperativeHandle(ref, () => ({
+    getUploadedFiles: () => uploadedFiles
+  }));
 
   const handleUpload = (file) => {
     if (!isValidFileType(file)) {
@@ -306,8 +315,9 @@ export default function FileUploadSection({ eodSubmissionId }) {
               <List
                 size="small"
                 dataSource={uploadedFiles}
-                renderItem={(file) => (
+                renderItem={(file, index) => (
                   <List.Item
+                    key={index}
                     onClick={() => handleFilePreview(file)}
                     className="!p-2 rounded-lg mb-2 last:mb-0 cursor-pointer hover:bg-gray-50"
                     actions={[
@@ -421,4 +431,4 @@ export default function FileUploadSection({ eodSubmissionId }) {
       </Modal>
     </Card>
   );
-}
+});

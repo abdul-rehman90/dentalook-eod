@@ -123,8 +123,9 @@ export default function FileListSection({ filters }) {
               <List
                 size="small"
                 dataSource={files}
-                renderItem={(file) => (
+                renderItem={(file, index) => (
                   <List.Item
+                    key={index}
                     onClick={() => handleFilePreview(file)}
                     className="!px-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors"
                   >
