@@ -7,6 +7,7 @@ import HiringTrainingEOM from './hiring-training';
 import MonthlyScheduleEOM from './monthly-schedule';
 import ClinicalUpgradeEOM from './clinical-upgrade';
 import AccountReceivableEOM from './account-receivable';
+import MonthlyFileUploadsEOM from './monthly-file-uploads';
 
 export {
   SuppliesEOM,
@@ -17,5 +18,6 @@ export {
   HiringTrainingEOM,
   MonthlyScheduleEOM,
   ClinicalUpgradeEOM,
-  AccountReceivableEOM
+  AccountReceivableEOM,
+  MonthlyFileUploadsEOM
 };

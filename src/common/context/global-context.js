@@ -26,6 +26,7 @@ const stepConfig = {
   ],
   eom: [
     { id: 'basic', name: 'Clinic Details' },
+    { id: 'fileUploads', name: 'Monthly Files Upload' },
     { id: 'account', name: 'Account Receivable' },
     { id: 'equipment', name: 'Equipment' },
     { id: 'clinical', name: 'Clinic Upgrades' },
@@ -133,6 +134,7 @@ export const AppProvider = ({ children }) => {
           }));
         } else if (type === 'eom') {
           const stepDataMapping = {
+            fileUploads: {},
             supplies: response.data.supplies || {},
             basic: response.data.basic_detail || {},
             issue: response.data.issues_ideas || [],

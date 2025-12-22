@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import FileUploadSection from './file-upload-section';
 import { GenericTable } from '@/common/components/table/table';
 import { EOMReportService } from '@/common/services/eom-report';
 import { useGlobalContext } from '@/common/context/global-context';
@@ -220,7 +219,6 @@ export default function AccountReceivable({ onNext }) {
           dataSource={tableData}
           onCellChange={handleCellChange}
         />
-        <FileUploadSection eomSubmissionId={id} />
       </div>
       <StepNavigation
         onSave={handleSave}

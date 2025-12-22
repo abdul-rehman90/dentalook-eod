@@ -6,8 +6,9 @@ import BasicDetailsEOM from './basic-details';
 import GoogleReviewsEOM from './google-reviews';
 import HiringTrainingEOM from './hiring-training';
 import ClinicalUpgradeEOM from './clinical-upgrade';
-import AccountReceivableEOM from './account-receivable';
 import MonthlyScheduleEOM from './monthly-schedule';
+import AccountReceivableEOM from './account-receivable';
+import MonthlyFileUploadsEOM from './monthly-file-uploads';
 
 export {
   ListEOM,
@@ -18,6 +19,7 @@ export {
   GoogleReviewsEOM,
   HiringTrainingEOM,
   ClinicalUpgradeEOM,
+  MonthlyScheduleEOM,
   AccountReceivableEOM,
-  MonthlyScheduleEOM
+  MonthlyFileUploadsEOM
 };
