@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import FileListSection from './file-list-section';
-import { DatePicker, Select, Row, Col } from 'antd';
+import { DatePicker, Select, Row, Col, Input } from 'antd';
 import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
+import { Card, CardHeader, CardTitle } from '@/common/components/card/card';
 import { CollectionTrackerService } from '@/common/services/collection-tracker';
+
+const { TextArea } = Input;
 
 const yesterday = dayjs().subtract(1, 'day');
 
@@ -326,6 +329,30 @@ export default function CollectionTracker() {
               File Attachements
             </p>
             <FileListSection filters={filters} />
+            <Card className="!p-0 !gap-0 border border-secondary-50 mt-4">
+              <CardHeader className="!gap-0 !px-4 !py-3 bg-gray-50 rounded-tl-xl rounded-tr-xl border-b border-secondary-50">
+                <CardTitle className="text-[15px] font-medium text-black">
+                  Payment Notes
+                </CardTitle>
+              </CardHeader>
+              <TextArea
+                rows={4}
+                readOnly
+                placeholder="No notes available..."
+                value={tableData.payment[0]?.notes || ''}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  height: '170px',
+                  fontSize: '15px',
+                  boxShadow: 'none',
+                  color: '#777B8B',
+                  borderRadius: '12px',
+                  padding: '10px 16px',
+                  backgroundColor: '#f9f9f9'
+                }}
+              />
+            </Card>
           </Col>
         </Row>
       </div>
