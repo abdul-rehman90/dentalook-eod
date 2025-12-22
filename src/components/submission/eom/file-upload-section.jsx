@@ -298,8 +298,9 @@ export default function FileUploadSection({ eomSubmissionId }) {
               <List
                 size="small"
                 dataSource={uploadedFiles}
-                renderItem={(file) => (
+                renderItem={(file, index) => (
                   <List.Item
+                    key={index}
                     onClick={() => handleFilePreview(file)}
                     className="!p-2 rounded-lg mb-2 last:mb-0 cursor-pointer hover:bg-gray-50"
                     actions={[

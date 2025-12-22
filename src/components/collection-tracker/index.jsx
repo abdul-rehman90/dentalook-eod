@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
+import * as XLSX from 'xlsx';
 import FileListSection from './file-list-section';
 import { DatePicker, Select, Row, Col, Input } from 'antd';
 import { Button } from '@/common/components/button/button';
@@ -13,6 +14,19 @@ import { CollectionTrackerService } from '@/common/services/collection-tracker';
 const { TextArea } = Input;
 
 const yesterday = dayjs().subtract(1, 'day');
+
+const paymentTypeOrder = [
+  'VISA',
+  'MASTERCARD',
+  'AMEX',
+  'DEBIT',
+  'CC/DEBIT REFUND',
+  'PATIENT E-TRANSFER',
+  'PATIENT CHEQUE',
+  'INSURANCE CHEQUE',
+  'EFT PAYMENT',
+  'CASH'
+];
 
 const normalizeTableData = (rows, totalKey) => {
   const totalRow = rows.find((i) => i.date === 'All');
@@ -140,6 +154,53 @@ export default function CollectionTracker() {
     }
 
     setFilters({ ...newFilters, ...dependentUpdates });
+  };
+
+  const exportToExcel = () => {
+    const paymentData = tableData.payment.filter((item) => !item.isTotal);
+
+    const sortedData = paymentData.sort((a, b) => {
+      const aIndex = paymentTypeOrder.indexOf(a.payment_type);
+      const bIndex = paymentTypeOrder.indexOf(b.payment_type);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+
+    const excelData = sortedData.map((item) => ({
+      Date: item.date,
+      'Clinic Name': item.clinic_name,
+      'Payment Type': item.payment_type,
+      'Insurance Company': item.insurance_company || '',
+      'Payment Amount': `$${Number(item.payment_amount).toLocaleString()}`
+    }));
+
+    const totalAmount = sortedData.reduce((sum, item) => {
+      const amount = Number(item.payment_amount) || 0;
+      return item.payment_type === 'CC/DEBIT REFUND'
+        ? sum - amount
+        : sum + amount;
+    }, 0);
+
+    excelData.push({
+      Date: 'TOTAL',
+      'Clinic Name': '',
+      'Payment Type': '',
+      'Payment Amount': `$${totalAmount.toLocaleString()}`,
+      'Insurance Company': ''
+    });
+
+    const notes = tableData.payment[0]?.notes;
+    if (notes) {
+      excelData.push({}, { Date: 'NOTES:', 'Clinic Name': notes });
+    }
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Payment Details');
+
+    const fileName = `Payment_Details_${dayjs(filters.start_date).format(
+      'YYYY-MM-DD'
+    )}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   const handleResetFilters = async () => {
@@ -312,9 +373,22 @@ export default function CollectionTracker() {
       <div className="p-4 bg-white border border-secondary-50 rounded-xl">
         <Row gutter={24}>
           <Col span={16}>
-            <p className="text-sm font-semibold text-gray-800 mb-3">
-              Payment Details
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-gray-800">
+                Payment Details
+              </p>
+              <Button
+                size="sm"
+                onClick={exportToExcel}
+                className="h-8 text-xs"
+                disabled={
+                  !tableData.payment.length ||
+                  tableData.payment.every((item) => item.isTotal)
+                }
+              >
+                Export to Excel
+              </Button>
+            </div>
             <GenericTable
               columns={paymentColumns}
               loading={tableLoading.payment}

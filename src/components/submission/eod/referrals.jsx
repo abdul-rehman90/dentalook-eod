@@ -232,6 +232,18 @@ export default function Referrals() {
   const handleSubmitEODReport = async () => {
     try {
       setLoading(true);
+
+      const paymentResponse =
+        await EODReportService.getPaymentDocBySubmissionId(id);
+      const hasPayments = paymentResponse?.data?.length > 0;
+
+      if (!hasPayments) {
+        toast.error(
+          'Required files are missing in the Payments section. Please upload them before submitting the report'
+        );
+        return;
+      }
+
       const response = await EODReportService.submissionEODReport({
         eodsubmission_id: id
       });
