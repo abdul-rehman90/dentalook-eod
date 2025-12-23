@@ -163,7 +163,7 @@ export default function CardDetailsModal({
           total_value_missed: 0,
           failed_appointments: 0,
           total_number_in_hours: 0,
-          total_recovered_hours: 0,
+          total_recovered_units: 0,
           short_notice_cancellations: 0,
           clinic_name: record.clinic_name,
           key: `mo-provider-${providerKey}`,
@@ -181,7 +181,7 @@ export default function CardDetailsModal({
         rowType: 'submission',
         provider_hours: provider.provider_hours,
         submission_date: record.submission_date,
-        total_recovered_hours: record.total_recovered_hours,
+        total_recovered_units: record.total_recovered_units,
         key: `mo-provider-${providerKey}-submission-${rIndex}`,
         total_number_in_hours: record.total_number_in_hours
           ? record.total_number_in_hours.toFixed(2)
@@ -201,8 +201,8 @@ export default function CardDetailsModal({
       grouped[providerKey].total_number_in_hours +=
         record.total_number_in_hours || 0;
       grouped[providerKey].total_value_missed += record.total_value_missed || 0;
-      grouped[providerKey].total_recovered_hours +=
-        record.total_recovered_hours || 0;
+      grouped[providerKey].total_recovered_units +=
+        record.total_recovered_units || 0;
     });
 
     // format provider totals
