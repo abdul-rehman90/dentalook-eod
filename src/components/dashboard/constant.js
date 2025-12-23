@@ -224,6 +224,17 @@ export const METRICS_MODAL_COLUMNS = {
       }
     },
     {
+      title: 'Recovered Units',
+      key: 'total_recovered_units',
+      dataIndex: 'total_recovered_units',
+      render: (value, record) => {
+        if (record.rowType === 'provider') {
+          return <span className="font-semibold text-gray-800">{value}</span>;
+        }
+        return <span>{value}</span>;
+      }
+    },
+    {
       title: 'Total Hrs',
       key: 'total_number_in_hours',
       dataIndex: 'total_number_in_hours',
