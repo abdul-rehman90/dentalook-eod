@@ -73,7 +73,8 @@ export default function Header() {
   function handleSignOut() {
     removeUserAndToken();
     localStorage.removeItem('role');
-    guardedPush('/login');
+    // Force a hard redirect to ensure cookies are cleared before middleware runs
+    window.location.href = '/login';
   }
 
   const getActiveKey = () => {

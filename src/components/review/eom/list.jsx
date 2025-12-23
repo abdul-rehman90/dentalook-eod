@@ -14,6 +14,7 @@ export default function List() {
   const [submissions, setSubmissions] = useState([]);
   const { loading, setLoading } = useGlobalContext();
   const [regionalManagers, setRegionalManagers] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [filters, setFilters] = useState({
     province: null,
     clinic_id: null,
@@ -81,11 +82,18 @@ export default function List() {
       let dependentUpdates = {};
 
       if (params.province && !params.regional_manager) {
-        setRegionalManagers(
-          data.regional_managers.map((i) => ({ value: i.id, label: i.name }))
-        );
+        const regionalManagersData = data.regional_managers.map((i) => ({
+          value: i.id,
+          label: i.name
+        }));
+        setRegionalManagers(regionalManagersData);
         setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
         dependentUpdates = { regional_manager: null, clinic_id: null };
+
+        // Auto-select if only one regional manager
+        if (regionalManagersData.length === 1) {
+          dependentUpdates.regional_manager = regionalManagersData[0].value;
+        }
       }
 
       if (params.regional_manager) {
@@ -151,13 +159,35 @@ export default function List() {
     try {
       const { data } = await EODReportService.getFilteredListData();
 
+      const provincesData = data.provinces.map((i) => ({
+        value: i.id,
+        label: i.name
+      }));
+      const regionalManagersData = data.regional_managers.map((i) => ({
+        value: i.id,
+        label: i.name
+      }));
+
+      setProvinces(provincesData);
+      setRegionalManagers(regionalManagersData);
       setClinics(data.clinics.map((i) => ({ value: i.id, label: i.name })));
-      setProvinces(data.provinces.map((i) => ({ value: i.id, label: i.name })));
-      setRegionalManagers(
-        data.regional_managers.map((i) => ({ value: i.id, label: i.name }))
-      );
+
+      // Auto-select if only one option available
+      const autoFilters = {};
+      if (provincesData.length === 1) {
+        autoFilters.province = provincesData[0].value;
+      }
+      if (regionalManagersData.length === 1) {
+        autoFilters.regional_manager = regionalManagersData[0].value;
+      }
+
+      if (Object.keys(autoFilters).length > 0) {
+        setFilters((prev) => ({ ...prev, ...autoFilters }));
+      }
+      setIsInitialized(true);
     } catch (e) {
       console.error('Error fetching filter data:', e);
+      setIsInitialized(true);
     }
   };
 
@@ -166,8 +196,10 @@ export default function List() {
   }, []);
 
   useEffect(() => {
-    fetchSubmissions();
-  }, [filters]);
+    if (isInitialized) {
+      fetchSubmissions();
+    }
+  }, [filters, isInitialized]);
 
   return (
     <React.Fragment>
