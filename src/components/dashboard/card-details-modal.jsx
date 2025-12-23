@@ -14,7 +14,6 @@ export default function CardDetailsModal({
 }) {
   let treeData = data;
   const [activeTab, setActiveTab] = useState('patients');
-  // console.log(data);
 
   const prepareNewPatientsData = (patients) => {
     const grouped = patients.reduce((acc, patient, index) => {
@@ -254,7 +253,6 @@ export default function CardDetailsModal({
         : prepareAttritionsData(attritionData);
   } else if (title === 'Missed Opportunities') {
     treeData = prepareMissedOpportunitiesData(data);
-    console.log(treeData);
   } else if (title === 'Outgoing Referrals') {
     treeData = prepareReferralsData(data || []);
   }
