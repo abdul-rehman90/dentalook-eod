@@ -27,9 +27,9 @@ jobs:
         run: |
           docker-compose -f docker-compose.yaml down
 
-      - name: Remove old images
+      - name: Remove all unused Docker data
         run: |
-          docker image prune -af
+          docker system prune -af
 
       - name: Build and start latest container
         run: |
