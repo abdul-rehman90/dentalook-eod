@@ -16,19 +16,26 @@ export function middleware(req) {
     '/collection-tracker'
   ];
 
+  const publicAuthRoutes = ['/login', '/forgot-password', '/reset-password'];
+
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
-  if (token && pathname === '/login') {
-    return NextResponse.redirect(
-      `${origin}${role === 'AC' ? '/collection-tracker' : '/clinics-reporting'}`
-    );
-  }
+  const isPublicAuthRoute = publicAuthRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   // Redirect to login if not authenticated and trying to access protected pages
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(`${origin}/login`);
+  }
+
+  // Redirect authenticated users away from public auth routes
+  if (token && role && isPublicAuthRoute) {
+    return NextResponse.redirect(
+      `${origin}${role === 'AC' ? '/collection-tracker' : '/clinics-reporting'}`
+    );
   }
 
   // AC role restrictions - only allow collection-tracker
@@ -47,6 +54,8 @@ export function middleware(req) {
 export const config = {
   matcher: [
     '/login',
+    '/forgot-password',
+    '/reset-password',
     '/calendar',
     '/dashboard',
     '/review/:path*',

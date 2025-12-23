@@ -15,6 +15,7 @@ export function setUserAndToken(token, user) {
 }
 
 export function removeUserAndToken() {
-  Cookies.remove('user');
-  Cookies.remove('auth-token');
+  Cookies.remove('user', { path: '/' });
+  Cookies.remove('auth-token', { path: '/' });
+  Cookies.remove('role', { path: '/' });
 }
