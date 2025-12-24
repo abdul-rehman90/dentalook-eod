@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Icons } from '@/common/assets';
+import { useRouter } from 'next/navigation';
 
 export default function ClinicsReporting() {
   const router = useRouter();
@@ -74,16 +74,30 @@ export default function ClinicsReporting() {
       route: '/collection-tracker',
       title: 'Collection Tracker',
       description: 'Track production and payment details across clinics.'
+    },
+    {
+      id: '10',
+      route: '/missing-data',
+      title: 'Missing Data Report',
+      description: 'Review clinics with missing or incomplete data submissions.'
     }
   ];
 
-  const filteredCards = role === 'LT'
-    ? cardsData
-    : cardsData.filter(
-        (card) =>
-          card.title !== 'Clinic Adjustment' &&
-          card.title !== 'Collection Tracker'
-      );
+  const filteredCards =
+    role === 'LT'
+      ? cardsData
+      : role === 'RM'
+      ? cardsData.filter(
+          (card) =>
+            card.title !== 'Clinic Adjustment' &&
+            card.title !== 'Collection Tracker'
+        )
+      : cardsData.filter(
+          (card) =>
+            card.title !== 'Clinic Adjustment' &&
+            card.title !== 'Collection Tracker' &&
+            card.title !== 'Missing Data Report'
+        );
 
   return (
     <React.Fragment>
