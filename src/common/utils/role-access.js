@@ -1,10 +1,12 @@
 export const ROLES = {
   LT: 'LT',
-  AC: 'AC'
+  AC: 'AC',
+  RM: 'RM'
 };
 
 export const COLLECTION_TRACKER_ALLOWED_ROLES = [ROLES.LT, ROLES.AC];
 export const CLINIC_ADJUSTMENT_ALLOWED_ROLES = [ROLES.LT];
+export const MISSING_DATA_ALLOWED_ROLES = [ROLES.RM, ROLES.LT];
 
 export function getUserRole() {
   if (typeof window !== 'undefined') {
@@ -21,6 +23,11 @@ export function hasCollectionTrackerAccess() {
 export function hasClinicAdjustmentAccess() {
   const userRole = getUserRole();
   return CLINIC_ADJUSTMENT_ALLOWED_ROLES.includes(userRole);
+}
+
+export function hasMissingDataAccess() {
+  const userRole = getUserRole();
+  return MISSING_DATA_ALLOWED_ROLES.includes(userRole);
 }
 
 export function isACRoleRestricted(route) {
