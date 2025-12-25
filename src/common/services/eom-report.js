@@ -109,6 +109,7 @@ export const EOMReportService = {
   async getAllSubmissionList(filters = {}) {
     const params = new URLSearchParams();
 
+    if (filters.status) params.append('status', filters.status);
     if (filters.province) params.append('province', filters.province);
     if (filters.clinic_id) params.append('clinic_id', filters.clinic_id);
     if (filters.regional_manager)
