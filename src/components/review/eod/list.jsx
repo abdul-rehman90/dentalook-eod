@@ -6,6 +6,16 @@ import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 
+const statusOptions = [
+  { value: 'open', label: 'Opened' },
+  { value: 'close', label: 'Closed' }
+];
+
+const submissionStatusOptions = [
+  { value: 'Completed', label: 'Submitted' },
+  { value: 'Draft', label: 'Draft' }
+];
+
 export default function List() {
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
@@ -14,9 +24,11 @@ export default function List() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [regionalManagers, setRegionalManagers] = useState([]);
   const [filters, setFilters] = useState({
+    status: null,
     province: null,
     end_date: null,
     clinic_id: null,
+    submitted: null,
     start_date: null,
     regional_manager: null
   });
@@ -138,8 +150,10 @@ export default function List() {
 
   const handleResetFilters = async () => {
     const initialFilters = {
+      status: null,
       province: null,
       end_date: null,
+      submitted: null,
       clinic_id: null,
       start_date: null,
       regional_manager: null
@@ -228,11 +242,12 @@ export default function List() {
         </div>
         <div className="flex flex-wrap gap-4 mt-3">
           <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Province
             </p>
             <Select
               showSearch
+              disabled={loading}
               options={provinces}
               optionFilterProp="label"
               value={filters.province}
@@ -242,11 +257,12 @@ export default function List() {
             />
           </div>
           <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Regional Manager
             </p>
             <Select
               showSearch
+              disabled={loading}
               optionFilterProp="label"
               style={{ width: '100%' }}
               options={regionalManagers}
@@ -258,12 +274,13 @@ export default function List() {
             />
           </div>
           <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Practice Name
             </p>
             <Select
               showSearch
               options={clinics}
+              disabled={loading}
               optionFilterProp="label"
               value={filters.clinic_id}
               style={{ width: '100%' }}
@@ -272,10 +289,41 @@ export default function List() {
             />
           </div>
           <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Status
+            </p>
+            <Select
+              showSearch
+              disabled={loading}
+              value={filters.status}
+              options={statusOptions}
+              optionFilterProp="label"
+              style={{ width: '100%' }}
+              placeholder="Select Status"
+              onChange={(value) => handleFilterChange('status', value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Submission Status
+            </p>
+            <Select
+              showSearch
+              disabled={loading}
+              optionFilterProp="label"
+              style={{ width: '100%' }}
+              value={filters.submitted}
+              options={submissionStatusOptions}
+              placeholder="Select Submission Status"
+              onChange={(value) => handleFilterChange('submitted', value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               From
             </p>
             <DatePicker
+              disabled={loading}
               allowClear={false}
               format="MM/DD/YYYY"
               placeholder="Select date"
@@ -285,10 +333,11 @@ export default function List() {
             />
           </div>
           <div className="flex flex-col gap-2 flex-1">
-            <p className="text-xs text-gray-900 font-medium whitespace-nowrap">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               To
             </p>
             <DatePicker
+              disabled={loading}
               allowClear={false}
               format="MM/DD/YYYY"
               value={filters.end_date}

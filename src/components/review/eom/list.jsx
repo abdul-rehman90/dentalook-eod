@@ -8,6 +8,11 @@ import { EOMReportService } from '@/common/services/eom-report';
 import { EODReportService } from '@/common/services/eod-report';
 import { useGlobalContext } from '@/common/context/global-context';
 
+const submissionStatusOptions = [
+  { value: 'Completed', label: 'Submitted' },
+  { value: 'Draft', label: 'Draft' }
+];
+
 export default function List() {
   const [clinics, setClinics] = useState([]);
   const [provinces, setProvinces] = useState([]);
@@ -16,6 +21,7 @@ export default function List() {
   const [regionalManagers, setRegionalManagers] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [filters, setFilters] = useState({
+    status: null,
     province: null,
     clinic_id: null,
     submission_month: null,
@@ -127,6 +133,7 @@ export default function List() {
 
   const handleResetFilters = async () => {
     const initialFilters = {
+      status: null,
       province: null,
       end_date: null,
       clinic_id: null,
@@ -222,6 +229,7 @@ export default function List() {
             </p>
             <Select
               showSearch
+              disabled={loading}
               options={provinces}
               optionFilterProp="label"
               value={filters.province}
@@ -236,6 +244,7 @@ export default function List() {
             </p>
             <Select
               showSearch
+              disabled={loading}
               optionFilterProp="label"
               style={{ width: '100%' }}
               options={regionalManagers}
@@ -253,6 +262,7 @@ export default function List() {
             <Select
               showSearch
               options={clinics}
+              disabled={loading}
               optionFilterProp="label"
               value={filters.clinic_id}
               style={{ width: '100%' }}
@@ -262,11 +272,27 @@ export default function List() {
           </div>
           <div className="flex flex-col gap-2 flex-1">
             <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
+              Submission Status
+            </p>
+            <Select
+              showSearch
+              disabled={loading}
+              value={filters.status}
+              optionFilterProp="label"
+              style={{ width: '100%' }}
+              options={submissionStatusOptions}
+              placeholder="Select Submission Status"
+              onChange={(value) => handleFilterChange('status', value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-gray-900 font-medium whitespace-nowrap">
               Submission Month
             </p>
             <DatePicker
               picker="month"
               format="MMM YYYY"
+              disabled={loading}
               allowClear={false}
               placeholder="Select date"
               style={{ width: '100%' }}

@@ -7,6 +7,7 @@ import { Button } from '@/common/components/button/button';
 import { GenericTable } from '@/common/components/table/table';
 import { EODReportService } from '@/common/services/eod-report';
 import { MissingDataService } from '@/common/services/missing-data';
+import { EditOutlined } from '@ant-design/icons';
 
 const currentMonth = dayjs().startOf('month');
 const today = dayjs();
@@ -43,6 +44,10 @@ export default function MissingData() {
       dataIndex: 'provider_type'
     },
     {
+      title: 'Provider Hours',
+      dataIndex: 'provider_hours'
+    },
+    {
       title: 'Production',
       dataIndex: 'production',
       render: (value) => (
@@ -70,6 +75,21 @@ export default function MissingData() {
         >
           {value}
         </span>
+      )
+    },
+    {
+      key: 'action',
+      title: 'Action',
+      render: (_, record) => (
+        <div className="flex items-start gap-2">
+          <Button
+            size="icon"
+            variant="destructive"
+            href={`/submission/eod/1/${record.submission_id}`}
+          >
+            <EditOutlined />
+          </Button>
+        </div>
       )
     }
   ];
@@ -190,12 +210,13 @@ export default function MissingData() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 bg-white rounded-lg">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Province
             </label>
             <Select
               showSearch
               options={provinces}
+              disabled={tableLoading}
               optionFilterProp="label"
               value={filters.province}
               placeholder="Select Province"
@@ -203,11 +224,12 @@ export default function MissingData() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Regional Manager
             </label>
             <Select
               showSearch
+              disabled={tableLoading}
               optionFilterProp="label"
               options={regionalManagers}
               value={filters.regional_manager}
@@ -218,12 +240,13 @@ export default function MissingData() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Practice Name
             </label>
             <Select
               showSearch
               options={clinics}
+              disabled={tableLoading}
               optionFilterProp="label"
               value={filters.clinic_id}
               placeholder="Select Practice"
@@ -231,21 +254,23 @@ export default function MissingData() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">From</label>
+            <label className="text-sm font-medium text-gray-700">From</label>
             <DatePicker
-              allowClear={false}
               className="w-full"
+              allowClear={false}
               format="MM/DD/YYYY"
+              disabled={tableLoading}
               value={filters.start_date}
               onChange={(date) => handleFilterChange('start_date', date)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">To</label>
+            <label className="text-sm font-medium text-gray-700">To</label>
             <DatePicker
-              allowClear={false}
               className="w-full"
+              allowClear={false}
               format="MM/DD/YYYY"
+              disabled={tableLoading}
               value={filters.end_date}
               onChange={(date) => handleFilterChange('end_date', date)}
             />
@@ -257,9 +282,9 @@ export default function MissingData() {
           Missing Data Details
         </p>
         <GenericTable
-          columns={missingDataColumns}
           loading={tableLoading}
           dataSource={tableData}
+          columns={missingDataColumns}
         />
       </div>
     </div>
