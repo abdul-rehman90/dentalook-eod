@@ -314,7 +314,7 @@ export default function CollectionTracker() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 bg-white rounded-lg">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Province
             </label>
             <Select
@@ -323,12 +323,13 @@ export default function CollectionTracker() {
               optionFilterProp="label"
               value={filters.province}
               placeholder="Select Province"
+              disabled={tableLoading.production || tableLoading.payment}
               onChange={(value) => handleFilterChange('province', value)}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Regional Manager
             </label>
             <Select
@@ -337,6 +338,7 @@ export default function CollectionTracker() {
               options={regionalManagers}
               value={filters.regional_manager}
               placeholder="Select Regional Manager"
+              disabled={tableLoading.production || tableLoading.payment}
               onChange={(value) =>
                 handleFilterChange('regional_manager', value)
               }
@@ -344,7 +346,7 @@ export default function CollectionTracker() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               Practice Name
             </label>
             <Select
@@ -353,17 +355,19 @@ export default function CollectionTracker() {
               optionFilterProp="label"
               value={filters.clinic_id}
               placeholder="Select Practice"
+              disabled={tableLoading.production || tableLoading.payment}
               onChange={(value) => handleFilterChange('clinic_id', value)}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">Date</label>
+            <label className="text-sm font-medium text-gray-700">Date</label>
             <DatePicker
               allowClear={false}
               className="w-full"
               format="MM/DD/YYYY"
               value={filters.start_date}
+              disabled={tableLoading.production || tableLoading.payment}
               onChange={(date) => handleFilterChange('start_date', date)}
             />
           </div>
